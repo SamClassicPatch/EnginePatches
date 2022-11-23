@@ -16,4 +16,5 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // Include the core library
 #include <CoreLib/Core.h>
 
+#define ENGINEPATCHES_EXPORTS
 #include "Patches.h"
