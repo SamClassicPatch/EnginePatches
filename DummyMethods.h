@@ -13,11 +13,16 @@ You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
-// Include the core library
-#include <CoreLib/Core.h>
+// Interface of various dummy methods
+class IDummy {
+  public:
+    // Empty method
+    static inline void Void(void) {
+      NOTHING;
+    };
 
-#define ENGINEPATCHES_EXPORTS
-#include "Patches.h"
-
-// Dummy methods
-#include "DummyMethods.h"
+    // Empty stream page method
+    static inline void PageFunc(INDEX iPage) {
+      (void)iPage;
+    };
+};

@@ -13,11 +13,11 @@ You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
-// Include the core library
-#include <CoreLib/Core.h>
+// Patched function
+void P_RenderView(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDrawPort &dp);
 
-#define ENGINEPATCHES_EXPORTS
-#include "Patches.h"
-
-// Dummy methods
-#include "DummyMethods.h"
+class CProjectionPatch : public CPerspectiveProjection3D {
+  public:
+    // Prepare the perspective projection
+    void P_Prepare(void);
+};

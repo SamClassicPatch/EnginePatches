@@ -13,6 +13,12 @@
       <UniqueIdentifier>{f483e665-b347-4776-8c97-9c8eae695c22}</UniqueIdentifier>
       <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
     </Filter>
+    <Filter Include="Source Files\Patches">
+      <UniqueIdentifier>{b751760f-43ab-4897-a68a-8ebfc568ead7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Patches headers">
+      <UniqueIdentifier>{25a9adce-b4ce-48a9-aa55-9ca54a662ccf}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Patches.h">
@@ -21,6 +27,24 @@
     <ClInclude Include="StdH.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Patches\UnpageStreams.h">
+      <Filter>Header Files\Patches headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Patches\Strings.h">
+      <Filter>Header Files\Patches headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Patches\SoundLibrary.h">
+      <Filter>Header Files\Patches headers</Filter>
+    </ClInclude>
+    <ClInclude Include="DummyMethods.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Patches\Network.h">
+      <Filter>Header Files\Patches headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Patches\Rendering.h">
+      <Filter>Header Files\Patches headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Patches.cpp">
@@ -28,6 +52,21 @@
     </ClCompile>
     <ClCompile Include="StdH.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Patches\Network.cpp">
+      <Filter>Source Files\Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="Patches\Rendering.cpp">
+      <Filter>Source Files\Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="Patches\SoundLibrary.cpp">
+      <Filter>Source Files\Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="Patches\Strings.cpp">
+      <Filter>Source Files\Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="Patches\UnpageStreams.cpp">
+      <Filter>Source Files\Patches</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

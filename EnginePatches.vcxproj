@@ -19,11 +19,22 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DummyMethods.h" />
     <ClInclude Include="Patches.h" />
+    <ClInclude Include="Patches\Network.h" />
+    <ClInclude Include="Patches\Rendering.h" />
+    <ClInclude Include="Patches\SoundLibrary.h" />
+    <ClInclude Include="Patches\Strings.h" />
+    <ClInclude Include="Patches\UnpageStreams.h" />
     <ClInclude Include="StdH.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Patches.cpp" />
+    <ClCompile Include="Patches\UnpageStreams.cpp" />
+    <ClCompile Include="Patches\Network.cpp" />
+    <ClCompile Include="Patches\Rendering.cpp" />
+    <ClCompile Include="Patches\SoundLibrary.cpp" />
+    <ClCompile Include="Patches\Strings.cpp" />
     <ClCompile Include="StdH.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_TSE107|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_TSE105|Win32'">Create</PrecompiledHeader>

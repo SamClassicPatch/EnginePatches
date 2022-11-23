@@ -13,11 +13,21 @@ You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
-// Include the core library
-#include <CoreLib/Core.h>
+#include "StdH.h"
 
-#define ENGINEPATCHES_EXPORTS
-#include "Patches.h"
+#include "SoundLibrary.h"
 
-// Dummy methods
-#include "DummyMethods.h"
+void CSoundLibPatch::P_Listen(CSoundListener &sl)
+{
+  // Ignore sound listener
+  if (_EnginePatches._bNoListening) {
+    return;
+  }
+
+  // Original function code
+  if (sl.sli_lnInActiveListeners.IsLinked()) {
+    sl.sli_lnInActiveListeners.Remove();
+  }
+
+  sl_lhActiveListeners.AddTail(sl.sli_lnInActiveListeners);
+};
