@@ -46,6 +46,7 @@ class CPatches {
 
       // Patch for everything
       Strings();
+      Textures();
 
       // Patch for the game
       if (bGame) {
@@ -79,6 +80,9 @@ class CPatches {
 
     // Enhance strings usage
     void Strings(void);
+
+    // Enhance texture usage
+    void Textures(void);
 
     // Don't use memory paging in streams (called before engine initialization!)
     void UnpageStreams(void);

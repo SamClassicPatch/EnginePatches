@@ -100,6 +100,31 @@ void CPatches::Strings(void) {
   NewPatch(pUndecorated, &CStringPatch::P_Undecorated, "CTString::Undecorated()");
 };
 
+#include "Patches/Textures.h"
+
+void CPatches::Textures(void) {
+  void (CTextureData::*pCreateTex)(const CImageInfo *, MEX, INDEX, int) = &CTextureData::Create_t;
+  NewPatch(pCreateTex, &CTexDataPatch::P_Create, "CTextureData::Create_t(...)");
+
+  // Pointer to the virtual table of CTextureData
+  size_t *pVFTable = *(size_t **)&CTextureData();
+
+  // Pointer to CTextureData::Write_t()
+  typedef void (CTextureData::*CWriteTexFunc)(CTStream *);
+  CWriteTexFunc pWriteTex = *(CWriteTexFunc *)(pVFTable + 4);
+
+  NewPatch(pWriteTex, &CTexDataPatch::P_Write, "CTextureData::Write_t(...)");
+
+  void (*pProcessScript)(const CTFileName &) = &ProcessScript_t;
+  NewPatch(pProcessScript, &P_ProcessTextureScript, "ProcessScript_t(...)");
+
+  void (*pCreateTextureOut)(const CTFileName &, const CTFileName &, MEX, INDEX, int) = &CreateTexture_t;
+  NewPatch(pCreateTextureOut, &P_CreateTextureOut, "CreateTexture_t(out)");
+
+  void (*pCreateTexture)(const CTFileName &, MEX, INDEX, int) = &CreateTexture_t;
+  NewPatch(pCreateTexture, &P_CreateTexture, "CreateTexture_t(...)");
+};
+
 #include "Patches/UnpageStreams.h"
 
 void CPatches::UnpageStreams(void) {
