@@ -123,8 +123,27 @@ void CTexDataPatch::P_Write(CTStream *strm)
   *strm << iVersion;
 
   // Isolate required flags
-  ULONG ulFlags = td_ulFlags & (TEX_ALPHACHANNEL | TEX_32BIT);
-  BOOL bAlphaChannel = td_ulFlags & TEX_ALPHACHANNEL;
+  const BOOL bAlphaChannel = td_ulFlags & TEX_ALPHACHANNEL;
+
+  #if SE1_VER >= 150
+    const BOOL bCompress      = td_ulFlags & TEX_COMPRESS;
+    const BOOL bCompressAlpha = td_ulFlags & TEX_COMPRESSALPHA;
+
+    ULONG ulFlags = td_ulFlags & (TEX_ALPHACHANNEL | TEX_32BIT | TEX_EQUALIZED | TEX_TRANSPARENT
+                                | TEX_STATIC | TEX_CONSTANT | TEX_COMPRESSED | TEX_COMPRESSEDALPHA);
+
+    if (bCompress) {
+      ulFlags |= TEX_COMPRESSED;
+    }
+
+    if (bCompressAlpha) {
+      ulFlags |= TEX_COMPRESSEDALPHA;
+    }
+
+  #else
+    ULONG ulFlags = td_ulFlags & (TEX_ALPHACHANNEL | TEX_32BIT | TEX_EQUALIZED
+                                | TEX_TRANSPARENT | TEX_STATIC | TEX_CONSTANT);
+  #endif
 
   // Write chunk containing texture data
   strm->WriteID_t(CChunkID("TDAT"));
@@ -140,39 +159,65 @@ void CTexDataPatch::P_Write(CTStream *strm)
   // Save frames if texture has no global effect
   if (td_ptegEffect == NULL) {
     ASSERT(td_ctFrames > 0);
-    ASSERT(td_pulFrames != NULL);
 
-    // Write chunk containing raw frames
-    strm->WriteID_t(CChunkID("FRMS"));
+  #if SE1_VER >= 150
+    if (bCompress) {
+      // Write chunk containing compressed frames
+      strm->WriteID_t(CChunkID("FRMC"));
 
-    PIX pixFrSize = GetPixWidth() * GetPixHeight();
+      SLONG slCompressedFrameSize;
+      UBYTE *pubCompressed = Compress(slCompressedFrameSize, bCompressAlpha);
 
-    // Eventually prepare temp buffer in case of frames without alpha channel
-    UBYTE *pubTemp = NULL;
+      if (pubCompressed == NULL) {
+        ASSERTALWAYS("Cannot compress texture!");
 
-    if (!bAlphaChannel) {
-      pubTemp = (UBYTE *)AllocMemory(pixFrSize * 3);
-    }
-
-    // Write highest mipmap of each individual frame
-    for (INDEX iFrame = 0; iFrame < td_ctFrames; iFrame++) {
-      // Get first pixel of the current frame
-      ULONG *pulCurrentFrame = td_pulFrames + (iFrame * td_slFrameSize / BYTES_PER_TEXEL);
-
-      // Write frame with the alpha channel
-      if (bAlphaChannel) {
-        strm->Write_t(pulCurrentFrame, pixFrSize * 4);
-
-      // Write frame without the alpha channel
-      } else {
-        RemoveAlphaChannel( pulCurrentFrame, pubTemp, pixFrSize);
-        strm->Write_t(pubTemp, pixFrSize * 3);
+        ThrowF_t(TRANS("Cannot compress texture."));
       }
-    }
 
-    // Delete temporary buffer
-    if (pubTemp != NULL) {
-      FreeMemory(pubTemp);
+      // Write size of a compressed frame
+      *strm << slCompressedFrameSize;
+
+      // Write all compressed frames at once
+      strm->Write_t(pubCompressed, td_ctFrames * slCompressedFrameSize);
+      FreeMemory(pubCompressed);
+
+    } else
+  #endif
+    {
+      ASSERT(td_pulFrames != NULL);
+
+      // Write chunk containing raw frames
+      strm->WriteID_t(CChunkID("FRMS"));
+
+      const PIX pixFrSize = GetPixWidth() * GetPixHeight();
+
+      // Eventually prepare temp buffer in case of frames without alpha channel
+      UBYTE *pubTemp = NULL;
+
+      if (!bAlphaChannel) {
+        pubTemp = (UBYTE *)AllocMemory(pixFrSize * 3);
+      }
+
+      // Write highest mipmap of each individual frame
+      for (INDEX iFrame = 0; iFrame < td_ctFrames; iFrame++) {
+        // Get first pixel of the current frame
+        ULONG *pulCurrentFrame = td_pulFrames + (iFrame * td_slFrameSize / BYTES_PER_TEXEL);
+
+        // Write frame with the alpha channel
+        if (bAlphaChannel) {
+          strm->Write_t(pulCurrentFrame, pixFrSize * 4);
+
+        // Write frame without the alpha channel
+        } else {
+          RemoveAlphaChannel(pulCurrentFrame, pubTemp, pixFrSize);
+          strm->Write_t(pubTemp, pixFrSize * 3);
+        }
+      }
+
+      // Delete temporary buffer
+      if (pubTemp != NULL) {
+        FreeMemory(pubTemp);
+      }
     }
 
   // Save effect texture data
@@ -246,6 +291,11 @@ void CTexDataPatch::P_Write(CTStream *strm)
     strm->WriteID_t(CChunkID("BAST"));
     *strm << td_ptdBaseTexture->GetName();
   }
+
+  #if SE1_VER >= 150
+    // Don't need to compress again
+    td_ulFlags &= ~TEX_COMPRESS;
+  #endif
 };
 
 // Create new animated texture from a script
