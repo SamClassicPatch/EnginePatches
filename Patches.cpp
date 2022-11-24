@@ -77,11 +77,11 @@ void CPatches::Rendering(void) {
   NewPatch(pRenderView, &P_RenderView, "::RenderView(...)");
 
   // Pointer to the virtual table of CPerspectiveProjection3D
-  void *pVFTable = *(void **)&CPerspectiveProjection3D();
+  size_t *pVFTable = *(size_t **)&CPerspectiveProjection3D();
 
   // Pointer to CPerspectiveProjection3D::Prepare()
   typedef void (CPerspectiveProjection3D::*CPrepareFunc)(void);
-  CPrepareFunc pPrepare = ((CPrepareFunc *)pVFTable)[0];
+  CPrepareFunc pPrepare = *(CPrepareFunc *)(pVFTable + 0);
 
   NewPatch(pPrepare, &CProjectionPatch::P_Prepare, "CPerspectiveProjection3D::Prepare()");
 };
