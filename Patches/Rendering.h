@@ -13,6 +13,13 @@ You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
+#ifndef CECIL_INCL_PATCHES_RENDERING_H
+#define CECIL_INCL_PATCHES_RENDERING_H
+
+#ifdef PRAGMA_ONCE
+  #pragma once
+#endif
+
 // Patched function
 void P_RenderView(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDrawPort &dp);
 
@@ -21,3 +28,5 @@ class CProjectionPatch : public CPerspectiveProjection3D {
     // Prepare the perspective projection
     void P_Prepare(void);
 };
+
+#endif
