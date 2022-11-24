@@ -45,6 +45,9 @@
     <ClInclude Include="Patches\Rendering.h">
       <Filter>Header Files\Patches headers</Filter>
     </ClInclude>
+    <ClInclude Include="Patches\Textures.h">
+      <Filter>Header Files\Patches headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Patches.cpp">
@@ -66,6 +69,9 @@
       <Filter>Source Files\Patches</Filter>
     </ClCompile>
     <ClCompile Include="Patches\UnpageStreams.cpp">
+      <Filter>Source Files\Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="Patches\Textures.cpp">
       <Filter>Source Files\Patches</Filter>
     </ClCompile>
   </ItemGroup>
