@@ -194,8 +194,8 @@ void CFileStreamPatch::P_Close(void)
 CRemLevel::CRemLevel(void) {
   strm_strStreamDescription = "dynamic memory stream";
 
-  // Allocate enough memory for writing (128 MB)
-  P_AllocVirtualMemory((1 << 20) * 128);
+  // Allocate enough memory for writing
+  P_AllocVirtualMemory(_EnginePatches._ulMaxWriteMemory);
 };
 
 // Destructor
