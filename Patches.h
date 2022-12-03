@@ -45,19 +45,19 @@ class CPatches {
       const BOOL bEditor = GetAPI()->IsEditorApp();
 
       // Patch for everything
+      Network();
       Strings();
       Textures();
 
       // Patch for the game
       if (bGame) {
-        Network();
         Rendering();
         SoundLibrary();
       }
 
       // Patch for the server
       if (bServer) {
-        Network();
+        NOTHING;
       }
 
       // Patch for the editor
