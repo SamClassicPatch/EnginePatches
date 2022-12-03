@@ -17,6 +17,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "UnpageStreams.h"
 
+#include <Engine/Base/Unzip.h>
 #include <CoreLib/Networking/CommInterface.h>
 
 // Define CNameTable_CTFileName
@@ -92,24 +93,17 @@ void CFileStreamPatch::P_Open(const CTFileName &fnFileName, CTStream::OpenMode o
   if (om == OM_READ) {
     fstrm_pFile = NULL;
 
-    // [Cecil] NOTE: UNZIP* functions aren't exported
     if (iFile == EFP_MODZIP || iFile == EFP_BASEZIP) {
       // Retrieve ZIP handle to the file
-      //fstrm_iZipHandle = UNZIPOpen_t(fnmFullFileName);
-      FuncPtr<INDEX (*)(const CTFileName &)> pOpenFunc = ADDR_UNZIP_OPEN;
-      fstrm_iZipHandle = (pOpenFunc.pFunction)(fnmFullFileName);
+      fstrm_iZipHandle = UNZIPOpen_t(fnmFullFileName);
 
       // Allocate as much memory as the decompressed file size
-      //const SLONG slFileSize = UNZIPGetSize(fstrm_iZipHandle);
-      FuncPtr<SLONG (*)(INDEX)> pGetSizeFunc = ADDR_UNZIP_GETSIZE;
-      const SLONG slFileSize = (pGetSizeFunc.pFunction)(fstrm_iZipHandle);
+      const SLONG slFileSize = UNZIPGetSize(fstrm_iZipHandle);
 
       P_AllocVirtualMemory(slFileSize);
           
       // Read file contents into the stream
-      //UNZIPReadBlock_t(fstrm_iZipHandle, strm_pubBufferBegin, 0, slFileSize);
-      FuncPtr<void (*)(INDEX, UBYTE *, SLONG, SLONG)> pReadBlockFunc = ADDR_UNZIP_READBLOCK;
-      (pReadBlockFunc.pFunction)(fstrm_iZipHandle, strm_pubBufferBegin, 0, slFileSize);
+      UNZIPReadBlock_t(fstrm_iZipHandle, strm_pubBufferBegin, 0, slFileSize);
 
     } else if (iFile == EFP_FILE) {
       // Open file for reading
@@ -171,11 +165,8 @@ void CFileStreamPatch::P_Close(void)
     fclose(fstrm_pFile);
     fstrm_pFile = NULL;
 
-  // [Cecil] NOTE: UNZIP* functions aren't exported
   } else if (fstrm_iZipHandle >= 0) {
-    //UNZIPClose(fstrm_iZipHandle);
-    FuncPtr<void (*)(INDEX)> pCloseFunc = ADDR_UNZIP_CLOSE;
-    (pCloseFunc.pFunction)(fstrm_iZipHandle);
+    UNZIPClose(fstrm_iZipHandle);
 
     fstrm_iZipHandle = -1;
   }
