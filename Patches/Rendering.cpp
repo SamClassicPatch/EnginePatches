@@ -92,10 +92,8 @@ static void RenderViewCopy(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D 
   // Call CRenderer::Render() from the pointer
   (re.*_pRender.pFunction)();
 
-  // Call render view function for each plugin
-  FOREACHPLUGINHANDLER(GetPluginAPI()->cRenderers, IRenderingEvents, pEvents) {
-    pEvents->OnRenderView(woWorld, &enViewer, apr, &dp);
-  }
+  // Call API method after rendering the world
+  GetAPI()->OnRenderView(woWorld, &enViewer, apr, &dp);
 };
 
 // Patched function
