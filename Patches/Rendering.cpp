@@ -99,11 +99,6 @@ static void RenderViewCopy(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D 
 // Patched function
 void P_RenderView(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDrawPort &dp)
 {
-  // Set core render space for non-game applications
-  if (!GetAPI()->IsGameApp()) {
-    GetAPI()->SetDrawPort(&dp);
-  }
-
   // Set wide adjustment based on current aspect ratio
   if (_EnginePatches._bAdjustForAspectRatio) {
     dp.dp_fWideAdjustment = ((FLOAT)dp.GetHeight() / (FLOAT)dp.GetWidth()) * (4.0f / 3.0f);
