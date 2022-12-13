@@ -60,7 +60,7 @@ void CRenderer::InitClippingRectangle(PIX pixMinI, PIX pixMinJ, PIX pixSizeI, PI
 };
 
 // Pointer to CRenderer::Render()
-static FuncPtr<void (CRenderer::*)(void)> _pRender = ADDR_RENDERER_RENDER;
+static StructPtr _pRenderFunc(ADDR_RENDERER_RENDER);
 
 // RenderView() copy
 static void RenderViewCopy(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDrawPort &dp) {
@@ -90,7 +90,8 @@ static void RenderViewCopy(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D 
   re.re_ubLightIllumination = 0;
 
   // Call CRenderer::Render() from the pointer
-  (re.*_pRender.pFunction)();
+  void (CRenderer::*pDummy)(void);
+  (re.*_pRenderFunc(pDummy))();
 
   // Call API method after rendering the world
   GetAPI()->OnRenderView(woWorld, &enViewer, apr, &dp);
