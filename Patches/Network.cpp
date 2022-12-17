@@ -17,6 +17,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "Network.h"
 
+#include <CoreLib/Query/QueryManager.h>
 #include <CoreLib/Networking/NetworkFunctions.h>
 
 // Original function pointers
@@ -26,9 +27,9 @@ extern void (CCommunicationInterface::*pServerClose)(void) = NULL;
 void CComIntPatch::P_EndWinsock(void) {
   // Stop master server enumeration
   if (ms_bDebugOutput) {
-    CPutString("CCommunicationInterface::EndWinsock() -> MS_EnumCancel()\n");
+    CPutString("CCommunicationInterface::EndWinsock() -> IMasterServer::EnumCancel()\n");
   }
-  MS_EnumCancel();
+  IMasterServer::EnumCancel();
 
   // Original function code
   #if SE1_VER != 105
@@ -52,12 +53,8 @@ void CComIntPatch::P_ServerInit(void) {
   }
 
   // Start new master server
-  if (GetComm().IsNetworkEnabled())
-  {
-    if (ms_bDebugOutput) {
-      CPutString("  MS_OnServerStart()\n");
-    }
-    MS_OnServerStart();
+  if (GetComm().IsNetworkEnabled()) {
+    IMasterServer::OnServerStart();
   }
 };
 
@@ -72,12 +69,8 @@ void CComIntPatch::P_ServerClose(void) {
   // Stop new master server
   static CSymbolPtr symptr("ser_bEnumeration");
 
-  if (symptr.GetIndex())
-  {
-    if (ms_bDebugOutput) {
-      CPutString("  MS_OnServerEnd()\n");
-    }
-    MS_OnServerEnd();
+  if (symptr.GetIndex()) {
+    IMasterServer::OnServerEnd();
   }
 };
 
@@ -99,12 +92,8 @@ void CMessageDisPatch::P_SendToClientReliable(INDEX iClient, const CNetworkMessa
   // Notify master server that a player is connecting
   static CSymbolPtr symptr("ser_bEnumeration");
 
-  if (eMessage == MSG_REP_CONNECTPLAYER && symptr.GetIndex())
-  {
-    if (ms_bDebugOutput) {
-      CPutString("  MS_OnServerStateChanged()\n");
-    }
-    MS_OnServerStateChanged();
+  if (eMessage == MSG_REP_CONNECTPLAYER && symptr.GetIndex()) {
+    IMasterServer::OnServerStateChanged();
   }
 };
 
@@ -156,9 +145,9 @@ void CSessionStatePatch::P_FlushProcessedPredictions(void) {
 
   if (GetComm().IsNetworkEnabled() && symptr.GetIndex()) {
     if (ms_bDebugOutput) {
-      //CPutString("CSessionState::FlushProcessedPredictions() -> MS_OnServerUpdate()\n");
+      //CPutString("CSessionState::FlushProcessedPredictions() -> IMasterServer::OnServerUpdate()\n");
     }
-    MS_OnServerUpdate();
+    IMasterServer::OnServerUpdate();
   }
 };
 
