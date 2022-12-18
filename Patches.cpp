@@ -58,8 +58,7 @@ void CPatches::Network(void) {
   pFlushPredictions = &CSessionState::FlushProcessedPredictions;
   NewPatch(pFlushPredictions, &CSessionStatePatch::P_FlushProcessedPredictions, "CSessionState::FlushProcessedPredictions()");
 
-  extern void (CSessionState::*pProcGameStreamBlock)(CNetworkMessage &);
-  pProcGameStreamBlock = &CSessionState::ProcessGameStreamBlock;
+  void (CSessionState::*pProcGameStreamBlock)(CNetworkMessage &) = &CSessionState::ProcessGameStreamBlock;
   NewPatch(pProcGameStreamBlock, &CSessionStatePatch::P_ProcessGameStreamBlock, "CSessionState::ProcessGameStreamBlock(...)");
 
   void (CSessionState::*pStopSession)(void) = &CSessionState::Stop;

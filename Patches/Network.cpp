@@ -111,7 +111,6 @@ BOOL CMessageDisPatch::P_ReceiveFromClientReliable(INDEX iClient, CNetworkMessag
 
 // Original function pointers
 extern void (CSessionState::*pFlushPredictions)(void) = NULL;
-extern void (CSessionState::*pProcGameStreamBlock)(CNetworkMessage &) = NULL;
 
 void CSessionStatePatch::P_FlushProcessedPredictions(void) {
   // Proceed to the original function
@@ -136,10 +135,179 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
   // Call API every simulation tick
   GetAPI()->OnTick();
 
-  // If cannot handle custom packet
-  if (INetwork::ClientHandle(this, nmMessage)) {
-    // Call the original function for standard packets
-    (this->*pProcGameStreamBlock)(nmMessage);
+  // Quit if don't need to process standard packets
+  if (!INetwork::ClientHandle(this, nmMessage)) {
+    return;
+  }
+
+  switch (nmMessage.GetType())
+  {
+    // Adding a new player
+    case MSG_SEQ_ADDPLAYER: {
+      // Non-action sequence
+      _pNetwork->AddNetGraphValue(NGET_NONACTION, 1.0f);
+
+      // Read player index and the character
+      INDEX iNewPlayer;
+      CPlayerCharacter pcCharacter;
+      nmMessage >> iNewPlayer >> pcCharacter;
+
+      // Delete all predictors
+      _pNetwork->ga_World.DeletePredictors();
+
+      // Activate the player
+      ses_apltPlayers[iNewPlayer].Activate();
+
+      // Find entity with this character
+      CPlayerEntity *penNewPlayer = _pNetwork->ga_World.FindEntityWithCharacter(pcCharacter);
+
+      // If none found
+      if (penNewPlayer == NULL) {
+        // Create a new player entity
+        const CPlacement3D pl(FLOAT3D(0.0f, 0.0f, 0.0f), ANGLE3D(0.0f, 0.0f, 0.0f));
+
+        try {
+          static const CTString strPlayerClass = "Classes\\Player.ecl";
+          penNewPlayer = (CPlayerEntity *)_pNetwork->ga_World.CreateEntity_t(pl, strPlayerClass);
+
+          // Attach entity to client data
+          ses_apltPlayers[iNewPlayer].AttachEntity(penNewPlayer);
+
+          // Attach character to it
+          penNewPlayer->en_pcCharacter = pcCharacter;
+
+          // Prepare the entity
+          penNewPlayer->Initialize();
+
+        } catch (char *strError) {
+          FatalError(TRANS("Cannot load Player class:\n%s"), strError);
+        }
+
+        if (!_pNetwork->IsPlayerLocal(penNewPlayer)) {
+          CPrintF(TRANS("%s joined\n"), penNewPlayer->GetPlayerName());
+        }
+
+      // If found some entity
+      } else {
+        // Attach entity to client data
+        ses_apltPlayers[iNewPlayer].AttachEntity(penNewPlayer);
+
+        // Update its character
+        penNewPlayer->CharacterChanged(pcCharacter);
+
+        if (!_pNetwork->IsPlayerLocal(penNewPlayer)) {
+          CPrintF(TRANS("%s rejoined\n"), penNewPlayer->GetPlayerName());
+        }
+      }
+    } break;
+
+    // Removing a player
+    case MSG_SEQ_REMPLAYER: {
+      // Non-action sequence
+      _pNetwork->AddNetGraphValue(NGET_NONACTION, 1.0f);
+
+      // Read player index
+      INDEX iPlayer;
+      nmMessage >> iPlayer;
+
+      // Delete all predictors
+      _pNetwork->ga_World.DeletePredictors();
+
+      // Inform entity of disconnnection
+      CPrintF(TRANS("%s left\n"), ses_apltPlayers[iPlayer].plt_penPlayerEntity->GetPlayerName());
+      ses_apltPlayers[iPlayer].plt_penPlayerEntity->Disconnect();
+
+      // Deactivate the player
+      ses_apltPlayers[iPlayer].Deactivate();
+
+      // Handle sent entity events
+      ses_bAllowRandom = TRUE;
+      CEntity::HandleSentEvents();
+      ses_bAllowRandom = FALSE;
+    } break;
+
+    // Character change
+    case MSG_SEQ_CHARACTERCHANGE: {
+      // Non-action sequence
+      _pNetwork->AddNetGraphValue(NGET_NONACTION, 1.0f);
+
+      // Read player index and the character
+      INDEX iPlayer;
+      CPlayerCharacter pcCharacter;
+      nmMessage >> iPlayer >> pcCharacter;
+
+      // Delete all predictors
+      _pNetwork->ga_World.DeletePredictors();
+
+      // Change the character
+      ses_apltPlayers[iPlayer].plt_penPlayerEntity->CharacterChanged(pcCharacter);
+
+      // Handle sent entity events
+      ses_bAllowRandom = TRUE;
+      CEntity::HandleSentEvents();
+      ses_bAllowRandom = FALSE;
+    } break;
+
+    // Client actions
+    case MSG_SEQ_ALLACTIONS: {
+      // Read packet time
+      TIME tmPacket;
+      nmMessage >> tmPacket;
+
+      // Time must be greater than what has been previously received
+      TIME tmTickQuantum = _pTimer->TickQuantum;
+      TIME tmPacketDelta = tmPacket - ses_tmLastProcessedTick;
+
+      // Report debug info upon mistimed actions
+      if (Abs(tmPacketDelta - tmTickQuantum) >= tmTickQuantum / 10.0f) {
+        CPrintF(TRANS("Session state: Mistimed MSG_ALLACTIONS: Last received tick %g, this tick %g\n"),
+          ses_tmLastProcessedTick, tmPacket);
+      }
+
+      // Remember received tick
+      ses_tmLastProcessedTick = tmPacket;
+
+      // Don't wait for new players anymore
+      ses_bWaitAllPlayers = FALSE;
+
+      // Delete all predictors
+      _pNetwork->ga_World.DeletePredictors();
+
+      // Process the tick
+      ProcessGameTick(nmMessage, tmPacket);
+    } break;
+
+    // Pause message
+    case MSG_SEQ_PAUSE: {
+      // Non-action sequence
+      _pNetwork->AddNetGraphValue(NGET_NONACTION, 1.0f);
+
+      // Delete all predictors
+      _pNetwork->ga_World.DeletePredictors();
+
+      BOOL bPauseBefore = ses_bPause;
+
+      // Read pause state and the client
+      nmMessage >> (INDEX &)ses_bPause;
+
+      CTString strPauser;
+      nmMessage >> strPauser;
+
+      // Report who paused
+      if (ses_bPause != bPauseBefore && strPauser != TRANS("Local machine")) {
+        if (ses_bPause) {
+          CPrintF(TRANS("Paused by '%s'\n"), strPauser);
+        } else {
+          CPrintF(TRANS("Unpaused by '%s'\n"), strPauser);
+        }
+      }
+
+      // Must keep wanting current state
+      ses_bWantPause = ses_bPause;
+    } break;
+
+    // Invalid packet
+    default: ASSERT(FALSE);
   }
 };
 
