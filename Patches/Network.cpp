@@ -74,29 +74,6 @@ void CComIntPatch::P_ServerClose(void) {
   }
 };
 
-// Original function pointer
-extern void (CMessageDispatcher::*pSendToClient)(INDEX, const CNetworkMessage &) = NULL;
-
-// Server sends a reliable packet
-void CMessageDisPatch::P_SendToClientReliable(INDEX iClient, const CNetworkMessage &nmMessage) {
-  // Remember message type
-  const MESSAGETYPE eMessage = nmMessage.GetType();
-
-  // Proceed to the original function
-  (this->*pSendToClient)(iClient, nmMessage);
-
-  if (ms_bDebugOutput) {
-    CPrintF("CMessageDispatcher::SendToClientReliable(%d)\n", eMessage);
-  }
-
-  // Notify master server that a player is connecting
-  static CSymbolPtr symptr("ser_bEnumeration");
-
-  if (eMessage == MSG_REP_CONNECTPLAYER && symptr.GetIndex()) {
-    IMasterServer::OnServerStateChanged();
-  }
-};
-
 // Server receives a speciifc packet
 BOOL CMessageDisPatch::ReceiveFromClientSpecific(INDEX iClient, CNetworkMessage &nmMessage, CReceiveFunc pFunc) {
   // Receive message in static buffer

@@ -47,10 +47,6 @@ void CPatches::Network(void) {
   NewPatch(pServerClose, &CComIntPatch::P_ServerClose, "CCommunicationInterface::Server_Close()");
 
   // CMessageDispatcher
-  extern void (CMessageDispatcher::*pSendToClient)(INDEX, const CNetworkMessage &);
-  pSendToClient = &CMessageDispatcher::SendToClientReliable;
-  NewPatch(pSendToClient, &CMessageDisPatch::P_SendToClientReliable, "CMessageDispatcher::SendToClientReliable(...)");
-
   BOOL (CMessageDispatcher::*pRecFromClient)(INDEX, CNetworkMessage &) = &CMessageDispatcher::ReceiveFromClient;
   NewPatch(pRecFromClient, &CMessageDisPatch::P_ReceiveFromClient, "CMessageDispatcher::ReceiveFromClient(...)");
 
