@@ -90,7 +90,7 @@ static void RenderViewCopy(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D 
   re.re_ubLightIllumination = 0;
 
   // Call CRenderer::Render() from the pointer
-  void (CRenderer::*pDummy)(void);
+  void (CRenderer::*pDummy)(void) = NULL;
   (re.*_pRenderFunc(pDummy))();
 
   // Call API method after rendering the world
