@@ -71,7 +71,7 @@ void CFileStreamPatch::P_Create(const CTFileName &fnFileName, CTStream::CreateMo
   fstrm_pFile = fopen(fnmFullFileName, "wb+");
 
   if (fstrm_pFile == NULL) {
-    Throw_t(TRANS("Cannot create file `%s' (%s)"), fnmFullFileName.str_String, strerror(errno));
+    Throw_t(LOCALIZE("Cannot create file `%s' (%s)"), fnmFullFileName.str_String, strerror(errno));
   }
 
   // Allocate enough memory for writing
@@ -120,7 +120,7 @@ void CFileStreamPatch::P_Open(const CTFileName &fnFileName, CTStream::OpenMode o
       fread(strm_pubBufferBegin, slFileSize, 1, fstrm_pFile);
 
     } else {
-      Throw_t(TRANS("Cannot open file `%s' (%s)"), fnmFullFileName.str_String, TRANS("File not found"));
+      Throw_t(LOCALIZE("Cannot open file `%s' (%s)"), fnmFullFileName.str_String, LOCALIZE("File not found"));
     }
 
     fstrm_bReadOnly = TRUE;
@@ -134,11 +134,11 @@ void CFileStreamPatch::P_Open(const CTFileName &fnFileName, CTStream::OpenMode o
     P_AllocVirtualMemory(_EnginePatches._ulMaxWriteMemory);
 
   } else {
-    FatalError(TRANS("File stream opening requested with unknown open mode: %d\n"), om);
+    FatalError(LOCALIZE("File stream opening requested with unknown open mode: %d\n"), om);
   }
 
   if (fstrm_pFile == NULL && fstrm_iZipHandle == -1) {
-    Throw_t(TRANS("Cannot open file `%s' (%s)"), fnmFullFileName.str_String, strerror(errno));
+    Throw_t(LOCALIZE("Cannot open file `%s' (%s)"), fnmFullFileName.str_String, strerror(errno));
   }
 
   strm_strStreamDescription = fnmFullFileName;
@@ -244,7 +244,7 @@ void CRemLevelPatch::P_RestoreOldLevel(const CTString &strFileName)
     _pTimer->SetCurrentTick(ses_tmLastProcessedTick);
 
   } catch (char *strError) {
-    FatalError(TRANS("Cannot restore old level '%s':\n%s"), prlOld->rl_strFileName, strError);
+    FatalError(LOCALIZE("Cannot restore old level '%s':\n%s"), prlOld->rl_strFileName, strError);
   }
 
   delete prlOld;

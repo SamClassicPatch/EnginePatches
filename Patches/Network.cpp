@@ -180,11 +180,11 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
           penNewPlayer->Initialize();
 
         } catch (char *strError) {
-          FatalError(TRANS("Cannot load Player class:\n%s"), strError);
+          FatalError(LOCALIZE("Cannot load Player class:\n%s"), strError);
         }
 
         if (!_pNetwork->IsPlayerLocal(penNewPlayer)) {
-          CPrintF(TRANS("%s joined\n"), penNewPlayer->GetPlayerName());
+          CPrintF(LOCALIZE("%s joined\n"), penNewPlayer->GetPlayerName());
         }
 
       // If found some entity
@@ -196,7 +196,7 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
         penNewPlayer->CharacterChanged(pcCharacter);
 
         if (!_pNetwork->IsPlayerLocal(penNewPlayer)) {
-          CPrintF(TRANS("%s rejoined\n"), penNewPlayer->GetPlayerName());
+          CPrintF(LOCALIZE("%s rejoined\n"), penNewPlayer->GetPlayerName());
         }
       }
     } break;
@@ -214,7 +214,7 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
       _pNetwork->ga_World.DeletePredictors();
 
       // Inform entity of disconnnection
-      CPrintF(TRANS("%s left\n"), ses_apltPlayers[iPlayer].plt_penPlayerEntity->GetPlayerName());
+      CPrintF(LOCALIZE("%s left\n"), ses_apltPlayers[iPlayer].plt_penPlayerEntity->GetPlayerName());
       ses_apltPlayers[iPlayer].plt_penPlayerEntity->Disconnect();
 
       // Deactivate the player
@@ -260,7 +260,7 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
 
       // Report debug info upon mistimed actions
       if (Abs(tmPacketDelta - tmTickQuantum) >= tmTickQuantum / 10.0f) {
-        CPrintF(TRANS("Session state: Mistimed MSG_ALLACTIONS: Last received tick %g, this tick %g\n"),
+        CPrintF(LOCALIZE("Session state: Mistimed MSG_ALLACTIONS: Last received tick %g, this tick %g\n"),
           ses_tmLastProcessedTick, tmPacket);
       }
 
@@ -294,11 +294,11 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
       nmMessage >> strPauser;
 
       // Report who paused
-      if (ses_bPause != bPauseBefore && strPauser != TRANS("Local machine")) {
+      if (ses_bPause != bPauseBefore && strPauser != LOCALIZE("Local machine")) {
         if (ses_bPause) {
-          CPrintF(TRANS("Paused by '%s'\n"), strPauser);
+          CPrintF(LOCALIZE("Paused by '%s'\n"), strPauser);
         } else {
-          CPrintF(TRANS("Unpaused by '%s'\n"), strPauser);
+          CPrintF(LOCALIZE("Unpaused by '%s'\n"), strPauser);
         }
       }
 
