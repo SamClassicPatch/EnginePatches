@@ -125,7 +125,7 @@ void CTexDataPatch::P_Write(CTStream *strm)
   // Isolate required flags
   const BOOL bAlphaChannel = td_ulFlags & TEX_ALPHACHANNEL;
 
-  #if SE1_VER >= 150
+  #if SE1_VER >= SE1_150
     const BOOL bCompress      = td_ulFlags & TEX_COMPRESS;
     const BOOL bCompressAlpha = td_ulFlags & TEX_COMPRESSALPHA;
 
@@ -160,7 +160,7 @@ void CTexDataPatch::P_Write(CTStream *strm)
   if (td_ptegEffect == NULL) {
     ASSERT(td_ctFrames > 0);
 
-  #if SE1_VER >= 150
+  #if SE1_VER >= SE1_150
     if (bCompress) {
       // Write chunk containing compressed frames
       strm->WriteID_t(CChunkID("FRMC"));
@@ -292,7 +292,7 @@ void CTexDataPatch::P_Write(CTStream *strm)
     *strm << td_ptdBaseTexture->GetName();
   }
 
-  #if SE1_VER >= 150
+  #if SE1_VER >= SE1_150
     // Don't need to compress again
     td_ulFlags &= ~TEX_COMPRESS;
   #endif
@@ -342,7 +342,7 @@ void P_ProcessTextureScript(const CTFileName &fnInput)
     } else if (strLine == "TEXTURE_32BIT") {
       ulFlags |= TEX_32BIT;
 
-#if SE1_VER >= 150
+#if SE1_VER >= SE1_150
     // Compress the entire texture
     } else if (strLine == "TEXTURE_COMPRESSED") {
       ulFlags |= TEX_COMPRESS;

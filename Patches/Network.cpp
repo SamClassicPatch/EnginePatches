@@ -32,14 +32,14 @@ void CComIntPatch::P_EndWinsock(void) {
   IMasterServer::EnumCancel();
 
   // Original function code
-  #if SE1_VER != 105
+  #if SE1_VER != SE1_105
     if (!cci_bWinSockOpen) return;
   #endif
 
   int iResult = WSACleanup();
   ASSERT(iResult == 0);
 
-  #if SE1_VER != 105
+  #if SE1_VER != SE1_105
     cci_bWinSockOpen = FALSE;
   #endif
 };
@@ -331,7 +331,7 @@ void CSessionStatePatch::P_Stop(void) {
 
   _pTimer->DisableLerp();
 
-  #if SE1_VER >= 107
+  #if SE1_VER >= SE1_107
     CNetworkMessage nmConfirmDisconnect(MSG_REP_DISCONNECTED);
 
     if (GetComm().cci_bClientInitialized) {
