@@ -17,6 +17,39 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "Strings.h"
 
+INDEX CStringPatch::P_VPrintF(const char *strFormat, va_list arg)
+{
+  // [Cecil] Resize 4 times more than vanilla
+  static const ULONG ulAddSize = 1024;
+
+  // [Cecil] Local variables instead of static
+  INDEX ctBufferSize = ulAddSize;
+  char *pchBuffer = (char *)AllocMemory(ulAddSize);
+
+  INDEX iLen;
+
+  FOREVER {
+    // Print to the buffer
+    iLen = _vsnprintf(pchBuffer, ctBufferSize, strFormat, arg);
+
+    // Stop if printed okay
+    if (iLen != -1) {
+      break;
+    }
+
+    // Increase the buffer size
+    ctBufferSize += ulAddSize;
+    GrowMemory((void **)&pchBuffer, ctBufferSize);
+  }
+
+  ((CTString &)*this) = pchBuffer;
+
+  // [Cecil] Free local buffer memory
+  FreeMemory(pchBuffer);
+
+  return iLen;
+};
+
 CTString CStringPatch::P_Undecorated(void) const {
   CTString strResult = *this;
   const char *pchSrc = str_String;

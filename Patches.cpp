@@ -98,6 +98,9 @@ void CPatches::SoundLibrary(void) {
 #include "Patches/Strings.h"
 
 void CPatches::Strings(void) {
+  INDEX (CTString::*pVPrintF)(const char *, va_list) = &CTString::VPrintF;
+  NewPatch(pVPrintF, &CStringPatch::P_VPrintF, "CTString::VPrintF(...)");
+
   CTString (CTString::*pUndecorated)(void) const = &CTString::Undecorated;
   NewPatch(pUndecorated, &CStringPatch::P_Undecorated, "CTString::Undecorated()");
 };
