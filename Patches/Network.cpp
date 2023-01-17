@@ -32,14 +32,14 @@ void CComIntPatch::P_EndWinsock(void) {
   IMasterServer::EnumCancel();
 
   // Original function code
-  #if SE1_VER != SE1_105
+  #if SE1_VER >= SE1_107
     if (!cci_bWinSockOpen) return;
   #endif
 
   int iResult = WSACleanup();
   ASSERT(iResult == 0);
 
-  #if SE1_VER != SE1_105
+  #if SE1_VER >= SE1_107
     cci_bWinSockOpen = FALSE;
   #endif
 };
