@@ -55,22 +55,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_TSE107|Win32'" Label="Configuration">
     <UseOfMfc>false</UseOfMfc>
     <PlatformToolset>v60</PlatformToolset>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_TFE105|Win32'" Label="Configuration">
     <UseOfMfc>false</UseOfMfc>
     <PlatformToolset>v60</PlatformToolset>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_TSE105|Win32'" Label="Configuration">
     <UseOfMfc>false</UseOfMfc>
     <PlatformToolset>v60</PlatformToolset>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_TSE107|Win32'" Label="Configuration">
     <UseOfMfc>false</UseOfMfc>
     <PlatformToolset>v60</PlatformToolset>
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -108,7 +108,7 @@
     <EmbedManifest>true</EmbedManifest>
     <OutDir>$(BinDir)</OutDir>
     <IntDir>$(ObjDir)</IntDir>
-    <TargetName>EnginePatches</TargetName>
+    <TargetName>ClassicsPatches</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_TSE107|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -118,7 +118,7 @@
     <EmbedManifest>true</EmbedManifest>
     <OutDir>$(BinDir)</OutDir>
     <IntDir>$(ObjDir)</IntDir>
-    <TargetName>EnginePatches</TargetName>
+    <TargetName>ClassicsPatches</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_TSE105|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -128,7 +128,7 @@
     <EmbedManifest>true</EmbedManifest>
     <OutDir>$(BinDir)</OutDir>
     <IntDir>$(ObjDir)</IntDir>
-    <TargetName>EnginePatches</TargetName>
+    <TargetName>ClassicsPatches</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_TFE105|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -138,7 +138,7 @@
     <EmbedManifest>true</EmbedManifest>
     <OutDir>$(BinDir)</OutDir>
     <IntDir>$(ObjDir)</IntDir>
-    <TargetName>EnginePatches</TargetName>
+    <TargetName>ClassicsPatches</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_TSE107|Win32'">
     <ClCompile>

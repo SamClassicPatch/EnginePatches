@@ -20,6 +20,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <CoreLib/Query/QueryManager.h>
 #include <CoreLib/Networking/NetworkFunctions.h>
 
+#include <CoreLib/Definitions/ActionBufferDefs.inl>
+#include <CoreLib/Definitions/PlayerCharacterDefs.inl>
+#include <CoreLib/Definitions/PlayerTargetDefs.inl>
+
 // Original function pointers
 extern void (CCommunicationInterface::*pServerInit)(void) = NULL;
 extern void (CCommunicationInterface::*pServerClose)(void) = NULL;

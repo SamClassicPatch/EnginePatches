@@ -18,7 +18,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "Textures.h"
 
 #include <Engine/Graphics/TextureEffects.h>
+
 #include <CoreLib/Definitions/BaseDefs.h>
+#include <CoreLib/Definitions/GraphicsDefs.inl>
+#include <CoreLib/Definitions/TextureEffectsDefs.inl>
 
 // Calculate size of one effect buffer
 static ULONG GetEffectBufferSize(CTextureData *ptd)

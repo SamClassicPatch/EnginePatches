@@ -20,6 +20,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <Engine/Base/Unzip.h>
 #include <CoreLib/Networking/CommInterface.h>
 
+#include <CoreLib/Definitions/UnzipDefs.inl>
+
 // Define CNameTable_CTFileName
 #define TYPE CTFileName
 #define CNameTable_TYPE CNameTable_CTFileName

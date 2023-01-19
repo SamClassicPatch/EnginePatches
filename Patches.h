@@ -15,11 +15,15 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 // Import library for use
 #ifndef ENGINEPATCHES_EXPORTS
-  #pragma comment(lib, "EnginePatches.lib")
+  #pragma comment(lib, "ClassicsPatches.lib")
+
+  #define PATCHES_API __declspec(dllimport)
+#else
+  #define PATCHES_API __declspec(dllexport)
 #endif
 
 // Available engine patches
-class CPatches {
+class PATCHES_API CPatches {
   public:
     // Rendering
     INDEX _bAdjustForAspectRatio;
@@ -89,4 +93,4 @@ class CPatches {
 };
 
 // Singleton for patching
-extern CPatches _EnginePatches;
+PATCHES_API extern CPatches _EnginePatches;
