@@ -56,6 +56,7 @@ class PATCHES_API CPatches {
       // Patch for the game
       if (bGame) {
         Rendering();
+        Ska();
         SoundLibrary();
       }
 
@@ -67,8 +68,12 @@ class PATCHES_API CPatches {
       // Patch for the editor
       if (bEditor) {
         Rendering();
+        Ska();
       }
     };
+
+    // Apply patches upon loading the shaders library
+    void ShadersPatches(void);
 
   // Specific patches
   public:
@@ -78,6 +83,9 @@ class PATCHES_API CPatches {
 
     // Enhance rendering
     void Rendering(void);
+
+    // Fix SKA models
+    void Ska(void);
 
     // Enhance sound library usage
     void SoundLibrary(void);

@@ -88,6 +88,47 @@ void CPatches::Rendering(void) {
   _pShell->DeclareSymbol("           user INDEX sam_bCheckFOV;",       &_EnginePatches._bCheckFOV);
 };
 
+#include "Patches/Ska.h"
+
+// SKA models have been patched
+static BOOL _bSkaPatched = FALSE;
+
+void CPatches::ShadersPatches(void) {
+  // Already patched
+  if (_bSkaPatched) return;
+
+  _bSkaPatched = TRUE;
+
+  // Create raw patches in memory
+  void (*pDoFogHazeFunc)(BOOL) = &RM_DoFogAndHaze;
+  NewRawPatch(pDoFogHazeFunc, &P_DoFogAndHaze, "RM_DoFogAndHaze(...)");
+
+  void (*pDoFogPassFunc)(void) = &shaDoFogPass;
+  CPatch::ForceRewrite(7); // Rewrite complex instruction
+  NewRawPatch(pDoFogPassFunc, &P_shaDoFogPass, "shaDoFogPass(...)");
+
+  void (*pSetWrappingFunc)(GfxWrap, GfxWrap) = &shaSetTextureWrapping;
+  NewRawPatch(pSetWrappingFunc, &P_shaSetTextureWrapping, "shaSetTextureWrapping(...)");
+};
+
+void CPatches::Ska(void) {
+  // Already patched
+  if (_bSkaPatched) return;
+
+  _bSkaPatched = TRUE;
+
+  // Create patches in the registry
+  void (*pFogHazeFunc)(BOOL) = &RM_DoFogAndHaze;
+  NewPatch(pFogHazeFunc, &P_DoFogAndHaze, "RM_DoFogAndHaze(...)");
+
+  void (*pFogPassFunc)(void) = &shaDoFogPass;
+  CPatch::ForceRewrite(7); // Rewrite complex instruction
+  NewPatch(pFogPassFunc, &P_shaDoFogPass, "shaDoFogPass(...)");
+
+  void (*pSetWrappingFunc)(GfxWrap, GfxWrap) = &shaSetTextureWrapping;
+  NewPatch(pSetWrappingFunc, &P_shaSetTextureWrapping, "shaSetTextureWrapping(...)");
+};
+
 #include "Patches/SoundLibrary.h"
 
 void CPatches::SoundLibrary(void) {

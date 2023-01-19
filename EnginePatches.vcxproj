@@ -23,6 +23,7 @@
     <ClInclude Include="Patches.h" />
     <ClInclude Include="Patches\Network.h" />
     <ClInclude Include="Patches\Rendering.h" />
+    <ClInclude Include="Patches\Ska.h" />
     <ClInclude Include="Patches\SoundLibrary.h" />
     <ClInclude Include="Patches\Strings.h" />
     <ClInclude Include="Patches\Textures.h" />
@@ -31,6 +32,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Patches.cpp" />
+    <ClCompile Include="Patches\Ska.cpp" />
     <ClCompile Include="Patches\Textures.cpp" />
     <ClCompile Include="Patches\UnpageStreams.cpp" />
     <ClCompile Include="Patches\Network.cpp" />
