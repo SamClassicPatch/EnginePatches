@@ -47,7 +47,7 @@ void CTexDataPatch::P_Create(const CImageInfo *pII, MEX mexWanted, INDEX ctFineM
   if (pII->ii_BitsPerPixel != 24 && pII->ii_BitsPerPixel != 32) {
     ASSERTALWAYS("Invalid bits per pixel for the texture creation!");
 
-    ThrowF_t(TRANS("Only 24-bit and 32-bit pictures can be processed."));
+    ThrowF_t(LOCALIZE("Only 24-bit and 32-bit pictures can be processed."));
   }
 
   // Get picture data
@@ -56,7 +56,7 @@ void CTexDataPatch::P_Create(const CImageInfo *pII, MEX mexWanted, INDEX ctFineM
 
   // Check maximum supported texture dimension
   if (pixSizeU > MAX_MEX || pixSizeV > MAX_MEX) {
-    ThrowF_t(TRANS("At least one of texture dimensions is too large."));
+    ThrowF_t(LOCALIZE("At least one of texture dimensions is too large."));
   }
 
   // Make sure picture sizes are powers of 2
@@ -108,7 +108,7 @@ void CTexDataPatch::P_Write(CTStream *strm)
 {
   // Cannot write textures that have been mangled somehow
   if (td_ptegEffect == NULL && IsModified()) {
-    ThrowF_t(TRANS("Cannot write texture that has modified frames."));
+    ThrowF_t(LOCALIZE("Cannot write texture that has modified frames."));
   }
 
   // Should not have the same name as the base texture
@@ -116,7 +116,7 @@ void CTexDataPatch::P_Write(CTStream *strm)
     CTFileName fnTex = strm->GetDescription();
 
     if (fnTex == td_ptdBaseTexture->GetName()) {
-      ThrowF_t(TRANS("Texture \"%s\" has same name as its base texture."), (CTString &)fnTex);
+      ThrowF_t(LOCALIZE("Texture \"%s\" has same name as its base texture."), (CTString &)fnTex);
     }
   }
 
@@ -366,13 +366,13 @@ void P_ProcessTextureScript(const CTFileName &fnInput)
 
     // Unrecognized keyword
     } else {
-      ThrowF_t(TRANS("Unidentified key-word found (line: \"%s\") or unexpected end of file reached."), strLine);
+      ThrowF_t(LOCALIZE("Unidentified key-word found (line: \"%s\") or unexpected end of file reached."), strLine);
     }
   }
 
   // Unusual amount of data
   if (ctFoundData != 2) {
-    ThrowF_t(TRANS("Required key-word(s) has not been specified in script file:\nTEXTURE_WIDTH and/or ANIM_START"));
+    ThrowF_t(LOCALIZE("Required key-word(s) has not been specified in script file:\nTEXTURE_WIDTH and/or ANIM_START"));
   }
 
   // Now we will create texture file form read script data
@@ -423,7 +423,7 @@ void P_CreateTextureOut(const CTFileName &fnInput, const CTFileName &fnOutput, M
   } else {
     // Invalid mexel units
     if (mexInput <= 0) {
-      ThrowF_t(TRANS("Invalid or unspecified mexel units."));
+      ThrowF_t(LOCALIZE("Invalid or unspecified mexel units."));
     }
 
     // [Cecil] Use patched class
