@@ -88,6 +88,8 @@ void CPatches::Rendering(void) {
   _pShell->DeclareSymbol("           user INDEX sam_bCheckFOV;",       &_EnginePatches._bCheckFOV);
 };
 
+#if SE1_VER >= SE1_107
+
 #include "Patches/Ska.h"
 
 // SKA models have been patched
@@ -128,6 +130,8 @@ void CPatches::Ska(void) {
   void (*pSetWrappingFunc)(GfxWrap, GfxWrap) = &shaSetTextureWrapping;
   NewPatch(pSetWrappingFunc, &P_shaSetTextureWrapping, "shaSetTextureWrapping(...)");
 };
+
+#endif
 
 #include "Patches/SoundLibrary.h"
 

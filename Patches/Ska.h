@@ -22,6 +22,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <CoreLib/Interfaces/GfxFunctions.h>
 
+// SKA models are only usable since 1.07
+#if SE1_VER >= SE1_107
+
 // SKA patch variables
 class CSkaPatch {
   public:
@@ -104,5 +107,7 @@ PATCHES_API void P_shaDoFogPass(void);
 
 // Set texture wrapping
 PATCHES_API void P_shaSetTextureWrapping(GfxWrap eWrapU, GfxWrap eWrapV);
+
+#endif
 
 #endif

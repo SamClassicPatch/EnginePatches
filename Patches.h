@@ -53,27 +53,29 @@ class PATCHES_API CPatches {
       Strings();
       Textures();
 
-      // Patch for the game
-      if (bGame) {
+      // Patch for the game and the editor
+      if (bGame || bEditor) {
         Rendering();
-        Ska();
-        SoundLibrary();
+
+        #if SE1_VER >= SE1_107
+          Ska();
+        #endif
+
+        if (bGame) {
+          SoundLibrary();
+        }
       }
 
       // Patch for the server
       if (bServer) {
         NOTHING;
       }
-
-      // Patch for the editor
-      if (bEditor) {
-        Rendering();
-        Ska();
-      }
     };
 
-    // Apply patches upon loading the shaders library
-    void ShadersPatches(void);
+    #if SE1_VER >= SE1_107
+      // Apply patches upon loading the shaders library
+      void ShadersPatches(void);
+    #endif
 
   // Specific patches
   public:
@@ -84,8 +86,10 @@ class PATCHES_API CPatches {
     // Enhance rendering
     void Rendering(void);
 
-    // Fix SKA models
-    void Ska(void);
+    #if SE1_VER >= SE1_107
+      // Fix SKA models
+      void Ska(void);
+    #endif
 
     // Enhance sound library usage
     void SoundLibrary(void);
