@@ -96,11 +96,6 @@ void P_DoFogAndHaze(BOOL bOpaqueSurface) {
 
 // Render additional pass for fog and haze
 void P_shaDoFogPass(void) {
-  // No fog for fullbright
-  if (shaGetFlags() & BASE_FULL_BRIGHT) {
-    return;
-  }
-
   // Reset temporary arrays
   _SkaPatch.ResetArrays();
 
