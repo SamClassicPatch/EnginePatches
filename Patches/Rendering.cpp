@@ -114,19 +114,21 @@ void P_RenderView(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDr
     return;
   }
 
+  // Perspective view properties
+  CPerspectiveProjection3D &ppr = *((CPerspectiveProjection3D *)(CProjection3D *)apr);
+  FLOAT2D vScreen(dp.GetWidth(), dp.GetHeight());
+
+  const FLOAT fOppositeAspectRatio = (vScreen(2) / vScreen(1)) * (4.0f / 3.0f);
+  FLOAT &fNewFOV = ppr.ppr_FOVWidth;
+
+  // Identify the viewer
   BOOL bPlayer = IsDerivedFromClass(&enViewer, "PlayerEntity");
   BOOL bView = IsOfClass(&enViewer, "Player View");
 
   // Change FOV for the player view
   if (bPlayer || bView) {
-    CPerspectiveProjection3D &ppr = *((CPerspectiveProjection3D *)(CProjection3D *)apr);
-
-    FLOAT2D vScreen(dp.GetWidth(), dp.GetHeight());
-
     // Adjust clip distance according to the aspect ratio
-    ppr.FrontClipDistanceL() *= (vScreen(2) / vScreen(1)) * (4.0f / 3.0f);
-
-    FLOAT &fNewFOV = ppr.ppr_FOVWidth;
+    ppr.FrontClipDistanceL() *= fOppositeAspectRatio;
 
     // Set custom FOV if not zooming in
     if (fNewFOV > 80.0f) {
@@ -169,6 +171,10 @@ void P_RenderView(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDr
     }
 
     _EnginePatches._bCheckFOV = FALSE;
+
+  // [Cecil] TEMP: Unpatch FOV when viewing through any other entity
+  } else if (_EnginePatches._bUseVerticalFOV > 1) {
+    fNewFOV = ATan(Tan(fNewFOV * 0.5f) * fOppositeAspectRatio / ppr.pr_AspectRatio) * 2.0f;
   }
 
   // Proceed to the original function
