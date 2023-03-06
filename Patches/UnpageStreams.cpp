@@ -20,7 +20,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <Engine/Base/Unzip.h>
 #include <CoreLib/Networking/CommInterface.h>
 
-#include <CoreLib/Definitions/UnzipDefs.inl>
+#include <CoreLib/Base/Unzip.h>
 
 // Define CNameTable_CTFileName
 #define TYPE CTFileName
@@ -97,15 +97,15 @@ void CFileStreamPatch::P_Open(const CTFileName &fnFileName, CTStream::OpenMode o
 
     if (iFile == EFP_MODZIP || iFile == EFP_BASEZIP) {
       // Retrieve ZIP handle to the file
-      fstrm_iZipHandle = UNZIPOpen_t(fnmFullFileName);
+      fstrm_iZipHandle = IUnzip::Open_t(fnmFullFileName);
 
       // Allocate as much memory as the decompressed file size
-      const SLONG slFileSize = UNZIPGetSize(fstrm_iZipHandle);
+      const SLONG slFileSize = IUnzip::GetSize(fstrm_iZipHandle);
 
       P_AllocVirtualMemory(slFileSize);
           
       // Read file contents into the stream
-      UNZIPReadBlock_t(fstrm_iZipHandle, strm_pubBufferBegin, 0, slFileSize);
+      IUnzip::ReadBlock_t(fstrm_iZipHandle, strm_pubBufferBegin, 0, slFileSize);
 
     } else if (iFile == EFP_FILE) {
       // Open file for reading
@@ -168,7 +168,7 @@ void CFileStreamPatch::P_Close(void)
     fstrm_pFile = NULL;
 
   } else if (fstrm_iZipHandle >= 0) {
-    UNZIPClose(fstrm_iZipHandle);
+    IUnzip::Close(fstrm_iZipHandle);
 
     fstrm_iZipHandle = -1;
   }
