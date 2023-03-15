@@ -51,6 +51,9 @@
     <ClInclude Include="Patches\Ska.h">
       <Filter>Header Files\Patches headers</Filter>
     </ClInclude>
+    <ClInclude Include="Patches\FileSystem.h">
+      <Filter>Header Files\Patches headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Patches.cpp">
@@ -78,6 +81,9 @@
       <Filter>Source Files\Patches</Filter>
     </ClCompile>
     <ClCompile Include="Patches\Ska.cpp">
+      <Filter>Source Files\Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="Patches\FileSystem.cpp">
       <Filter>Source Files\Patches</Filter>
     </ClCompile>
   </ItemGroup>
