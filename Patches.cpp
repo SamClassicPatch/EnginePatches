@@ -236,7 +236,9 @@ void CPatches::UnpageStreams(void) {
 #include "Patches/FileSystem.h"
 
 void CPatches::FileSystem(void) {
-  PatchStreams();
+  #ifdef _DEBUG
+    PatchStreams();
+  #endif
 
   extern void (*pInitStreams)(void);
   pInitStreams = StructPtr(ADDR_INITSTREAMS)(&P_InitStreams);
