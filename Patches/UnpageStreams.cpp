@@ -38,8 +38,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // Allocate memory normally
 void CStreamPatch::P_AllocVirtualMemory(ULONG ulBytesToAllocate)
 {
-  strm_pubBufferBegin = (UBYTE *)AllocMemory(ulBytesToAllocate);
-  strm_pubBufferEnd = strm_pubBufferBegin + ulBytesToAllocate;
+  // Allocate at least 128 bytes and align them to blocks of 64
+  ULONG ulAlloc = (ulBytesToAllocate / 64 + 2) * 64;
+
+  strm_pubBufferBegin = (UBYTE *)calloc(ulAlloc, 1);
+  strm_pubBufferEnd = strm_pubBufferBegin + ulAlloc;
 
   strm_pubCurrentPos = strm_pubBufferBegin;
   strm_pubMaxPos = strm_pubBufferBegin;
@@ -51,7 +54,7 @@ void CStreamPatch::P_AllocVirtualMemory(ULONG ulBytesToAllocate)
 void CStreamPatch::P_FreeBuffer(void)
 {
   if (strm_pubBufferBegin != NULL) {
-    FreeMemory(strm_pubBufferBegin);
+    free(strm_pubBufferBegin);
 
     strm_pubBufferBegin = NULL;
     strm_pubBufferEnd   = NULL;
@@ -103,7 +106,7 @@ void CFileStreamPatch::P_Open(const CTFileName &fnFileName, CTStream::OpenMode o
       const SLONG slFileSize = IUnzip::GetSize(fstrm_iZipHandle);
 
       P_AllocVirtualMemory(slFileSize);
-          
+
       // Read file contents into the stream
       IUnzip::ReadBlock_t(fstrm_iZipHandle, strm_pubBufferBegin, 0, slFileSize);
 
