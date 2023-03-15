@@ -29,6 +29,7 @@
     <ClInclude Include="Patches\Strings.h" />
     <ClInclude Include="Patches\Textures.h" />
     <ClInclude Include="Patches\UnpageStreams.h" />
+    <ClInclude Include="Patches\Worlds.h" />
     <ClInclude Include="StdH.h" />
   </ItemGroup>
   <ItemGroup>
@@ -41,6 +42,7 @@
     <ClCompile Include="Patches\Rendering.cpp" />
     <ClCompile Include="Patches\SoundLibrary.cpp" />
     <ClCompile Include="Patches\Strings.cpp" />
+    <ClCompile Include="Patches\Worlds.cpp" />
     <ClCompile Include="StdH.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_TSE107|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_TSE105|Win32'">Create</PrecompiledHeader>

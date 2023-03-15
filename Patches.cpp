@@ -175,6 +175,13 @@ void CPatches::Textures(void) {
   NewPatch(pCreateTexture, &P_CreateTexture, "CreateTexture_t(...)");
 };
 
+#include "Patches/Worlds.h"
+
+void CPatches::Worlds(void) {
+  void (CWorld::*pWorldLoad)(const CTFileName &) = &CWorld::Load_t;
+  NewPatch(pWorldLoad, &CWorldPatch::P_Load, "CWorld::Load_t(...)");
+};
+
 #include "Patches/UnpageStreams.h"
 
 // Specific stream patching

@@ -63,6 +63,7 @@ class PATCHES_API CPatches {
 
         if (bGame) {
           SoundLibrary();
+          Worlds();
         }
       }
 
@@ -99,6 +100,9 @@ class PATCHES_API CPatches {
 
     // Enhance texture usage
     void Textures(void);
+
+    // Enhance worlds
+    void Worlds(void);
 
   // Patches before Serious Engine and Core initialization
   public:
