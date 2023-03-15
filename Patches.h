@@ -77,7 +77,7 @@ class PATCHES_API CPatches {
       void ShadersPatches(void);
     #endif
 
-  // Specific patches
+  // Patches after Serious Engine and Core initializations
   public:
 
     // Enhance network library usage
@@ -100,7 +100,13 @@ class PATCHES_API CPatches {
     // Enhance texture usage
     void Textures(void);
 
-    // Don't use memory paging in streams (called before engine initialization!)
+  // Patches before Serious Engine and Core initialization
+  public:
+
+    // Customize core file handling in the engine
+    void FileSystem(void);
+
+    // Don't use memory paging in streams
     void UnpageStreams(void);
 };
 

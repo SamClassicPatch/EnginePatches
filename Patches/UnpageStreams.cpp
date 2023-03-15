@@ -16,6 +16,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <StdH.h>
 
 #include "UnpageStreams.h"
+#include "FileSystem.h"
 
 #include <Engine/Base/Unzip.h>
 #include <CoreLib/Networking/CommInterface.h>
@@ -68,7 +69,7 @@ void CStreamPatch::P_FreeBuffer(void)
 void CFileStreamPatch::P_Create(const CTFileName &fnFileName, CTStream::CreateMode cm)
 {
   CTFileName fnmFullFileName;
-  INDEX iFile = ExpandFilePath(EFP_WRITE, fnFileName, fnmFullFileName);
+  INDEX iFile = P_ExpandFilePath(EFP_WRITE, fnFileName, fnmFullFileName);
 
   ASSERT(fnFileName.Length() > 0);
   ASSERT(fstrm_pFile == NULL);
@@ -93,7 +94,7 @@ void CFileStreamPatch::P_Open(const CTFileName &fnFileName, CTStream::OpenMode o
   ASSERT(fstrm_pFile == NULL && fstrm_iZipHandle == -1);
 
   CTFileName fnmFullFileName;
-  INDEX iFile = ExpandFilePath((om == OM_READ) ? EFP_READ : EFP_WRITE, fnFileName, fnmFullFileName);
+  INDEX iFile = P_ExpandFilePath((om == OM_READ) ? EFP_READ : EFP_WRITE, fnFileName, fnmFullFileName);
 
   if (om == OM_READ) {
     fstrm_pFile = NULL;

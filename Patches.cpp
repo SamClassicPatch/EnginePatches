@@ -177,7 +177,14 @@ void CPatches::Textures(void) {
 
 #include "Patches/UnpageStreams.h"
 
-void CPatches::UnpageStreams(void) {
+// Specific stream patching
+static void PatchStreams(void) {
+  // Streams have been patched
+  static BOOL _bStreamsPatched = FALSE;
+
+  if (_bStreamsPatched) return;
+  _bStreamsPatched = TRUE;
+
   // CTStream
   void (CTStream::*pAllocMemory)(ULONG) = &CTStream::AllocateVirtualMemory;
   NewRawPatch(pAllocMemory, &CStreamPatch::P_AllocVirtualMemory, "CTStream::AllocateVirtualMemory(...)");
@@ -194,6 +201,10 @@ void CPatches::UnpageStreams(void) {
 
   void (CTFileStream::*pCloseFunc)(void) = &CTFileStream::Close;
   NewRawPatch(pCloseFunc, &CFileStreamPatch::P_Close, "CTFileStream::Close()");
+};
+
+void CPatches::UnpageStreams(void) {
+  PatchStreams();
 
   // Dummy methods
   void (CTStream::*pPageFunc)(INDEX) = &CTStream::CommitPage;
@@ -220,4 +231,20 @@ void CPatches::UnpageStreams(void) {
 
   void (CSessionState::*pForgetOldLevels)(void) = &CSessionState::ForgetOldLevels;
   NewRawPatch(pForgetOldLevels, &CRemLevelPatch::P_ForgetOldLevels, "CSessionState::ForgetOldLevels()");
+};
+
+#include "Patches/FileSystem.h"
+
+void CPatches::FileSystem(void) {
+  PatchStreams();
+
+  extern void (*pInitStreams)(void);
+  pInitStreams = StructPtr(ADDR_INITSTREAMS)(&P_InitStreams);
+  NewRawPatch(pInitStreams, &P_InitStreams, "::InitStreams()");
+
+  void (*pMakeDirList)(CFileList &, const CTFileName &, const CTString &, ULONG) = &MakeDirList;
+  NewRawPatch(pMakeDirList, &P_MakeDirList, "::MakeDirList(...)");
+
+  INDEX (*pExpandFilePath)(ULONG, const CTFileName &, CTFileName &) = &ExpandFilePath;
+  NewRawPatch(pExpandFilePath, &P_ExpandFilePath, "::ExpandFilePath(...)");
 };
