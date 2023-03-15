@@ -207,7 +207,7 @@ void CPatches::UnpageStreams(void) {
   PatchStreams();
 
   // Dummy methods
-  void (CTStream::*pPageFunc)(INDEX) = &CTStream::CommitPage;
+  void (CTFileStream::*pPageFunc)(INDEX) = &CTStream::CommitPage;
   NewRawPatch(pPageFunc, &IDummy::PageFunc, "CTStream::CommitPage(...)");
 
   pPageFunc = &CTStream::DecommitPage;
@@ -215,6 +215,15 @@ void CPatches::UnpageStreams(void) {
 
   pPageFunc = &CTStream::ProtectPageFromWritting;
   NewRawPatch(pPageFunc, &IDummy::PageFunc, "CTStream::ProtectPageFromWritting(...)");
+
+  pPageFunc = &CTFileStream::WritePageToFile;
+  NewRawPatch(pPageFunc, &IDummy::PageFunc, "CTFileStream::WritePageToFile(...)");
+
+  pPageFunc = &CTFileStream::FileCommitPage;
+  NewRawPatch(pPageFunc, &IDummy::PageFunc, "CTFileStream::FileCommitPage(...)");
+
+  pPageFunc = &CTFileStream::FileDecommitPage;
+  NewRawPatch(pPageFunc, &IDummy::PageFunc, "CTFileStream::FileDecommitPage(...)");
 
   void (CNetworkLibrary::*pFinishCRCFunc)(void) = &CNetworkLibrary::FinishCRCGather;
   NewRawPatch(pFinishCRCFunc, &IDummy::Void, "CNetworkLibrary::FinishCRCGather()");
