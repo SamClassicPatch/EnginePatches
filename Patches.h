@@ -22,6 +22,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #define PATCHES_API __declspec(dllexport)
 #endif
 
+// Check if the fusion mode is available (only for TSE)
+#define TSE_FUSION_MODE (SE1_GAME != SS_TFE)
+
 // Available engine patches
 class PATCHES_API CPatches {
   public:
@@ -37,6 +40,10 @@ class PATCHES_API CPatches {
 
     // Unpage streams
     ULONG _ulMaxWriteMemory; // Enough memory for writing
+
+    // Worlds
+    INDEX _bFirstEncounter; // Set if the last loaded map is from the TFE directory
+    INDEX _bReinitWorld; // Force entity reinitialization
 
   public:
     // Constructor

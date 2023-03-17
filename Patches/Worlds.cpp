@@ -35,8 +35,57 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
 
   strmFile.Close();
 
+  // [Cecil] Forced reinitialization
+  BOOL bForceReinit = _EnginePatches._bReinitWorld;
+
+  // [Cecil] Check if the level is being loaded from the TFE directory
+  #if TSE_FUSION_MODE
+    // Reset TFE state in TSE
+    _EnginePatches._bFirstEncounter = FALSE;
+
+    if (_fnmCDPath != "") {
+      CTFileName fnmFull;
+
+      // Try checking the archive path
+      if (ExpandFilePath(EFP_READ, fnmWorld, fnmFull) == EFP_BASEZIP) {
+        fnmFull = IUnzip::GetFileArchive(fnmWorld);
+      }
+
+      _EnginePatches._bFirstEncounter = fnmFull.HasPrefix(_fnmCDPath);
+    }
+
+    // Reinitialize TFE for TSE
+    bForceReinit |= _EnginePatches._bFirstEncounter;
+
+  #else
+    // Already playing TFE in TFE
+    _EnginePatches._bFirstEncounter = TRUE;
+  #endif
+
+  if (bForceReinit) {
+    SetProgressDescription(LOCALIZE("converting from old version"));
+    CallProgressHook_t(0.0f);
+
+    // Must be in 24bit mode when managing entities
+    CSetFPUPrecision FPUPrecision(FPT_24BIT);
+    CTmpPrecachingNow tpn;
+
+    // Reset every entity
+    {
+      FOREACHINDYNAMICCONTAINER(wo_cenEntities, CEntity, iten) {
+        CallProgressHook_t((FLOAT)iten.GetIndex() / (FLOAT)wo_cenEntities.Count());
+
+        // Reinitialize only rational entities
+        if (IWorld::IsRationalEntity(iten)) {
+          iten->Reinitialize();
+        }
+      }
+    }
+
+    CallProgressHook_t(1.0f);
+
   // Reinitialize and resave old levels, if needed
-  if (bNeedsReinit) {
+  } else if (bNeedsReinit) {
     SetProgressDescription(LOCALIZE("converting from old version"));
     CallProgressHook_t(0.0f);
     ReinitializeEntities();

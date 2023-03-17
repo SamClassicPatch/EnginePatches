@@ -42,7 +42,7 @@ static void LoadPackages(const CTString &strDirectory, const CTString &strMatchF
 
 // Initialize various file paths and load game content
 void P_InitStreams(void) {
-  #if SE1_GAME != SS_TFE
+  #if TSE_FUSION_MODE
     // If no CD path has been set
     if (_fnmCDPath == "") {
       // Go outside the game directory

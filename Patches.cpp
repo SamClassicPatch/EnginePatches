@@ -29,6 +29,9 @@ CPatches::CPatches() {
   _bNoListening = FALSE;
 
   _ulMaxWriteMemory = (1 << 20) * 128; // 128 MB
+
+  _bFirstEncounter = FALSE;
+  _bReinitWorld = FALSE;
 };
 
 #include "Patches/Network.h"
@@ -180,6 +183,9 @@ void CPatches::Textures(void) {
 void CPatches::Worlds(void) {
   void (CWorld::*pWorldLoad)(const CTFileName &) = &CWorld::Load_t;
   NewPatch(pWorldLoad, &CWorldPatch::P_Load, "CWorld::Load_t(...)");
+
+  // Custom symbols
+  _pShell->DeclareSymbol("user INDEX sam_bReinitWorld;", &_EnginePatches._bReinitWorld);
 };
 
 #include "Patches/UnpageStreams.h"
