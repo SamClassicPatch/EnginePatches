@@ -57,6 +57,9 @@
     <ClInclude Include="Patches\Worlds.h">
       <Filter>Header Files\Patches headers</Filter>
     </ClInclude>
+    <ClInclude Include="MapConversion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Patches.cpp">
@@ -91,6 +94,9 @@
     </ClCompile>
     <ClCompile Include="Patches\Worlds.cpp">
       <Filter>Source Files\Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="MapConversion.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

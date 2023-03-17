@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DummyMethods.h" />
+    <ClInclude Include="MapConversion.h" />
     <ClInclude Include="Patches.h" />
     <ClInclude Include="Patches\FileSystem.h" />
     <ClInclude Include="Patches\Network.h" />
@@ -33,6 +34,7 @@
     <ClInclude Include="StdH.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="MapConversion.cpp" />
     <ClCompile Include="Patches.cpp" />
     <ClCompile Include="Patches\FileSystem.cpp" />
     <ClCompile Include="Patches\Ska.cpp" />

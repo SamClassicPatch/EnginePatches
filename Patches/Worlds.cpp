@@ -16,6 +16,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "StdH.h"
 
 #include "Worlds.h"
+#include "../MapConversion.h"
 
 #include <CoreLib/Base/Unzip.h>
 
@@ -70,8 +71,15 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
     CSetFPUPrecision FPUPrecision(FPT_24BIT);
     CTmpPrecachingNow tpn;
 
+    #if TSE_FUSION_MODE
+      // Make TFE worlds TSE-compatible
+      if (_EnginePatches._bFirstEncounter) {
+        IConvertTFE::ConvertWorld(this);
+      }
+    #endif
+
     // Reset every entity
-    {
+    if (_EnginePatches._bReinitWorld) {
       FOREACHINDYNAMICCONTAINER(wo_cenEntities, CEntity, iten) {
         CallProgressHook_t((FLOAT)iten.GetIndex() / (FLOAT)wo_cenEntities.Count());
 
