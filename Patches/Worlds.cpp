@@ -63,7 +63,8 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
     _EnginePatches._bFirstEncounter = TRUE;
   #endif
 
-  if (bForceReinit) {
+  // [Cecil] Convert the world some specific way while in game
+  if (!_bWorldEditorApp && bForceReinit) {
     SetProgressDescription(LOCALIZE("converting from old version"));
     CallProgressHook_t(0.0f);
 
@@ -104,4 +105,7 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
     Save_t(fnmWorld);
     CallProgressHook_t(1.0f);
   }
+
+  // [Cecil] Call API method after loading the world
+  GetAPI()->OnWorldLoad(this, fnmWorld);
 };
