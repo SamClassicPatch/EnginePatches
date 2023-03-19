@@ -40,10 +40,75 @@ static void LoadPackages(const CTString &strDirectory, const CTString &strMatchF
   _findclose(hFile);
 };
 
+#if TSE_FUSION_MODE
+
+// New directory with TFE installation that will be set next time
+static CTString sam_strTFEDir = "";
+
+// Variable file for storing directory with TFE installation
+static CTFileName _fnmTFEDirFile = CTString("Data\\Var\\TFE_Dir.var");
+
+// Save TFE directory into a variable file
+static void SaveTFEDirectory(void *) {
+  SaveStringVar(_fnmTFEDirFile, sam_strTFEDir);
+
+  CPrintF(TRANS("Saved new directory with The First Encounter installation into '%s'!\n"), _fnmTFEDirFile.str_String);
+  CPutString(TRANS("Restart the game to load content from the new directory!\n"));
+};
+
+// Load TFE directory from a variable file
+static void LoadTFEDirectory(void) {
+  // Direct file operations because streams are not initialized yet
+  FILE *file = fopen((_fnmApplicationPath + _fnmTFEDirFile).str_String, "rb");
+
+  // Cannot open the file
+  if (file == NULL) {
+    sam_strTFEDir = "";
+    return;
+  }
+
+  // Get file size
+  fseek(file, 0, SEEK_END);
+  const SLONG slSize = ftell(file);
+  fseek(file, 0, SEEK_SET);
+
+  // Empty file
+  if (slSize <= 0) {
+    sam_strTFEDir = "";
+    fclose(file);
+    return;
+  }
+
+  // Create an empty string of the file size
+  char *strRead = new char[slSize + 1];
+  memset(strRead, '\0', slSize + 1);
+
+  // Read file contents into it and set the directory string
+  fread(strRead, sizeof(char), slSize, file);
+  sam_strTFEDir = strRead;
+
+  // Delete read string and close the file
+  delete[] strRead;
+  fclose(file);
+};
+
+#endif
+
 // Initialize various file paths and load game content
 void P_InitStreams(void) {
   #if TSE_FUSION_MODE
-    // If no CD path has been set
+    _pShell->DeclareSymbol("void SaveTFEDirectory(INDEX);", &SaveTFEDirectory);
+    _pShell->DeclareSymbol("user CTString sam_strTFEDir post:SaveTFEDirectory;", &sam_strTFEDir);
+
+    // Try loading saved TFE directory
+    LoadTFEDirectory();
+
+    // Rewrite it if it's not set yet
+    if (_fnmCDPath == "") {
+      _fnmCDPath = sam_strTFEDir;
+    }
+
+    // If CD path still hasn't been set
     if (_fnmCDPath == "") {
       // Go outside the game directory
       _fnmCDPath = _fnmApplicationPath + "..\\";
