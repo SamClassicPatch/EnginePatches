@@ -64,7 +64,7 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
   #endif
 
   // [Cecil] Convert the world some specific way while in game
-  if (!_bWorldEditorApp && bForceReinit) {
+  if (!GetAPI()->IsEditorApp() && bForceReinit) {
     SetProgressDescription(LOCALIZE("converting from old version"));
     CallProgressHook_t(0.0f);
 
