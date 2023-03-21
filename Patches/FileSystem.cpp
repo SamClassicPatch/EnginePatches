@@ -108,6 +108,11 @@ void P_InitStreams(void) {
       _fnmCDPath = sam_strTFEDir;
     }
 
+    // Add missing backslash at the end
+    if (_fnmCDPath != "" && _fnmCDPath[_fnmCDPath.Length() - 1] != '\\') {
+      _fnmCDPath += CTString("\\");
+    }
+
     // If CD path still hasn't been set
     if (_fnmCDPath == "") {
       // Go outside the game directory
@@ -123,6 +128,9 @@ void P_InitStreams(void) {
       if (dwAttrib == -1 || !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY)) {
         _fnmCDPath = CTString("");
       }
+
+      // Update directory in the command
+      sam_strTFEDir = _fnmCDPath;
     }
   #endif
 
