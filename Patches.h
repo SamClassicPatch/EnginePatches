@@ -76,7 +76,7 @@ class PATCHES_API CPatches {
 
       // Patch for the server
       if (bServer) {
-        NOTHING;
+        Worlds();
       }
     };
 
