@@ -104,23 +104,36 @@ void P_InitStreams(void) {
     LoadTFEDirectory();
 
     // Rewrite it if it's not set yet
-    if (_fnmCDPath == "") {
+    if (_fnmCDPath == "" && sam_strTFEDir != "") {
       _fnmCDPath = sam_strTFEDir;
-    }
-
-    // Add missing backslash at the end
-    if (_fnmCDPath != "" && _fnmCDPath[_fnmCDPath.Length() - 1] != '\\') {
-      _fnmCDPath += CTString("\\");
     }
 
     // If CD path still hasn't been set
     if (_fnmCDPath == "") {
-      // Go outside the game directory
-      _fnmCDPath = _fnmApplicationPath + "..\\";
-      IFiles::SetAbsolutePath(_fnmCDPath);
+      // Go outside the game directory and enter TFE nearby
+      _fnmCDPath = CTString("..\\Serious Sam Classic The First Encounter\\");
 
-      // Enter TFE directory nearby
-      _fnmCDPath += "Serious Sam Classic The First Encounter\\";
+      // Update directory in the command
+      sam_strTFEDir = _fnmCDPath;
+    }
+
+    // If any path has been set
+    if (_fnmCDPath != "") {
+      INDEX iLength = _fnmCDPath.Length();
+
+      // Add missing backslash at the end
+      if (_fnmCDPath[iLength - 1] != '\\') {
+        _fnmCDPath += CTString("\\");
+      }
+
+      // If shorter than 2 characters or doesn't start with a drive directory
+      if (iLength < 2 || _fnmCDPath[1] != ':') {
+        // Convert relative path into absolute path
+        _fnmCDPath = _fnmApplicationPath + _fnmCDPath;
+      }
+
+      // Convert the rest of the path into absolute path
+      IFiles::SetAbsolutePath(_fnmCDPath);
 
       // Reset if the directory doesn't exist
       DWORD dwAttrib = GetFileAttributesA(_fnmCDPath.str_String);
@@ -128,9 +141,6 @@ void P_InitStreams(void) {
       if (dwAttrib == -1 || !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY)) {
         _fnmCDPath = CTString("");
       }
-
-      // Update directory in the command
-      sam_strTFEDir = _fnmCDPath;
     }
   #endif
 
