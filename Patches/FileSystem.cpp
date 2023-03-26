@@ -17,6 +17,22 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "FileSystem.h"
 
+// Undefine 'new' operator in debug
+#ifndef NDEBUG
+  #undef new
+#endif
+
+#include <fstream>
+#include <sstream>
+
+// Redefine 'new' operator in debug
+#ifndef NDEBUG
+  #define new DEBUG_NEW_CT
+#endif
+
+// List of extra content directories
+static CFileList _aContentDirs;
+
 // Original function pointer
 extern void (*pInitStreams)(void) = NULL;
 
@@ -119,21 +135,8 @@ void P_InitStreams(void) {
 
     // If any path has been set
     if (_fnmCDPath != "") {
-      INDEX iLength = _fnmCDPath.Length();
-
-      // Add missing backslash at the end
-      if (_fnmCDPath[iLength - 1] != '\\') {
-        _fnmCDPath += CTString("\\");
-      }
-
-      // If shorter than 2 characters or doesn't start with a drive directory
-      if (iLength < 2 || _fnmCDPath[1] != ':') {
-        // Convert relative path into absolute path
-        _fnmCDPath = _fnmApplicationPath + _fnmCDPath;
-      }
-
-      // Convert the rest of the path into absolute path
-      IFiles::SetAbsolutePath(_fnmCDPath);
+      // Make it into a full path
+      IFiles::SetFullDirectory(_fnmCDPath);
 
       // Reset if the directory doesn't exist
       DWORD dwAttrib = GetFileAttributesA(_fnmCDPath.str_String);
@@ -143,6 +146,39 @@ void P_InitStreams(void) {
       }
     }
   #endif
+
+  // Read list of content directories without engine's streams
+  const CTFileName fnmDirList = _fnmApplicationPath + "Data\\ContentDir.lst";
+
+  if (IFiles::IsReadable(fnmDirList.str_String)) {
+    std::ifstream inDirList(fnmDirList.str_String);
+    std::string strLine;
+
+    while (std::getline(inDirList, strLine)) {
+      // Skip empty lines
+      if (strLine.find_first_not_of(" \r\n\t\\") == std::string::npos) {
+        continue;
+      }
+
+      _aContentDirs.Push() = CTString(strLine.c_str());
+    }
+  }
+
+  for (INDEX iDir = 0; iDir < _aContentDirs.Count(); iDir++) {
+    // Make directory into a full path
+    CTFileName fnmDir = _aContentDirs[iDir];
+    IFiles::SetFullDirectory(fnmDir);
+
+    // Skip if the directory doesn't exist
+    DWORD dwAttrib = GetFileAttributesA(fnmDir.str_String);
+
+    if (dwAttrib == -1 || !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY)) {
+      continue;
+    }
+
+    // Load extra packages from this directory
+    LoadPackages(fnmDir, "*.gro");
+  }
 
   // Proceed to the original function
   pInitStreams();
