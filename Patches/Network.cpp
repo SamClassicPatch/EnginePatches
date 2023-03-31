@@ -96,8 +96,8 @@ BOOL CMessageDisPatch::ReceiveFromClientSpecific(INDEX iClient, CNetworkMessage 
     nmMessage.Read(&ubType, sizeof(ubType));
     nmMessage.nm_mtType = (MESSAGETYPE)ubType;
 
-    // Replace default CServer packet processor or return TRUE to process through the original function
-    return INetwork::ServerHandle(this, iClient, nmMessage);
+    // Process received packet
+    return TRUE;
   }
 
   return bReceived;
@@ -105,12 +105,42 @@ BOOL CMessageDisPatch::ReceiveFromClientSpecific(INDEX iClient, CNetworkMessage 
 
 // Server receives a packet
 BOOL CMessageDisPatch::P_ReceiveFromClient(INDEX iClient, CNetworkMessage &nmMessage) {
-  return ReceiveFromClientSpecific(iClient, nmMessage, &CCommunicationInterface::Server_Receive_Unreliable);
+  FOREVER {
+    // Process unreliable message
+    if (ReceiveFromClientSpecific(iClient, nmMessage, &CCommunicationInterface::Server_Receive_Unreliable)) {
+      BOOL bPass = INetwork::ServerHandle(this, iClient, nmMessage);
+
+      // Exit to process through engine's CServer::Handle()
+      if (bPass) return TRUE;
+
+    // No more messages
+    } else {
+      break;
+    }
+  }
+
+  // Exit engine's loop
+  return FALSE;
 };
 
 // Server receives a reliable packet
 BOOL CMessageDisPatch::P_ReceiveFromClientReliable(INDEX iClient, CNetworkMessage &nmMessage) {
-  return ReceiveFromClientSpecific(iClient, nmMessage, &CCommunicationInterface::Server_Receive_Reliable);
+  FOREVER {
+    // Process reliable message
+    if (ReceiveFromClientSpecific(iClient, nmMessage, &CCommunicationInterface::Server_Receive_Reliable)) {
+      BOOL bPass = INetwork::ServerHandle(this, iClient, nmMessage);
+
+      // Exit to process through engine's CServer::Handle()
+      if (bPass) return TRUE;
+
+    // Proceed to unreliable messages
+    } else {
+      break;
+    }
+  }
+
+  // Exit engine's loop
+  return FALSE;
 };
 
 // Original function pointers
