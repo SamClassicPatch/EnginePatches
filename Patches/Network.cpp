@@ -365,13 +365,15 @@ void CSessionStatePatch::P_Stop(void) {
 
   _pTimer->DisableLerp();
 
-  #if SE1_VER >= SE1_107
-    CNetworkMessage nmConfirmDisconnect(MSG_REP_DISCONNECTED);
+  // Notify server about the disconnection
+  CNetworkMessage nmConfirmDisconnect((MESSAGETYPE)INetwork::PCK_REP_DISCONNECTED);
 
-    if (GetComm().cci_bClientInitialized) {
-      _pNetwork->SendToServerReliable(nmConfirmDisconnect);
-    }
-  #endif
+#if SE1_VER >= SE1_107
+  if (GetComm().cci_bClientInitialized)
+#endif
+  {
+    _pNetwork->SendToServerReliable(nmConfirmDisconnect);
+  }
 
   GetComm().Client_Close();
   ForgetOldLevels();
