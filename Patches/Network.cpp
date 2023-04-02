@@ -401,6 +401,11 @@ void CSessionStatePatch::P_Stop(void) {
   ses_apltPlayers.New(NET_MAXGAMEPLAYERS);
 };
 
+// Check if should mask player GUIDs
+static inline BOOL ShouldMaskGUIDs(void) {
+  return IProcessPacket::_bMaskGUIDs && _pNetwork->IsServer();
+};
+
 // Send synchronization packet to the server (as client) or add it to the buffer (as server)
 void CSessionStatePatch::P_MakeSynchronisationCheck(void) {
 #if SE1_VER >= SE1_107
@@ -418,7 +423,7 @@ void CSessionStatePatch::P_MakeSynchronisationCheck(void) {
   CSyncCheck scLocal;
 
   // Buffer sync checks for the server
-  if (_pNetwork->IsServer()) {
+  if (ShouldMaskGUIDs()) {
     CServer &srv = _pNetwork->ga_srvServer;
 
     // Make local checksum for each session separately
@@ -461,6 +466,11 @@ void CSessionStatePatch::P_MakeSynchronisationCheck(void) {
     scLocal.sc_iSequence = ses_iLastProcessedSequence; 
     scLocal.sc_ulCRC = ulLocalCRC;
     scLocal.sc_iLevel = ses_iLevel;
+
+    // Add local sync check to the server if not masking
+    if (_pNetwork->IsServer()) {
+      IProcessPacket::AddSyncCheck(0, scLocal);
+    }
   }
 
   IProcessPacket::_iHandlingClient = -1;
@@ -470,4 +480,74 @@ void CSessionStatePatch::P_MakeSynchronisationCheck(void) {
   nmSyncCheck.Write(&scLocal, sizeof(scLocal));
 
   _pNetwork->SendToServer(nmSyncCheck);
+};
+
+// Get player buffer from the server associated with a player entity in the world
+static CPlayerBuffer &PlayerBufferFromEntity(CPlayerEntity *pen) {
+  CStaticArray<CPlayerTarget> &aPlayerTargets = _pNetwork->ga_sesSessionState.ses_apltPlayers;
+  INDEX iBuffer = -1;
+
+  for (INDEX i = 0; i < aPlayerTargets.Count(); i++) {
+    if (aPlayerTargets[i].plt_penPlayerEntity == pen) {
+      iBuffer = i;
+      break;
+    }
+  }
+
+  ASSERT(iBuffer != -1);
+  return _pNetwork->ga_srvServer.srv_aplbPlayers[iBuffer];
+};
+
+void CPlayerEntityPatch::P_Write(CTStream *ostr) {
+  CMovableModelEntity::Write_t(ostr);
+
+  // Normal writing for clients
+  if (!ShouldMaskGUIDs() || IProcessPacket::_iHandlingClient == -1) {
+    *ostr << en_pcCharacter << en_plViewpoint;
+    return;
+  }
+
+  // Get player buffer for this entity
+  CPlayerBuffer &plb = PlayerBufferFromEntity(this);
+
+  UBYTE aubGUID[16];
+  IProcessPacket::MaskGUID(aubGUID, plb);
+
+  // Use GUID from the buffer for the current client
+  if (IProcessPacket::_iHandlingClient == plb.plb_iClient) {
+    memcpy(aubGUID, plb.plb_pcCharacter.pc_aubGUID, sizeof(aubGUID));
+  }
+
+  // Serialize CPlayerCharacter
+  ostr->WriteID_t("PLC4");
+  *ostr << en_pcCharacter.pc_strName << en_pcCharacter.pc_strTeam;
+  ostr->Write_t(aubGUID, sizeof(aubGUID));
+  ostr->Write_t(en_pcCharacter.pc_aubAppearance, sizeof(en_pcCharacter.pc_aubAppearance));
+
+  *ostr << en_plViewpoint;
+};
+
+void CPlayerEntityPatch::P_ChecksumForSync(ULONG &ulCRC, INDEX iExtensiveSyncCheck) {
+  CMovableModelEntity::ChecksumForSync(ulCRC, iExtensiveSyncCheck);
+
+  // Normal check for clients
+  if (!ShouldMaskGUIDs() || IProcessPacket::_iHandlingClient == -1) {
+    CRC_AddBlock(ulCRC, en_pcCharacter.pc_aubGUID, sizeof(en_pcCharacter.pc_aubGUID));
+    CRC_AddBlock(ulCRC, en_pcCharacter.pc_aubAppearance, sizeof(en_pcCharacter.pc_aubAppearance));
+    return;
+  }
+
+  // Get player buffer for this entity
+  CPlayerBuffer &plb = PlayerBufferFromEntity(this);
+
+  UBYTE aubGUID[16];
+  IProcessPacket::MaskGUID(aubGUID, plb);
+
+  // Use GUID from the buffer for the current client
+  if (IProcessPacket::_iHandlingClient == plb.plb_iClient) {
+    memcpy(aubGUID, plb.plb_pcCharacter.pc_aubGUID, sizeof(aubGUID));
+  }
+
+  CRC_AddBlock(ulCRC, aubGUID, sizeof(aubGUID));
+  CRC_AddBlock(ulCRC, en_pcCharacter.pc_aubAppearance, sizeof(en_pcCharacter.pc_aubAppearance));
 };

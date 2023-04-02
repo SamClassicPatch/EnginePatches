@@ -65,4 +65,11 @@ class CSessionStatePatch : public CSessionState {
     void P_MakeSynchronisationCheck(void);
 };
 
+class CPlayerEntityPatch : public CPlayerEntity {
+  public:
+    void P_Write(CTStream *ostr);
+
+    void P_ChecksumForSync(ULONG &ulCRC, INDEX iExtensiveSyncCheck);
+};
+
 #endif

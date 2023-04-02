@@ -36,6 +36,21 @@ CPatches::CPatches() {
 
 #include "Patches/Network.h"
 
+static void UpdateMaskGUIDs(void *pSymbol) {
+  BOOL &bMask = *(BOOL *)pSymbol;
+
+  // Cannot change the state of the variable while running the game as a server
+  if (_pNetwork->IsServer()) {
+    CPutString(TRANS("Cannot change the state of GUID masking while the server is running!\n"));
+
+    // Restore value
+    bMask = IProcessPacket::_bMaskGUIDs;
+    return;
+  }
+
+  IProcessPacket::_bMaskGUIDs = bMask;
+};
+
 void CPatches::Network(void) {
   // CCommunicationInterface
   void (CCommunicationInterface::*pEndWindock)(void) = &CCommunicationInterface::EndWinsock;
@@ -74,6 +89,20 @@ void CPatches::Network(void) {
 
   void (CSessionState::*pMakeSyncCheck)(void) = &CSessionState::MakeSynchronisationCheck;
   NewPatch(pMakeSyncCheck, &CSessionStatePatch::P_MakeSynchronisationCheck, "CSessionState::MakeSynchronisationCheck()");
+
+  // CPlayerEntity
+  void (CPlayerEntity::*pPlayerWrite)(CTStream *) = NULL;
+  pPlayerWrite = StructPtr(ADDR_PLAYER_WRITE)(&CPlayerEntity::Write_t);
+  NewPatch(pPlayerWrite, &CPlayerEntityPatch::P_Write, "CPlayerEntity::Write_t(...)");
+
+  void (CPlayerEntity::*pChecksumForSync)(ULONG &, INDEX) = NULL;
+  pChecksumForSync = StructPtr(ADDR_PLAYER_CHECKSUM)(&CPlayerEntity::ChecksumForSync);
+  NewPatch(pChecksumForSync, &CPlayerEntityPatch::P_ChecksumForSync, "CPlayerEntity::ChecksumForSync(...)");
+
+  // Custom symbols
+  static BOOL bMaskGUIDsCommand = TRUE;
+  _pShell->DeclareSymbol("user void UpdateMaskGUIDs(INDEX);", &UpdateMaskGUIDs);
+  _pShell->DeclareSymbol("user INDEX ser_bMaskGUIDs post:UpdateMaskGUIDs;", &bMaskGUIDsCommand);
 };
 
 #include "Patches/Rendering.h"
