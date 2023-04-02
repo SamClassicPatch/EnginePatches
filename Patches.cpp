@@ -56,6 +56,11 @@ void CPatches::Network(void) {
   BOOL (CMessageDispatcher::*pRecFromClientReliable)(INDEX, CNetworkMessage &) = &CMessageDispatcher::ReceiveFromClientReliable;
   NewPatch(pRecFromClientReliable, &CMessageDisPatch::P_ReceiveFromClientReliable, "CMessageDispatcher::ReceiveFromClientReliable(...)");
 
+  // CNetworkLibrary
+  extern void (CNetworkLibrary::*pChangeLevel)(void);
+  pChangeLevel = &CNetworkLibrary::ChangeLevel_internal;
+  NewPatch(pChangeLevel, &CNetworkPatch::P_ChangeLevelInternal, "CNetworkLibrary::ChangeLevel_internal()");
+
   // CSessionState
   extern void (CSessionState::*pFlushPredictions)(void);
   pFlushPredictions = &CSessionState::FlushProcessedPredictions;
@@ -66,6 +71,9 @@ void CPatches::Network(void) {
 
   void (CSessionState::*pStopSession)(void) = &CSessionState::Stop;
   NewPatch(pStopSession, &CSessionStatePatch::P_Stop, "CSessionState::Stop()");
+
+  void (CSessionState::*pMakeSyncCheck)(void) = &CSessionState::MakeSynchronisationCheck;
+  NewPatch(pMakeSyncCheck, &CSessionStatePatch::P_MakeSynchronisationCheck, "CSessionState::MakeSynchronisationCheck()");
 };
 
 #include "Patches/Rendering.h"

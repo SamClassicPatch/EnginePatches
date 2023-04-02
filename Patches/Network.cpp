@@ -52,6 +52,8 @@ void CComIntPatch::P_ServerInit(void) {
   // Proceed to the original function
   (this->*pServerInit)();
 
+  IProcessPacket::ClearSyncChecks();
+
   if (ms_bDebugOutput) {
     CPutString("CCommunicationInterface::Server_Init_t()\n");
   }
@@ -65,6 +67,8 @@ void CComIntPatch::P_ServerInit(void) {
 void CComIntPatch::P_ServerClose(void) {
   // Proceed to the original function
   (this->*pServerClose)();
+
+  IProcessPacket::ClearSyncChecks();
 
   if (ms_bDebugOutput) {
     CPutString("CCommunicationInterface::Server_Close()\n");
@@ -108,6 +112,8 @@ BOOL CMessageDisPatch::P_ReceiveFromClient(INDEX iClient, CNetworkMessage &nmMes
   FOREVER {
     // Process unreliable message
     if (ReceiveFromClientSpecific(iClient, nmMessage, &CCommunicationInterface::Server_Receive_Unreliable)) {
+      // Set client that's being handled
+      IProcessPacket::_iHandlingClient = iClient;
       BOOL bPass = INetwork::ServerHandle(this, iClient, nmMessage);
 
       // Exit to process through engine's CServer::Handle()
@@ -128,6 +134,8 @@ BOOL CMessageDisPatch::P_ReceiveFromClientReliable(INDEX iClient, CNetworkMessag
   FOREVER {
     // Process reliable message
     if (ReceiveFromClientSpecific(iClient, nmMessage, &CCommunicationInterface::Server_Receive_Reliable)) {
+      // Set client that's being handled
+      IProcessPacket::_iHandlingClient = iClient;
       BOOL bPass = INetwork::ServerHandle(this, iClient, nmMessage);
 
       // Exit to process through engine's CServer::Handle()
@@ -145,6 +153,17 @@ BOOL CMessageDisPatch::P_ReceiveFromClientReliable(INDEX iClient, CNetworkMessag
 
 // Original function pointers
 extern void (CSessionState::*pFlushPredictions)(void) = NULL;
+extern void (CNetworkLibrary::*pChangeLevel)(void) = NULL;
+
+void CNetworkPatch::P_ChangeLevelInternal(void) {
+  // Proceed to the original function
+  (this->*pChangeLevel)();
+
+  // Clear sync checks for each client on a new level
+  if (IsServer()) {
+    IProcessPacket::ClearSyncChecks();
+  }
+};
 
 void CSessionStatePatch::P_FlushProcessedPredictions(void) {
   // Proceed to the original function
@@ -380,4 +399,75 @@ void CSessionStatePatch::P_Stop(void) {
 
   ses_apltPlayers.Clear();
   ses_apltPlayers.New(NET_MAXGAMEPLAYERS);
+};
+
+// Send synchronization packet to the server (as client) or add it to the buffer (as server)
+void CSessionStatePatch::P_MakeSynchronisationCheck(void) {
+#if SE1_VER >= SE1_107
+  if (!GetComm().cci_bClientInitialized) return;
+#endif
+
+  // Don't check yet
+  if (ses_tmLastSyncCheck + ses_tmSyncCheckFrequency > ses_tmLastProcessedTick) {
+    return;
+  }
+
+  ses_tmLastSyncCheck = ses_tmLastProcessedTick;
+
+  ULONG ulLocalCRC;
+  CSyncCheck scLocal;
+
+  // Buffer sync checks for the server
+  if (_pNetwork->IsServer()) {
+    CServer &srv = _pNetwork->ga_srvServer;
+
+    // Make local checksum for each session separately
+    for (INDEX iSession = 0; iSession < srv.srv_assoSessions.Count(); iSession++) {
+      CSessionSocket &sso = srv.srv_assoSessions[iSession];
+
+      if (iSession > 0 && !sso.sso_bActive) {
+        continue;
+      }
+
+      IProcessPacket::_iHandlingClient = iSession;
+
+      CRC_Start(ulLocalCRC);
+      ChecksumForSync(ulLocalCRC, ses_iExtensiveSyncCheck);
+      CRC_Finish(ulLocalCRC);
+
+      // Create sync check
+      CSyncCheck sc;
+      sc.sc_tmTick = ses_tmLastSyncCheck;
+      sc.sc_iSequence = ses_iLastProcessedSequence; 
+      sc.sc_ulCRC = ulLocalCRC;
+      sc.sc_iLevel = ses_iLevel;
+
+      // Add this sync check to this client
+      IProcessPacket::AddSyncCheck(iSession, sc);
+
+      // Save local sync check for the server client
+      if (iSession == 0) {
+        scLocal = sc;
+      }
+    }
+
+  // Local client sync check
+  } else {
+    CRC_Start(ulLocalCRC);
+    ChecksumForSync(ulLocalCRC, ses_iExtensiveSyncCheck);
+    CRC_Finish(ulLocalCRC);
+
+    scLocal.sc_tmTick = ses_tmLastSyncCheck;
+    scLocal.sc_iSequence = ses_iLastProcessedSequence; 
+    scLocal.sc_ulCRC = ulLocalCRC;
+    scLocal.sc_iLevel = ses_iLevel;
+  }
+
+  IProcessPacket::_iHandlingClient = -1;
+
+  // Send sync check to the server (including the server client)
+  CNetworkMessage nmSyncCheck(MSG_SYNCCHECK);
+  nmSyncCheck.Write(&scLocal, sizeof(scLocal));
+
+  _pNetwork->SendToServer(nmSyncCheck);
 };

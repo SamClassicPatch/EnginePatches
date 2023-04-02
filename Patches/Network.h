@@ -21,6 +21,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #endif
 
 #include <CoreLib/Networking/CommInterface.h>
+#include <CoreLib/Networking/MessageProcessing.h>
 
 class CComIntPatch : public CCommunicationInterface {
   public:
@@ -46,6 +47,11 @@ class CMessageDisPatch : public CMessageDispatcher {
     BOOL P_ReceiveFromClientReliable(INDEX iClient, CNetworkMessage &nmMessage);
 };
 
+class CNetworkPatch : public CNetworkLibrary {
+  public:
+    void P_ChangeLevelInternal(void);
+};
+
 class CSessionStatePatch : public CSessionState {
   public:
     void P_FlushProcessedPredictions(void);
@@ -54,6 +60,9 @@ class CSessionStatePatch : public CSessionState {
     void P_ProcessGameStreamBlock(CNetworkMessage &nmMessage);
 
     void P_Stop(void);
+
+    // Send synchronization packet to the server (as client) or add it to the buffer (as server)
+    void P_MakeSynchronisationCheck(void);
 };
 
 #endif
