@@ -15,6 +15,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdH.h"
 
+#if CLASSICSPATCH_ENGINEPATCHES
+
 #include "Network.h"
 
 #include <CoreLib/Query/QueryManager.h>
@@ -23,6 +25,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <CoreLib/Definitions/ActionBufferDefs.inl>
 #include <CoreLib/Definitions/PlayerCharacterDefs.inl>
 #include <CoreLib/Definitions/PlayerTargetDefs.inl>
+
+#if CLASSICSPATCH_EXTEND_NETWORK
 
 // Original function pointers
 extern void (CCommunicationInterface::*pServerInit)(void) = NULL;
@@ -52,7 +56,9 @@ void CComIntPatch::P_ServerInit(void) {
   // Proceed to the original function
   (this->*pServerInit)();
 
+#if CLASSICSPATCH_GUID_MASKING
   IProcessPacket::ClearSyncChecks();
+#endif
 
   if (ms_bDebugOutput) {
     CPutString("CCommunicationInterface::Server_Init_t()\n");
@@ -68,7 +74,9 @@ void CComIntPatch::P_ServerClose(void) {
   // Proceed to the original function
   (this->*pServerClose)();
 
+#if CLASSICSPATCH_GUID_MASKING
   IProcessPacket::ClearSyncChecks();
+#endif
 
   if (ms_bDebugOutput) {
     CPutString("CCommunicationInterface::Server_Close()\n");
@@ -153,6 +161,9 @@ BOOL CMessageDisPatch::P_ReceiveFromClientReliable(INDEX iClient, CNetworkMessag
 
 // Original function pointers
 extern void (CSessionState::*pFlushPredictions)(void) = NULL;
+
+#if CLASSICSPATCH_GUID_MASKING
+
 extern void (CNetworkLibrary::*pChangeLevel)(void) = NULL;
 
 void CNetworkPatch::P_ChangeLevelInternal(void) {
@@ -164,6 +175,8 @@ void CNetworkPatch::P_ChangeLevelInternal(void) {
     IProcessPacket::ClearSyncChecks();
   }
 };
+
+#endif // CLASSICSPATCH_GUID_MASKING
 
 void CSessionStatePatch::P_FlushProcessedPredictions(void) {
   // Proceed to the original function
@@ -401,6 +414,8 @@ void CSessionStatePatch::P_Stop(void) {
   ses_apltPlayers.New(NET_MAXGAMEPLAYERS);
 };
 
+#if CLASSICSPATCH_GUID_MASKING
+
 // Check if should mask player GUIDs
 static inline BOOL ShouldMaskGUIDs(void) {
   return IProcessPacket::_bMaskGUIDs && _pNetwork->IsServer();
@@ -551,3 +566,9 @@ void CPlayerEntityPatch::P_ChecksumForSync(ULONG &ulCRC, INDEX iExtensiveSyncChe
   CRC_AddBlock(ulCRC, aubGUID, sizeof(aubGUID));
   CRC_AddBlock(ulCRC, en_pcCharacter.pc_aubAppearance, sizeof(en_pcCharacter.pc_aubAppearance));
 };
+
+#endif // CLASSICSPATCH_GUID_MASKING
+
+#endif // CLASSICSPATCH_EXTEND_NETWORK
+
+#endif // CLASSICSPATCH_ENGINEPATCHES

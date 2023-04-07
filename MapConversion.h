@@ -20,6 +20,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #pragma once
 #endif
 
+#if CLASSICSPATCH_CONVERT_MAPS
+
 #if TSE_FUSION_MODE
 
 // Interface for converting worlds from The First Encounter
@@ -80,5 +82,7 @@ class PATCHES_API IConvertTFE {
 };
 
 #endif // TSE_FUSION_MODE
+
+#endif // CLASSICSPATCH_CONVERT_MAPS
 
 #endif

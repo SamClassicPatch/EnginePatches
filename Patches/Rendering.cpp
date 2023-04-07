@@ -15,7 +15,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdH.h"
 
+#if CLASSICSPATCH_ENGINEPATCHES
+
 #include "Rendering.h"
+
+#if CLASSICSPATCH_FIX_RENDERING
 
 // Coordinate conversion function
 static inline PIX PIXCoord(FLOAT f) {
@@ -346,3 +350,7 @@ void CProjectionPatch::P_Prepare(void) {
     ppr_fMipRatio = pr_ScreenBBox.Size()(1) / (ppr_PerspectiveRatios(1) * 640.0f);
   }
 };
+
+#endif // CLASSICSPATCH_FIX_RENDERING
+
+#endif // CLASSICSPATCH_ENGINEPATCHES

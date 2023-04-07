@@ -15,6 +15,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdH.h"
 
+#if CLASSICSPATCH_ENGINEPATCHES
+
 #include "Worlds.h"
 #include "../MapConversion.h"
 
@@ -72,7 +74,7 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
     CSetFPUPrecision FPUPrecision(FPT_24BIT);
     CTmpPrecachingNow tpn;
 
-    #if TSE_FUSION_MODE
+    #if CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
       // Make TFE worlds TSE-compatible
       if (_EnginePatches._bFirstEncounter) {
         IConvertTFE::ConvertWorld(this);
@@ -109,3 +111,5 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
   // [Cecil] Call API method after loading the world
   GetAPI()->OnWorldLoad(this, fnmWorld);
 };
+
+#endif // CLASSICSPATCH_ENGINEPATCHES

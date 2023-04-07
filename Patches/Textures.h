@@ -20,6 +20,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #pragma once
 #endif
 
+#if CLASSICSPATCH_ENGINEPATCHES && CLASSICSPATCH_EXTEND_TEXTURES
+
 class CTexDataPatch : public CTextureData {
   public:
     // Create texture with specific flags
@@ -37,5 +39,26 @@ PATCHES_API void P_CreateTextureOut(const CTFileName &fnInput, const CTFileName 
 
 // Create new texture from a picture
 PATCHES_API void P_CreateTexture(const CTFileName &fnInput, MEX mexInput, INDEX ctMipmaps, int ulFlags);
+
+#else
+
+class CTexDataPatch : public CTextureData {
+  public:
+    __forceinline void P_Create(const CImageInfo *pII, MEX mexWanted, INDEX ctFineMips, int ulFlags) {
+      Create_t(pII, mexWanted, ctFineMips, (ulFlags & TEX_32BIT) != 0);
+    };
+};
+
+#define P_ProcessTextureScript ProcessScript_t
+
+__forceinline void P_CreateTextureOut(const CTFileName &fnInput, const CTFileName &fnOutput, MEX mexInput, INDEX ctMipmaps, int ulFlags) {
+  CreateTexture_t(fnInput, fnOutput, mexInput, ctMipmaps, (ulFlags & TEX_32BIT) != 0);
+};
+
+__forceinline void P_CreateTexture(const CTFileName &fnInput, MEX mexInput, INDEX ctMipmaps, int ulFlags) {
+  CreateTexture_t(fnInput, mexInput, ctMipmaps, (ulFlags & TEX_32BIT) != 0);
+};
+
+#endif // CLASSICSPATCH_EXTEND_TEXTURES
 
 #endif

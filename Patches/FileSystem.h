@@ -22,6 +22,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <CoreLib/Interfaces/FileFunctions.h>
 
+#if CLASSICSPATCH_ENGINEPATCHES && CLASSICSPATCH_EXTEND_FILESYSTEM
+
 // Initialize various file paths and load game content
 void P_InitStreams(void);
 
@@ -30,5 +32,11 @@ void P_MakeDirList(CFileList &afnmDir, const CTFileName &fnmDir, const CTString 
 
 // Expand a filename to absolute path
 PATCHES_API INDEX P_ExpandFilePath(ULONG ulType, const CTFileName &fnmFile, CTFileName &fnmExpanded);
+
+#else
+
+#define P_ExpandFilePath ExpandFilePath
+
+#endif // CLASSICSPATCH_EXTEND_FILESYSTEM
 
 #endif

@@ -23,6 +23,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <CoreLib/Networking/CommInterface.h>
 #include <CoreLib/Networking/MessageProcessing.h>
 
+#if CLASSICSPATCH_ENGINEPATCHES && CLASSICSPATCH_EXTEND_NETWORK
+
 class CComIntPatch : public CCommunicationInterface {
   public:
     void P_EndWinsock(void);
@@ -47,10 +49,14 @@ class CMessageDisPatch : public CMessageDispatcher {
     BOOL P_ReceiveFromClientReliable(INDEX iClient, CNetworkMessage &nmMessage);
 };
 
+#if CLASSICSPATCH_GUID_MASKING
+
 class CNetworkPatch : public CNetworkLibrary {
   public:
     void P_ChangeLevelInternal(void);
 };
+
+#endif // CLASSICSPATCH_GUID_MASKING
 
 class CSessionStatePatch : public CSessionState {
   public:
@@ -61,9 +67,13 @@ class CSessionStatePatch : public CSessionState {
 
     void P_Stop(void);
 
+  #if CLASSICSPATCH_GUID_MASKING
     // Send synchronization packet to the server (as client) or add it to the buffer (as server)
     void P_MakeSynchronisationCheck(void);
+  #endif
 };
+
+#if CLASSICSPATCH_GUID_MASKING
 
 class CPlayerEntityPatch : public CPlayerEntity {
   public:
@@ -71,5 +81,9 @@ class CPlayerEntityPatch : public CPlayerEntity {
 
     void P_ChecksumForSync(ULONG &ulCRC, INDEX iExtensiveSyncCheck);
 };
+
+#endif // CLASSICSPATCH_GUID_MASKING
+
+#endif // CLASSICSPATCH_EXTEND_NETWORK
 
 #endif

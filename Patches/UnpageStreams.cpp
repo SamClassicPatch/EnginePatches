@@ -13,7 +13,9 @@ You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
-#include <StdH.h>
+#include "StdH.h"
+
+#if CLASSICSPATCH_ENGINEPATCHES
 
 #include "UnpageStreams.h"
 #include "FileSystem.h"
@@ -22,6 +24,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <CoreLib/Networking/CommInterface.h>
 
 #include <CoreLib/Base/Unzip.h>
+
+#if CLASSICSPATCH_FIX_STREAMPAGING
 
 // Define CNameTable_CTFileName
 #define TYPE CTFileName
@@ -263,3 +267,7 @@ void CRemLevelPatch::P_ForgetOldLevels(void)
     delete &*itrl;
   }
 };
+
+#endif // CLASSICSPATCH_FIX_STREAMPAGING
+
+#endif // CLASSICSPATCH_ENGINEPATCHES

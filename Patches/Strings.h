@@ -20,11 +20,15 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #pragma once
 #endif
 
+#if CLASSICSPATCH_ENGINEPATCHES && CLASSICSPATCH_FIX_STRINGS
+
 class CStringPatch : public CTString {
   public:
     INDEX P_VPrintF(const char *strFormat, va_list arg);
 
     CTString P_Undecorated(void) const;
 };
+
+#endif // CLASSICSPATCH_FIX_STRINGS
 
 #endif

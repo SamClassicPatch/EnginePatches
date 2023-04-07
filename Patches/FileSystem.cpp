@@ -15,6 +15,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdH.h"
 
+#if CLASSICSPATCH_ENGINEPATCHES
+
 #include "FileSystem.h"
 
 // Undefine 'new' operator in debug
@@ -29,6 +31,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #ifndef NDEBUG
   #define new DEBUG_NEW_CT
 #endif
+
+#if CLASSICSPATCH_EXTEND_FILESYSTEM
 
 // List of extra content directories
 static CFileList _aContentDirs;
@@ -355,3 +359,7 @@ INDEX P_ExpandFilePath(ULONG ulType, const CTFileName &fnmFile, CTFileName &fnmE
   IFiles::SetAbsolutePath(fnmExpanded);
   return EFP_NONE;
 };
+
+#endif // CLASSICSPATCH_EXTEND_FILESYSTEM
+
+#endif // CLASSICSPATCH_ENGINEPATCHES

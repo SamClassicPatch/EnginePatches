@@ -15,6 +15,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdH.h"
 
+#if CLASSICSPATCH_ENGINEPATCHES
+
 // Singleton for patching
 CPatches _EnginePatches;
 
@@ -36,6 +38,8 @@ CPatches::CPatches() {
 
 #include "Patches/Network.h"
 
+#if CLASSICSPATCH_EXTEND_NETWORK && CLASSICSPATCH_GUID_MASKING
+
 static void UpdateMaskGUIDs(void *pSymbol) {
   BOOL &bMask = *(BOOL *)pSymbol;
 
@@ -51,7 +55,11 @@ static void UpdateMaskGUIDs(void *pSymbol) {
   IProcessPacket::_bMaskGUIDs = bMask;
 };
 
+#endif // CLASSICSPATCH_GUID_MASKING
+
 void CPatches::Network(void) {
+#if CLASSICSPATCH_EXTEND_NETWORK
+
   // CCommunicationInterface
   void (CCommunicationInterface::*pEndWindock)(void) = &CCommunicationInterface::EndWinsock;
   NewPatch(pEndWindock, &CComIntPatch::P_EndWinsock, "CCommunicationInterface::EndWinsock()");
@@ -72,9 +80,13 @@ void CPatches::Network(void) {
   NewPatch(pRecFromClientReliable, &CMessageDisPatch::P_ReceiveFromClientReliable, "CMessageDispatcher::ReceiveFromClientReliable(...)");
 
   // CNetworkLibrary
+#if CLASSICSPATCH_GUID_MASKING
+
   extern void (CNetworkLibrary::*pChangeLevel)(void);
   pChangeLevel = &CNetworkLibrary::ChangeLevel_internal;
   NewPatch(pChangeLevel, &CNetworkPatch::P_ChangeLevelInternal, "CNetworkLibrary::ChangeLevel_internal()");
+
+#endif // CLASSICSPATCH_GUID_MASKING
 
   // CSessionState
   extern void (CSessionState::*pFlushPredictions)(void);
@@ -86,6 +98,8 @@ void CPatches::Network(void) {
 
   void (CSessionState::*pStopSession)(void) = &CSessionState::Stop;
   NewPatch(pStopSession, &CSessionStatePatch::P_Stop, "CSessionState::Stop()");
+
+#if CLASSICSPATCH_GUID_MASKING
 
   void (CSessionState::*pMakeSyncCheck)(void) = &CSessionState::MakeSynchronisationCheck;
   NewPatch(pMakeSyncCheck, &CSessionStatePatch::P_MakeSynchronisationCheck, "CSessionState::MakeSynchronisationCheck()");
@@ -103,11 +117,17 @@ void CPatches::Network(void) {
   static BOOL bMaskGUIDsCommand = TRUE;
   _pShell->DeclareSymbol("user void UpdateMaskGUIDs(INDEX);", &UpdateMaskGUIDs);
   _pShell->DeclareSymbol("user INDEX ser_bMaskGUIDs post:UpdateMaskGUIDs;", &bMaskGUIDsCommand);
+
+#endif // CLASSICSPATCH_GUID_MASKING
+
+#endif // CLASSICSPATCH_EXTEND_NETWORK
 };
 
 #include "Patches/Rendering.h"
 
 void CPatches::Rendering(void) {
+#if CLASSICSPATCH_FIX_RENDERING
+
   void (*pRenderView)(CWorld &, CEntity &, CAnyProjection3D &, CDrawPort &) = &RenderView;
   NewPatch(pRenderView, &P_RenderView, "::RenderView(...)");
 
@@ -126,6 +146,8 @@ void CPatches::Rendering(void) {
   _pShell->DeclareSymbol("persistent user FLOAT sam_fCustomFOV;",      &_EnginePatches._fCustomFOV);
   _pShell->DeclareSymbol("persistent user FLOAT sam_fThirdPersonFOV;", &_EnginePatches._fThirdPersonFOV);
   _pShell->DeclareSymbol("           user INDEX sam_bCheckFOV;",       &_EnginePatches._bCheckFOV);
+
+#endif // CLASSICSPATCH_FIX_RENDERING
 };
 
 #if SE1_VER >= SE1_107
@@ -136,6 +158,8 @@ void CPatches::Rendering(void) {
 static BOOL _bSkaPatched = FALSE;
 
 void CPatches::ShadersPatches(void) {
+#if CLASSICSPATCH_FIX_SKA
+
   // Already patched
   if (_bSkaPatched) return;
 
@@ -151,9 +175,13 @@ void CPatches::ShadersPatches(void) {
 
   void (*pSetWrappingFunc)(GfxWrap, GfxWrap) = &shaSetTextureWrapping;
   NewRawPatch(pSetWrappingFunc, &P_shaSetTextureWrapping, "shaSetTextureWrapping(...)");
+
+#endif // CLASSICSPATCH_FIX_SKA
 };
 
 void CPatches::Ska(void) {
+#if CLASSICSPATCH_FIX_SKA
+
   // Already patched
   if (_bSkaPatched) return;
 
@@ -169,6 +197,8 @@ void CPatches::Ska(void) {
 
   void (*pSetWrappingFunc)(GfxWrap, GfxWrap) = &shaSetTextureWrapping;
   NewPatch(pSetWrappingFunc, &P_shaSetTextureWrapping, "shaSetTextureWrapping(...)");
+
+#endif // CLASSICSPATCH_FIX_SKA
 };
 
 #endif
@@ -183,16 +213,22 @@ void CPatches::SoundLibrary(void) {
 #include "Patches/Strings.h"
 
 void CPatches::Strings(void) {
+#if CLASSICSPATCH_FIX_STRINGS
+
   INDEX (CTString::*pVPrintF)(const char *, va_list) = &CTString::VPrintF;
   NewPatch(pVPrintF, &CStringPatch::P_VPrintF, "CTString::VPrintF(...)");
 
   CTString (CTString::*pUndecorated)(void) const = &CTString::Undecorated;
   NewPatch(pUndecorated, &CStringPatch::P_Undecorated, "CTString::Undecorated()");
+
+#endif // CLASSICSPATCH_FIX_STRINGS
 };
 
 #include "Patches/Textures.h"
 
 void CPatches::Textures(void) {
+#if CLASSICSPATCH_EXTEND_TEXTURES
+
   void (CTextureData::*pCreateTex)(const CImageInfo *, MEX, INDEX, int) = &CTextureData::Create_t;
   NewPatch(pCreateTex, &CTexDataPatch::P_Create, "CTextureData::Create_t(...)");
 
@@ -213,6 +249,8 @@ void CPatches::Textures(void) {
 
   void (*pCreateTexture)(const CTFileName &, MEX, INDEX, int) = &CreateTexture_t;
   NewPatch(pCreateTexture, &P_CreateTexture, "CreateTexture_t(...)");
+
+#endif // CLASSICSPATCH_EXTEND_TEXTURES
 };
 
 #include "Patches/Worlds.h"
@@ -229,6 +267,8 @@ void CPatches::Worlds(void) {
 
 // Specific stream patching
 static void PatchStreams(void) {
+#if CLASSICSPATCH_FIX_STREAMPAGING
+
   // Streams have been patched
   static BOOL _bStreamsPatched = FALSE;
 
@@ -251,9 +291,13 @@ static void PatchStreams(void) {
 
   void (CTFileStream::*pCloseFunc)(void) = &CTFileStream::Close;
   NewRawPatch(pCloseFunc, &CFileStreamPatch::P_Close, "CTFileStream::Close()");
+
+#endif // CLASSICSPATCH_FIX_STREAMPAGING
 };
 
 void CPatches::UnpageStreams(void) {
+#if CLASSICSPATCH_FIX_STREAMPAGING
+
   PatchStreams();
 
   // Dummy methods
@@ -290,11 +334,15 @@ void CPatches::UnpageStreams(void) {
 
   void (CSessionState::*pForgetOldLevels)(void) = &CSessionState::ForgetOldLevels;
   NewRawPatch(pForgetOldLevels, &CRemLevelPatch::P_ForgetOldLevels, "CSessionState::ForgetOldLevels()");
+
+#endif // CLASSICSPATCH_FIX_STREAMPAGING
 };
 
 #include "Patches/FileSystem.h"
 
 void CPatches::FileSystem(void) {
+#if CLASSICSPATCH_EXTEND_FILESYSTEM
+
   #ifdef _DEBUG
     PatchStreams();
   #endif
@@ -308,4 +356,8 @@ void CPatches::FileSystem(void) {
 
   INDEX (*pExpandFilePath)(ULONG, const CTFileName &, CTFileName &) = &ExpandFilePath;
   NewRawPatch(pExpandFilePath, &P_ExpandFilePath, "::ExpandFilePath(...)");
+
+#endif // CLASSICSPATCH_EXTEND_FILESYSTEM
 };
+
+#endif // CLASSICSPATCH_ENGINEPATCHES

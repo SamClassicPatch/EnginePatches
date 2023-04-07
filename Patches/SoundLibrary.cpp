@@ -15,6 +15,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdH.h"
 
+#if CLASSICSPATCH_ENGINEPATCHES
+
 #include "SoundLibrary.h"
 
 void CSoundLibPatch::P_Listen(CSoundListener &sl)
@@ -31,3 +33,5 @@ void CSoundLibPatch::P_Listen(CSoundListener &sl)
 
   sl_lhActiveListeners.AddTail(sl.sli_lnInActiveListeners);
 };
+
+#endif // CLASSICSPATCH_ENGINEPATCHES

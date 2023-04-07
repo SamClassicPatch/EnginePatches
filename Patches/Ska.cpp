@@ -15,7 +15,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdH.h"
 
+#if CLASSICSPATCH_ENGINEPATCHES
+
 #include "Ska.h"
+
+#if CLASSICSPATCH_FIX_SKA
 
 // SKA models are only usable since 1.07
 #if SE1_VER >= SE1_107
@@ -152,3 +156,7 @@ void P_shaSetTextureWrapping(GfxWrap eWrapU, GfxWrap eWrapV) {
 };
 
 #endif
+
+#endif // CLASSICSPATCH_FIX_SKA
+
+#endif // CLASSICSPATCH_ENGINEPATCHES

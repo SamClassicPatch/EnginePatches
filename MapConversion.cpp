@@ -19,6 +19,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <CoreLib/Objects/PropertyPtr.h>
 
+#if CLASSICSPATCH_CONVERT_MAPS
+
 // Check if the entity state doesn't match
 static BOOL CheckEntityState(CRationalEntity *pen, SLONG slState, const char *strClass) {
   // Wrong entity class
@@ -236,3 +238,5 @@ void IConvertTFE::ConvertWorld(CWorld *pwo) {
 };
 
 #endif
+
+#endif // CLASSICSPATCH_CONVERT_MAPS

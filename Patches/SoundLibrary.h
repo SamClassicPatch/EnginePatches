@@ -20,9 +20,13 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #pragma once
 #endif
 
+#if CLASSICSPATCH_ENGINEPATCHES
+
 class CSoundLibPatch : public CSoundLibrary {
   public:
     void P_Listen(CSoundListener &sl);
 };
+
+#endif // CLASSICSPATCH_ENGINEPATCHES
 
 #endif

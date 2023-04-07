@@ -20,9 +20,13 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #pragma once
 #endif
 
+#if CLASSICSPATCH_ENGINEPATCHES
+
 class CWorldPatch : public CWorld {
   public:
     void P_Load(const CTFileName &fnmWorld);
 };
+
+#endif // CLASSICSPATCH_ENGINEPATCHES
 
 #endif
