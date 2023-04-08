@@ -398,12 +398,8 @@ void CSessionStatePatch::P_Stop(void) {
   _pTimer->DisableLerp();
 
   // Notify server about the disconnection
-  CNetworkMessage nmConfirmDisconnect((MESSAGETYPE)INetwork::PCK_REP_DISCONNECTED);
-
-#if SE1_VER >= SE1_107
-  if (GetComm().cci_bClientInitialized)
-#endif
-  {
+  if (IsCommInitialized()) {
+    CNetworkMessage nmConfirmDisconnect((MESSAGETYPE)INetwork::PCK_REP_DISCONNECTED);
     _pNetwork->SendToServerReliable(nmConfirmDisconnect);
   }
 
@@ -423,9 +419,7 @@ static inline BOOL ShouldMaskGUIDs(void) {
 
 // Send synchronization packet to the server (as client) or add it to the buffer (as server)
 void CSessionStatePatch::P_MakeSynchronisationCheck(void) {
-#if SE1_VER >= SE1_107
-  if (!GetComm().cci_bClientInitialized) return;
-#endif
+  if (!IsCommInitialized()) return;
 
   // Don't check yet
   if (ses_tmLastSyncCheck + ses_tmSyncCheckFrequency > ses_tmLastProcessedTick) {
