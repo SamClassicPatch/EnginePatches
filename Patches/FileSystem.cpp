@@ -19,18 +19,10 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "FileSystem.h"
 
-// Undefine 'new' operator in debug
-#ifndef NDEBUG
-  #undef new
-#endif
-
+#include <STLIncludesBegin.h>
 #include <fstream>
 #include <sstream>
-
-// Redefine 'new' operator in debug
-#ifndef NDEBUG
-  #define new DEBUG_NEW_CT
-#endif
+#include <STLIncludesEnd.h>
 
 #if CLASSICSPATCH_EXTEND_FILESYSTEM
 
