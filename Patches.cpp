@@ -105,12 +105,18 @@ void CPatches::Network(void) {
   NewPatch(pMakeSyncCheck, &CSessionStatePatch::P_MakeSynchronisationCheck, "CSessionState::MakeSynchronisationCheck()");
 
   // CPlayerEntity
-  void (CPlayerEntity::*pPlayerWrite)(CTStream *) = NULL;
-  pPlayerWrite = StructPtr(ADDR_PLAYER_WRITE)(&CPlayerEntity::Write_t);
+
+  // Pointer to the virtual table of CPlayerEntity
+  size_t *pVFTable = (size_t *)GetPatchAPI()->GetSymbol("??_7CPlayerEntity@@6B@");
+
+  // Pointer to CPlayerEntity::Write_t()
+  typedef void (CPlayerEntity::*CWriteFunc)(CTStream *);
+  CWriteFunc pPlayerWrite = *(CWriteFunc *)(pVFTable + 4);
   NewPatch(pPlayerWrite, &CPlayerEntityPatch::P_Write, "CPlayerEntity::Write_t(...)");
 
-  void (CPlayerEntity::*pChecksumForSync)(ULONG &, INDEX) = NULL;
-  pChecksumForSync = StructPtr(ADDR_PLAYER_CHECKSUM)(&CPlayerEntity::ChecksumForSync);
+  // Pointer to CPlayerEntity::ChecksumForSync()
+  typedef void (CPlayerEntity::*CChecksumFunc)(ULONG &, INDEX);
+  CChecksumFunc pChecksumForSync = *(CChecksumFunc *)(pVFTable + 6);
   NewPatch(pChecksumForSync, &CPlayerEntityPatch::P_ChecksumForSync, "CPlayerEntity::ChecksumForSync(...)");
 
   // Custom symbols
@@ -132,12 +138,11 @@ void CPatches::Rendering(void) {
   NewPatch(pRenderView, &P_RenderView, "::RenderView(...)");
 
   // Pointer to the virtual table of CPerspectiveProjection3D
-  size_t *pVFTable = *(size_t **)&CPerspectiveProjection3D();
+  size_t *pVFTable = (size_t *)GetPatchAPI()->GetSymbol("??_7CPerspectiveProjection3D@@6B@");
 
   // Pointer to CPerspectiveProjection3D::Prepare()
   typedef void (CPerspectiveProjection3D::*CPrepareFunc)(void);
   CPrepareFunc pPrepare = *(CPrepareFunc *)(pVFTable + 0);
-
   NewPatch(pPrepare, &CProjectionPatch::P_Prepare, "CPerspectiveProjection3D::Prepare()");
 
   // Custom symbols
@@ -233,12 +238,11 @@ void CPatches::Textures(void) {
   NewPatch(pCreateTex, &CTexDataPatch::P_Create, "CTextureData::Create_t(...)");
 
   // Pointer to the virtual table of CTextureData
-  size_t *pVFTable = *(size_t **)&CTextureData();
+  size_t *pVFTable = (size_t *)GetPatchAPI()->GetSymbol("??_7CTextureData@@6B@");
 
   // Pointer to CTextureData::Write_t()
   typedef void (CTextureData::*CWriteTexFunc)(CTStream *);
   CWriteTexFunc pWriteTex = *(CWriteTexFunc *)(pVFTable + 4);
-
   NewPatch(pWriteTex, &CTexDataPatch::P_Write, "CTextureData::Write_t(...)");
 
   void (*pProcessScript)(const CTFileName &) = &ProcessScript_t;
