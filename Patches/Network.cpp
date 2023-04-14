@@ -176,6 +176,29 @@ void CNetworkPatch::P_ChangeLevelInternal(void) {
   }
 };
 
+// Save current game
+void CNetworkPatch::P_Save(const CTFileName &fnmGame) {
+  // Synchronize access to network
+  CTSingleLock slNetwork(&ga_csNetwork, TRUE);
+
+  // Must be the server
+  if (!IsServer()) {
+    ThrowF_t(TRANS("Cannot save game - not a server!\n"));
+  }
+
+  // Currently saving
+  IProcessPacket::_iHandlingClient = IProcessPacket::CLT_SAVE;
+
+  // Create the file
+  CTFileStream strmFile;
+  strmFile.Create_t(fnmGame);
+
+  // Write game to stream
+  strmFile.WriteID_t("GAME");
+  ga_sesSessionState.Write_t(&strmFile);
+  strmFile.WriteID_t("GEND"); // Game end
+};
+
 #endif // CLASSICSPATCH_GUID_MASKING
 
 void CSessionStatePatch::P_FlushProcessedPredictions(void) {
@@ -482,7 +505,7 @@ void CSessionStatePatch::P_MakeSynchronisationCheck(void) {
     }
   }
 
-  IProcessPacket::_iHandlingClient = -1;
+  IProcessPacket::_iHandlingClient = IProcessPacket::CLT_NONE;
 
   // Send sync check to the server (including the server client)
   CNetworkMessage nmSyncCheck(MSG_SYNCCHECK);
@@ -492,39 +515,51 @@ void CSessionStatePatch::P_MakeSynchronisationCheck(void) {
 };
 
 // Get player buffer from the server associated with a player entity in the world
-static CPlayerBuffer &PlayerBufferFromEntity(CPlayerEntity *pen) {
+static CPlayerBuffer *PlayerBufferFromEntity(CPlayerEntity *pen) {
   CStaticArray<CPlayerTarget> &aPlayerTargets = _pNetwork->ga_sesSessionState.ses_apltPlayers;
-  INDEX iBuffer = -1;
 
   for (INDEX i = 0; i < aPlayerTargets.Count(); i++) {
     if (aPlayerTargets[i].plt_penPlayerEntity == pen) {
-      iBuffer = i;
-      break;
+      return &_pNetwork->ga_srvServer.srv_aplbPlayers[i];
     }
   }
 
-  ASSERT(iBuffer != -1);
-  return _pNetwork->ga_srvServer.srv_aplbPlayers[iBuffer];
+  return NULL;
 };
 
 void CPlayerEntityPatch::P_Write(CTStream *ostr) {
   CMovableModelEntity::Write_t(ostr);
+  const INDEX iClient = IProcessPacket::_iHandlingClient;
 
   // Normal writing for clients
-  if (!ShouldMaskGUIDs() || IProcessPacket::_iHandlingClient == -1) {
+  if (!ShouldMaskGUIDs() || iClient == IProcessPacket::CLT_NONE) {
     *ostr << en_pcCharacter << en_plViewpoint;
     return;
   }
 
   // Get player buffer for this entity
-  CPlayerBuffer &plb = PlayerBufferFromEntity(this);
+  CPlayerBuffer *pplb = PlayerBufferFromEntity(this);
 
+  // Start with invalid GUID
   UBYTE aubGUID[16];
-  IProcessPacket::MaskGUID(aubGUID, plb);
+  memset(aubGUID, 0xFFFFFFFF, sizeof(aubGUID));
 
-  // Use GUID from the buffer for the current client
-  if (IProcessPacket::_iHandlingClient == plb.plb_iClient) {
-    memcpy(aubGUID, plb.plb_pcCharacter.pc_aubGUID, sizeof(aubGUID));
+  // If there's an associated player buffer
+  if (pplb != NULL) {
+    // Only save GUID of the server client
+    if (iClient == IProcessPacket::CLT_SAVE) {
+      if (pplb->plb_iClient == 0) {
+        memcpy(aubGUID, pplb->plb_pcCharacter.pc_aubGUID, sizeof(aubGUID));
+      }
+
+    // Use GUID for the current client
+    } else if (iClient == pplb->plb_iClient) {
+      memcpy(aubGUID, pplb->plb_pcCharacter.pc_aubGUID, sizeof(aubGUID));
+
+    // Otherwise mask it
+    } else {
+      IProcessPacket::MaskGUID(aubGUID, *pplb);
+    }
   }
 
   // Serialize CPlayerCharacter
@@ -538,23 +573,26 @@ void CPlayerEntityPatch::P_Write(CTStream *ostr) {
 
 void CPlayerEntityPatch::P_ChecksumForSync(ULONG &ulCRC, INDEX iExtensiveSyncCheck) {
   CMovableModelEntity::ChecksumForSync(ulCRC, iExtensiveSyncCheck);
+  const INDEX iClient = IProcessPacket::_iHandlingClient;
 
   // Normal check for clients
-  if (!ShouldMaskGUIDs() || IProcessPacket::_iHandlingClient == -1) {
+  if (!ShouldMaskGUIDs() || iClient == IProcessPacket::CLT_NONE) {
     CRC_AddBlock(ulCRC, en_pcCharacter.pc_aubGUID, sizeof(en_pcCharacter.pc_aubGUID));
     CRC_AddBlock(ulCRC, en_pcCharacter.pc_aubAppearance, sizeof(en_pcCharacter.pc_aubAppearance));
     return;
   }
 
   // Get player buffer for this entity
-  CPlayerBuffer &plb = PlayerBufferFromEntity(this);
+  CPlayerBuffer *pplb = PlayerBufferFromEntity(this);
 
   UBYTE aubGUID[16];
-  IProcessPacket::MaskGUID(aubGUID, plb);
 
   // Use GUID from the buffer for the current client
-  if (IProcessPacket::_iHandlingClient == plb.plb_iClient) {
-    memcpy(aubGUID, plb.plb_pcCharacter.pc_aubGUID, sizeof(aubGUID));
+  if (iClient == pplb->plb_iClient) {
+    memcpy(aubGUID, pplb->plb_pcCharacter.pc_aubGUID, sizeof(aubGUID));
+
+  } else {
+    IProcessPacket::MaskGUID(aubGUID, *pplb);
   }
 
   CRC_AddBlock(ulCRC, aubGUID, sizeof(aubGUID));

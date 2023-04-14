@@ -40,19 +40,19 @@ CPatches::CPatches() {
 
 #if CLASSICSPATCH_EXTEND_NETWORK && CLASSICSPATCH_GUID_MASKING
 
-static void UpdateMaskGUIDs(void *pSymbol) {
-  BOOL &bMask = *(BOOL *)pSymbol;
+BOOL _bMaskGUIDsCommand = TRUE;
 
+static void UpdateMaskGUIDs(void *pSymbol) {
   // Cannot change the state of the variable while running the game as a server
   if (_pNetwork->IsServer()) {
     CPutString(TRANS("Cannot change the state of GUID masking while the server is running!\n"));
 
     // Restore value
-    bMask = IProcessPacket::_bMaskGUIDs;
+    _bMaskGUIDsCommand = IProcessPacket::_bMaskGUIDs;
     return;
   }
 
-  IProcessPacket::_bMaskGUIDs = bMask;
+  IProcessPacket::_bMaskGUIDs = _bMaskGUIDsCommand;
 };
 
 #endif // CLASSICSPATCH_GUID_MASKING
@@ -85,6 +85,9 @@ void CPatches::Network(void) {
   extern void (CNetworkLibrary::*pChangeLevel)(void);
   pChangeLevel = &CNetworkLibrary::ChangeLevel_internal;
   NewPatch(pChangeLevel, &CNetworkPatch::P_ChangeLevelInternal, "CNetworkLibrary::ChangeLevel_internal()");
+
+  void (CNetworkLibrary::*pSaveGame)(const CTFileName &) = &CNetworkLibrary::Save_t;
+  NewPatch(pSaveGame, &CNetworkPatch::P_Save, "CNetworkLibrary::Save_t(...)");
 
 #endif // CLASSICSPATCH_GUID_MASKING
 
@@ -120,9 +123,8 @@ void CPatches::Network(void) {
   NewPatch(pChecksumForSync, &CPlayerEntityPatch::P_ChecksumForSync, "CPlayerEntity::ChecksumForSync(...)");
 
   // Custom symbols
-  static BOOL bMaskGUIDsCommand = TRUE;
   _pShell->DeclareSymbol("user void UpdateMaskGUIDs(INDEX);", &UpdateMaskGUIDs);
-  _pShell->DeclareSymbol("user INDEX ser_bMaskGUIDs post:UpdateMaskGUIDs;", &bMaskGUIDsCommand);
+  _pShell->DeclareSymbol("user INDEX ser_bMaskGUIDs post:UpdateMaskGUIDs;", &_bMaskGUIDsCommand);
 
 #endif // CLASSICSPATCH_GUID_MASKING
 

@@ -54,6 +54,9 @@ class CMessageDisPatch : public CMessageDispatcher {
 class CNetworkPatch : public CNetworkLibrary {
   public:
     void P_ChangeLevelInternal(void);
+
+    // Save current game
+    void P_Save(const CTFileName &fnmGame);
 };
 
 #endif // CLASSICSPATCH_GUID_MASKING
