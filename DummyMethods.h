@@ -21,17 +21,18 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #endif
 
 // Interface of various dummy methods
-class IDummy {
-  public:
-    // Empty method
-    static inline void Void(void) {
-      NOTHING;
-    };
+namespace IDummy {
 
-    // Empty stream page method
-    static inline void PageFunc(INDEX iPage) {
-      (void)iPage;
-    };
+// Empty method
+inline void Void(void) {
+  NOTHING;
 };
+
+// Empty stream page method
+inline void PageFunc(INDEX iPage) {
+  (void)iPage;
+};
+
+}; // namespace
 
 #endif
