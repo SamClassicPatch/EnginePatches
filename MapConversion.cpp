@@ -235,6 +235,34 @@ void IConvertTFE::ConvertWorld(CWorld *pwo) {
   FOREACHINDYNAMICCONTAINER(cEntities, CEntity, itenReinit) {
     itenReinit->Reinitialize();
   }
+
+  // Create an invisible light to fix shadow issues with brush polygon layers
+  const CPlacement3D pl(FLOAT3D(0.0f, 0.0f, 0.0f), ANGLE3D(0.0f, 0.0f, 0.0f));
+
+  try {
+    static const CTString strLightClass = "Classes\\Light.ecl";
+    CEntity *penLight = IWorld::GetWorld()->CreateEntity_t(pl, strLightClass);
+
+    // Retrieve light properties
+    static CPropertyPtr pptrType(penLight); // CLight::m_ltType
+    static CPropertyPtr pptrFallOff(penLight); // CLight::m_rFallOffRange
+    static CPropertyPtr pptrColor(penLight); // CLight::m_colColor
+
+    // Set strong ambient type that covers the whole map
+    if (pptrType.ByNameOrId(CEntityProperty::EPT_ENUM, "Type", (0xC8 << 8) + 8)
+     && pptrFallOff.ByNameOrId(CEntityProperty::EPT_RANGE, "Fall-off", (0xC8 << 8) + 1)
+     && pptrColor.ByNameOrId(CEntityProperty::EPT_COLOR, "Color", (0xC8 << 8) + 2)) {
+      ENTITYPROPERTY(penLight, pptrType.Offset(), INDEX) = 2; // LightType::LT_STRONG_AMBIENT
+      ENTITYPROPERTY(penLight, pptrFallOff.Offset(), RANGE) = 10000.0f;
+      ENTITYPROPERTY(penLight, pptrColor.Offset(), COLOR) = 0; // Black
+    }
+
+    penLight->Initialize();
+    penLight->GetLightSource()->FindShadowLayers(FALSE);
+
+  } catch (char *strError) {
+    FatalError(TRANS("Cannot load Light class:\n%s"), strError);
+  }
 };
 
 #endif
