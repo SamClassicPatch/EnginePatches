@@ -183,7 +183,7 @@ void CNetworkPatch::P_Save(const CTFileName &fnmGame) {
 
   // Must be the server
   if (!IsServer()) {
-    ThrowF_t(TRANS("Cannot save game - not a server!\n"));
+    ThrowF_t(LOCALIZE("Cannot save game - not a server!\n"));
   }
 
   // Currently saving
