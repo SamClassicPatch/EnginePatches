@@ -110,7 +110,7 @@ void CPatches::Network(void) {
   // CPlayerEntity
 
   // Pointer to the virtual table of CPlayerEntity
-  size_t *pVFTable = (size_t *)GetPatchAPI()->GetSymbol("??_7CPlayerEntity@@6B@");
+  size_t *pVFTable = (size_t *)GetPatchAPI()->GetEngineSymbol("??_7CPlayerEntity@@6B@");
 
   // Pointer to CPlayerEntity::Write_t()
   typedef void (CPlayerEntity::*CWriteFunc)(CTStream *);
@@ -140,7 +140,7 @@ void CPatches::Rendering(void) {
   NewPatch(pRenderView, &P_RenderView, "::RenderView(...)");
 
   // Pointer to the virtual table of CPerspectiveProjection3D
-  size_t *pVFTable = (size_t *)GetPatchAPI()->GetSymbol("??_7CPerspectiveProjection3D@@6B@");
+  size_t *pVFTable = (size_t *)GetPatchAPI()->GetEngineSymbol("??_7CPerspectiveProjection3D@@6B@");
 
   // Pointer to CPerspectiveProjection3D::Prepare()
   typedef void (CPerspectiveProjection3D::*CPrepareFunc)(void);
@@ -240,7 +240,7 @@ void CPatches::Textures(void) {
   NewPatch(pCreateTex, &CTexDataPatch::P_Create, "CTextureData::Create_t(...)");
 
   // Pointer to the virtual table of CTextureData
-  size_t *pVFTable = (size_t *)GetPatchAPI()->GetSymbol("??_7CTextureData@@6B@");
+  size_t *pVFTable = (size_t *)GetPatchAPI()->GetEngineSymbol("??_7CTextureData@@6B@");
 
   // Pointer to CTextureData::Write_t()
   typedef void (CTextureData::*CWriteTexFunc)(CTStream *);
