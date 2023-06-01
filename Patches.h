@@ -64,6 +64,7 @@ class PATCHES_API CPatches {
 
       // Patch for the game and the editor
       if (bGame || bEditor) {
+        Entities();
         Rendering();
 
         #if SE1_VER >= SE1_107
@@ -78,6 +79,7 @@ class PATCHES_API CPatches {
 
       // Patch for the server
       if (bServer) {
+        Entities();
         Worlds();
       }
     };
@@ -89,6 +91,9 @@ class PATCHES_API CPatches {
 
   // Patches after Serious Engine and Core initializations
   public:
+
+    // Enhance entities usage
+    void Entities(void);
 
     // Enhance network library usage
     void Network(void);

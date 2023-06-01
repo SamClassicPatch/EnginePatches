@@ -36,6 +36,32 @@ CPatches::CPatches() {
   _bReinitWorld = FALSE;
 };
 
+#include "Patches/Entities.h"
+
+void CPatches::Entities(void) {
+#if CLASSICSPATCH_EXTEND_ENTITIES
+
+  // CEntity
+  extern void (CEntity::*pSendEvent)(const CEntityEvent &);
+  pSendEvent = &CEntity::SendEvent;
+  NewPatch(pSendEvent, &CEntityPatch::P_SendEvent, "CEntity::SendEvent(...)");
+
+  // CRationalEntity
+  void (CRationalEntity::*pCall)(SLONG, SLONG, BOOL, const CEntityEvent &) = &CRationalEntity::Call;
+  NewPatch(pCall, &CRationalEntityPatch::P_Call, "CRationalEntity::Call(...)");
+
+  // CPlayer
+  extern CEntityPatch::CReceiveItem pReceiveItem;
+  StructPtr pReceiveItemPtr(GetPatchAPI()->GetEntitiesSymbol("?ReceiveItem@CPlayer@@UAEHABVCEntityEvent@@@Z"));
+
+  if (pReceiveItemPtr.iAddress != NULL) {
+    pReceiveItem = pReceiveItemPtr(CEntityPatch::CReceiveItem());
+    NewPatch(pReceiveItem, &CEntityPatch::P_ReceiveItem, "CPlayer::ReceiveItem(...)");
+  }
+
+#endif // CLASSICSPATCH_EXTEND_ENTITIES
+};
+
 #include "Patches/Network.h"
 
 #if CLASSICSPATCH_EXTEND_NETWORK && CLASSICSPATCH_GUID_MASKING

@@ -22,6 +22,7 @@
     <ClInclude Include="DummyMethods.h" />
     <ClInclude Include="MapConversion.h" />
     <ClInclude Include="Patches.h" />
+    <ClInclude Include="Patches\Entities.h" />
     <ClInclude Include="Patches\FileSystem.h" />
     <ClInclude Include="Patches\Network.h" />
     <ClInclude Include="Patches\Rendering.h" />
@@ -36,6 +37,7 @@
   <ItemGroup>
     <ClCompile Include="MapConversion.cpp" />
     <ClCompile Include="Patches.cpp" />
+    <ClCompile Include="Patches\Entities.cpp" />
     <ClCompile Include="Patches\FileSystem.cpp" />
     <ClCompile Include="Patches\Ska.cpp" />
     <ClCompile Include="Patches\Textures.cpp" />
