@@ -68,42 +68,6 @@ static void SaveTFEDirectory(void *) {
   CPutString(TRANS("Restart the game to load content from the new directory!\n"));
 };
 
-// Load TFE directory from a variable file
-static void LoadTFEDirectory(void) {
-  // Direct file operations because streams are not initialized yet
-  FILE *file = fopen((_fnmApplicationPath + _fnmTFEDirFile).str_String, "rb");
-
-  // Cannot open the file
-  if (file == NULL) {
-    sam_strTFEDir = "";
-    return;
-  }
-
-  // Get file size
-  fseek(file, 0, SEEK_END);
-  const SLONG slSize = ftell(file);
-  fseek(file, 0, SEEK_SET);
-
-  // Empty file
-  if (slSize <= 0) {
-    sam_strTFEDir = "";
-    fclose(file);
-    return;
-  }
-
-  // Create an empty string of the file size
-  char *strRead = new char[slSize + 1];
-  memset(strRead, '\0', slSize + 1);
-
-  // Read file contents into it and set the directory string
-  fread(strRead, sizeof(char), slSize, file);
-  sam_strTFEDir = strRead;
-
-  // Delete read string and close the file
-  delete[] strRead;
-  fclose(file);
-};
-
 #endif
 
 // Initialize various file paths and load game content
@@ -112,8 +76,8 @@ void P_InitStreams(void) {
     _pShell->DeclareSymbol("void SaveTFEDirectory(INDEX);", &SaveTFEDirectory);
     _pShell->DeclareSymbol("user CTString sam_strTFEDir post:SaveTFEDirectory;", &sam_strTFEDir);
 
-    // Try loading saved TFE directory
-    LoadTFEDirectory();
+    // Try getting saved TFE directory
+    sam_strTFEDir = CCoreAPI::GetPropValue("TFEDir");
 
     // Rewrite it if it's not set yet
     if (_fnmCDPath == "" && sam_strTFEDir != "") {
