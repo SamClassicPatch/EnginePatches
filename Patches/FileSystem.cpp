@@ -57,14 +57,11 @@ static void LoadPackages(const CTString &strDirectory, const CTString &strMatchF
 // New directory with TFE installation that will be set next time
 static CTString sam_strTFEDir = "";
 
-// Variable file for storing directory with TFE installation
-static CTFileName _fnmTFEDirFile = CTString("Data\\Var\\TFE_Dir.var");
-
 // Save TFE directory into a variable file
 static void SaveTFEDirectory(void *) {
-  SaveStringVar(_fnmTFEDirFile, sam_strTFEDir);
+  CCoreAPI::SetPropValue("TFEDir", sam_strTFEDir);
 
-  CPrintF(TRANS("Saved new directory with The First Encounter installation into '%s'!\n"), _fnmTFEDirFile.str_String);
+  CPutString(TRANS("Saved new directory with The First Encounter installation into 'TFEDir' property!\n"));
   CPutString(TRANS("Restart the game to load content from the new directory!\n"));
 };
 
