@@ -374,6 +374,9 @@ void CPatches::UnpageStreams(void) {
 
 void CPatches::FileSystem(void) {
 #if CLASSICSPATCH_EXTEND_FILESYSTEM
+  if (CCoreAPI::GetPropValue("ExtendedFileSystem") == "0") {
+    return;
+  }
 
   #ifdef _DEBUG
     PatchStreams();

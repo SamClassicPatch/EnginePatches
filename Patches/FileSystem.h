@@ -31,11 +31,7 @@ void P_InitStreams(void);
 void P_MakeDirList(CFileList &afnmDir, const CTFileName &fnmDir, const CTString &strPattern, ULONG ulFlags);
 
 // Expand a filename to absolute path
-PATCHES_API INDEX P_ExpandFilePath(ULONG ulType, const CTFileName &fnmFile, CTFileName &fnmExpanded);
-
-#else
-
-#define P_ExpandFilePath ExpandFilePath
+INDEX P_ExpandFilePath(ULONG ulType, const CTFileName &fnmFile, CTFileName &fnmExpanded);
 
 #endif // CLASSICSPATCH_EXTEND_FILESYSTEM
 
