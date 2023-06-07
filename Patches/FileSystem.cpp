@@ -139,6 +139,29 @@ void P_InitStreams(void) {
 
   // Proceed to the original function
   pInitStreams();
+
+  #if SE1_VER >= SE1_107
+    // Set custom mod extension to utilize Entities & Game libraries from the patch
+    if (CCoreAPI::GetPropValue("CustomMod") != "0") {
+      BOOL bChangeExtension = TRUE;
+
+      // Check if a mod has its own libraries under the current extension
+      if (_fnmMod != "") {
+        const CTString strModDir = _fnmApplicationPath + _fnmMod;
+
+        const CTString strEntities = strModDir + "Bin\\Entities" + _strModExt + ".dll";
+        const CTString strGameLib  = strModDir + "Bin\\Game"     + _strModExt + ".dll";
+
+        // Safe to change if no mod libraries
+        bChangeExtension = (!IFiles::IsReadable(strEntities.str_String) && !IFiles::IsReadable(strGameLib.str_String));
+      }
+
+      // Change mod extension for the base game or for mods with no libraries
+      if (bChangeExtension) {
+        _strModExt = "_Custom";
+      }
+    }
+  #endif
 };
 
 // Make a list of all files in a directory
