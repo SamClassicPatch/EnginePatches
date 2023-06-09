@@ -74,7 +74,7 @@ void P_InitStreams(void) {
     _pShell->DeclareSymbol("user CTString sam_strTFEDir post:SaveTFEDirectory;", &sam_strTFEDir);
 
     // Try getting saved TFE directory
-    sam_strTFEDir = CCoreAPI::GetPropValue("TFEDir");
+    sam_strTFEDir = CCoreAPI::GetPropValue("TFEDir", "");
 
     // Rewrite it if it's not set yet
     if (_fnmCDPath == "" && sam_strTFEDir != "") {
@@ -142,7 +142,7 @@ void P_InitStreams(void) {
 
   #if SE1_VER >= SE1_107
     // Set custom mod extension to utilize Entities & Game libraries from the patch
-    if (CCoreAPI::GetPropValue("CustomMod") != "0") {
+    if (CCoreAPI::GetPropValue("CustomMod", "1") != "0") {
       BOOL bChangeExtension = TRUE;
 
       // Check if a mod has its own libraries under the current extension
