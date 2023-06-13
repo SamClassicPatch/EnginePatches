@@ -91,14 +91,29 @@ void IConvertTFE::ConvertKeyType(EKeyTSE &eKey) {
 
 // Convert one TFE entity into TSE
 BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
-  // Check for the entities that need to be patched
-  if (!IsOfClass(pen, "DoorController") && !IsOfClass(pen, "KeyItem")
-   && !IsOfClass(pen, "Player Marker") && !IsOfClass(pen, "Ammo Pack")) {
+  enum {
+    EN_DOOR, EN_KEY, EN_START, EN_PACK, EN_STORM,
+  } eEntity;
+
+  // Check for the entities that need to be patched and remember their type
+  if (IsOfClass(pen, "DoorController")) {
+    eEntity = EN_DOOR;
+  } else if (IsOfClass(pen, "KeyItem")) {
+    eEntity = EN_KEY;
+  } else if (IsOfClass(pen, "Player Marker")) {
+    eEntity = EN_START;
+  } else if (IsOfClass(pen, "Ammo Pack")) {
+    eEntity = EN_PACK;
+  } else if (IsOfClass(pen, "Storm controller")) {
+    eEntity = EN_STORM;
+
+  // Invalid entity
+  } else {
     return FALSE;
   }
 
   // Remove napalm and sniper bullets
-  if (IsOfClass(pen, "Ammo Pack")) {
+  if (eEntity == EN_PACK) {
     // Retrieve CAmmoPack::m_iNapalm and CAmmoPack::m_iSniperBullets
     static CPropertyPtr pptrNapalm(pen);
     static CPropertyPtr pptrSniper(pen);
@@ -112,7 +127,7 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
     }
 
   // Adjust weapon masks
-  } else if (IsOfClass(pen, "Player Marker")) {
+  } else if (eEntity == EN_START) {
     // Retrieve CPlayerMarker::m_iGiveWeapons and CPlayerMarker::m_iTakeWeapons
     static CPropertyPtr pptrGive(pen);
     static CPropertyPtr pptrTake(pen);
@@ -147,7 +162,7 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
     iTakeWeapons = iNewTake;
 
   // Adjust keys
-  } else if (IsOfClass(pen, "KeyItem")) {
+  } else if (eEntity == EN_KEY) {
     // Retrieve CKeyItem::m_kitType and CKeyItem::m_iSoundComponent
     static CPropertyPtr pptrType(pen);
     static CPropertyPtr pptrSound(pen);
@@ -163,7 +178,7 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
     }
 
   // Adjust keys
-  } else if (IsOfClass(pen, "DoorController")) {
+  } else if (eEntity == EN_DOOR) {
     // Retrieve CDoorController::m_dtType and CDoorController::m_kitKey
     static CPropertyPtr pptrType(pen);
     static CPropertyPtr pptrKey(pen);
@@ -182,6 +197,28 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
     if (pptrKey.ByNameOrId(CEntityProperty::EPT_ENUM, "Key", (0xDD << 8) + 12)) {
       ConvertKeyType(ENTITYPROPERTY(pen, pptrKey.Offset(), EKeyTSE));
     }
+
+  // Adjust storm shade color
+  } else if (eEntity == EN_STORM) {
+    // Retrieve CStormController::m_colShadeStart and CStormController::m_colShadeStop
+    static CPropertyPtr pptrShadeStart(pen);
+    static CPropertyPtr pptrShadeStop(pen);
+
+    // Properties don't exist
+    if (!pptrShadeStart.ByNameOrId(CEntityProperty::EPT_COLOR, "Color shade start", (0x25E << 8) + 52)) {
+      return FALSE;
+    }
+
+    if (!pptrShadeStop.ByNameOrId(CEntityProperty::EPT_COLOR, "Color shade stop", (0x25E << 8) + 53)) {
+      return FALSE;
+    }
+
+    // Matches gray scale in the 64-255 brightness range
+    ENTITYPROPERTY(pen, pptrShadeStart.Offset(), COLOR) = C_WHITE | CT_OPAQUE;
+    ENTITYPROPERTY(pen, pptrShadeStop.Offset(), COLOR) = C_dGRAY | CT_OPAQUE;
+
+    // Proceed with reinitialization
+    return FALSE;
   }
 
   return TRUE;
@@ -251,7 +288,8 @@ void IConvertTFE::ConvertWorld(CWorld *pwo) {
     // Set strong ambient type that covers the whole map
     if (pptrType.ByNameOrId(CEntityProperty::EPT_ENUM, "Type", (0xC8 << 8) + 8)
      && pptrFallOff.ByNameOrId(CEntityProperty::EPT_RANGE, "Fall-off", (0xC8 << 8) + 1)
-     && pptrColor.ByNameOrId(CEntityProperty::EPT_COLOR, "Color", (0xC8 << 8) + 2)) {
+     && pptrColor.ByNameOrId(CEntityProperty::EPT_COLOR, "Color", (0xC8 << 8) + 2))
+    {
       ENTITYPROPERTY(penLight, pptrType.Offset(), INDEX) = 2; // LightType::LT_STRONG_AMBIENT
       ENTITYPROPERTY(penLight, pptrFallOff.Offset(), RANGE) = 10000.0f;
       ENTITYPROPERTY(penLight, pptrColor.Offset(), COLOR) = 0; // Black
