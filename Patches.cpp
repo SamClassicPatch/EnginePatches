@@ -117,6 +117,10 @@ void CPatches::Network(void) {
 
 #endif // CLASSICSPATCH_GUID_MASKING
 
+  extern void (CNetworkLibrary::*pLoadGame)(const CTFileName &);
+  pLoadGame = &CNetworkLibrary::Load_t;
+  NewPatch(pLoadGame, &CNetworkPatch::P_Load, "CNetworkLibrary::Load_t(...)");
+
   // CSessionState
   extern void (CSessionState::*pFlushPredictions)(void);
   pFlushPredictions = &CSessionState::FlushProcessedPredictions;

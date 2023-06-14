@@ -49,17 +49,18 @@ class CMessageDisPatch : public CMessageDispatcher {
     BOOL P_ReceiveFromClientReliable(INDEX iClient, CNetworkMessage &nmMessage);
 };
 
-#if CLASSICSPATCH_GUID_MASKING
-
 class CNetworkPatch : public CNetworkLibrary {
   public:
+  #if CLASSICSPATCH_GUID_MASKING
     void P_ChangeLevelInternal(void);
 
     // Save current game
     void P_Save(const CTFileName &fnmGame);
-};
+  #endif // CLASSICSPATCH_GUID_MASKING
 
-#endif // CLASSICSPATCH_GUID_MASKING
+    // Load saved game
+    void P_Load(const CTFileName &fnmGame);
+};
 
 class CSessionStatePatch : public CSessionState {
   public:

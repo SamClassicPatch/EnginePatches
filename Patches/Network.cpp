@@ -201,6 +201,18 @@ void CNetworkPatch::P_Save(const CTFileName &fnmGame) {
 
 #endif // CLASSICSPATCH_GUID_MASKING
 
+// Original function pointers
+extern void (CNetworkLibrary::*pLoadGame)(const CTFileName &) = NULL;
+
+// Load saved game
+void CNetworkPatch::P_Load(const CTFileName &fnmGame) {
+  // Proceed to the original function
+  (this->*pLoadGame)(fnmGame);
+
+  // Load game for Core
+  GetAPI()->OnGameLoad(fnmGame);
+};
+
 void CSessionStatePatch::P_FlushProcessedPredictions(void) {
   // Proceed to the original function
   (this->*pFlushPredictions)();
