@@ -20,11 +20,20 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "Worlds.h"
 #include "../MapConversion.h"
 
-#include <CoreLib/Base/Unzip.h>
-
 void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
   // Open the file
   wo_fnmFileName = fnmWorld;
+
+  // [Cecil] Determine forced reinitialization
+  BOOL bForceReinit = _EnginePatches._bReinitWorld;
+
+  // [Cecil] Check if the level is being loaded from the TFE directory
+  _EnginePatches._bFirstEncounter = _EnginePatches.IsMapFromTFE(fnmWorld);
+
+  // [Cecil] Reinitialize TFE for TSE
+  #if TSE_FUSION_MODE
+    bForceReinit |= _EnginePatches._bFirstEncounter;
+  #endif
 
   CTFileStream strmFile;
   strmFile.Open_t(fnmWorld);
@@ -37,33 +46,6 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
   Read_t(&strmFile);
 
   strmFile.Close();
-
-  // [Cecil] Forced reinitialization
-  BOOL bForceReinit = _EnginePatches._bReinitWorld;
-
-  // [Cecil] Check if the level is being loaded from the TFE directory
-  #if TSE_FUSION_MODE
-    // Reset TFE state in TSE
-    _EnginePatches._bFirstEncounter = FALSE;
-
-    if (_fnmCDPath != "") {
-      CTFileName fnmFull;
-
-      // Try checking the archive path
-      if (ExpandFilePath(EFP_READ, fnmWorld, fnmFull) == EFP_BASEZIP) {
-        fnmFull = IUnzip::GetFileArchive(fnmWorld);
-      }
-
-      _EnginePatches._bFirstEncounter = fnmFull.HasPrefix(_fnmCDPath);
-    }
-
-    // Reinitialize TFE for TSE
-    bForceReinit |= _EnginePatches._bFirstEncounter;
-
-  #else
-    // Already playing TFE in TFE
-    _EnginePatches._bFirstEncounter = TRUE;
-  #endif
 
   // [Cecil] Convert the world some specific way while in game
   if (!GetAPI()->IsEditorApp() && bForceReinit) {

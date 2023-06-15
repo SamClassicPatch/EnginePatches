@@ -84,10 +84,8 @@ class PATCHES_API CPatches {
       }
     };
 
-    #if SE1_VER >= SE1_107
-      // Apply patches upon loading the shaders library
-      void ShadersPatches(void);
-    #endif
+    // Check if the map file is from the TFE directory
+    BOOL IsMapFromTFE(const CTFileName &fnm);
 
   // Patches after Serious Engine and Core initializations
   public:
@@ -123,6 +121,11 @@ class PATCHES_API CPatches {
 
     // Customize core file handling in the engine
     void FileSystem(void);
+
+    #if SE1_VER >= SE1_107
+      // Apply patches upon loading the shaders library
+      void ShadersPatches(void);
+    #endif
 
     // Don't use memory paging in streams
     void UnpageStreams(void);

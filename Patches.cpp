@@ -15,6 +15,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdH.h"
 
+#include <CoreLib/Base/Unzip.h>
+
 #if CLASSICSPATCH_ENGINEPATCHES
 
 // Singleton for patching
@@ -34,6 +36,26 @@ CPatches::CPatches() {
 
   _bFirstEncounter = FALSE;
   _bReinitWorld = FALSE;
+};
+
+// Check if the map file is from the TFE directory
+BOOL CPatches::IsMapFromTFE(const CTFileName &fnm) {
+  #if TSE_FUSION_MODE
+    if (_fnmCDPath == "") return FALSE;
+
+    CTFileName fnmFull;
+
+    // Try checking the archive path
+    if (ExpandFilePath(EFP_READ, fnm, fnmFull) == EFP_BASEZIP) {
+      fnmFull = IUnzip::GetFileArchive(fnm);
+    }
+
+    return fnmFull.HasPrefix(_fnmCDPath);
+
+  #else
+    // Already playing TFE
+    return TRUE;
+  #endif
 };
 
 #include "Patches/Entities.h"
