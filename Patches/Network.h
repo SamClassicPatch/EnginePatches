@@ -53,13 +53,22 @@ class CNetworkPatch : public CNetworkLibrary {
   public:
   #if CLASSICSPATCH_GUID_MASKING
     void P_ChangeLevelInternal(void);
+  #endif
 
     // Save current game
     void P_Save(const CTFileName &fnmGame);
-  #endif // CLASSICSPATCH_GUID_MASKING
 
     // Load saved game
     void P_Load(const CTFileName &fnmGame);
+
+    // Start playing a demo
+    void P_StartDemoPlay(const CTFileName &fnDemo);
+
+    // Start recording a demo
+    void P_StartDemoRec(const CTFileName &fnDemo);
+
+    // Stop recording a demo
+    void P_StopDemoRec(void);
 };
 
 class CSessionStatePatch : public CSessionState {

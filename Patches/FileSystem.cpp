@@ -30,7 +30,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 static CFileList _aContentDirs;
 
 // Original function pointer
-extern void (*pInitStreams)(void) = NULL;
+void (*pInitStreams)(void) = NULL;
 
 // Load ZIP packages under an absolute directory that match a filename mask
 static void LoadPackages(const CTString &strDirectory, const CTString &strMatchFiles) {

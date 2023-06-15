@@ -29,8 +29,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #if CLASSICSPATCH_EXTEND_NETWORK
 
 // Original function pointers
-extern void (CCommunicationInterface::*pServerInit)(void) = NULL;
-extern void (CCommunicationInterface::*pServerClose)(void) = NULL;
+void (CCommunicationInterface::*pServerInit)(void) = NULL;
+void (CCommunicationInterface::*pServerClose)(void) = NULL;
 
 void CComIntPatch::P_EndWinsock(void) {
   // Stop master server enumeration
@@ -160,11 +160,14 @@ BOOL CMessageDisPatch::P_ReceiveFromClientReliable(INDEX iClient, CNetworkMessag
 };
 
 // Original function pointers
-extern void (CSessionState::*pFlushPredictions)(void) = NULL;
+void (CSessionState::*pFlushPredictions)(void) = NULL;
+
+void (CNetworkLibrary::*pLoadGame)(const CTFileName &) = NULL;
+void (CNetworkLibrary::*pStartDemoPlay)(const CTFileName &) = NULL;
 
 #if CLASSICSPATCH_GUID_MASKING
 
-extern void (CNetworkLibrary::*pChangeLevel)(void) = NULL;
+void (CNetworkLibrary::*pChangeLevel)(void) = NULL;
 
 void CNetworkPatch::P_ChangeLevelInternal(void) {
   // Proceed to the original function
@@ -176,6 +179,8 @@ void CNetworkPatch::P_ChangeLevelInternal(void) {
   }
 };
 
+#endif // CLASSICSPATCH_GUID_MASKING
+
 // Save current game
 void CNetworkPatch::P_Save(const CTFileName &fnmGame) {
   // Synchronize access to network
@@ -186,8 +191,12 @@ void CNetworkPatch::P_Save(const CTFileName &fnmGame) {
     ThrowF_t(LOCALIZE("Cannot save game - not a server!\n"));
   }
 
+#if CLASSICSPATCH_GUID_MASKING
+
   // Currently saving
   IProcessPacket::_iHandlingClient = IProcessPacket::CLT_SAVE;
+
+#endif // CLASSICSPATCH_GUID_MASKING
 
   // Create the file
   CTFileStream strmFile;
@@ -197,12 +206,10 @@ void CNetworkPatch::P_Save(const CTFileName &fnmGame) {
   strmFile.WriteID_t("GAME");
   ga_sesSessionState.Write_t(&strmFile);
   strmFile.WriteID_t("GEND"); // Game end
+
+  // [Cecil] Save game for Core
+  GetAPI()->OnGameSave(fnmGame);
 };
-
-#endif // CLASSICSPATCH_GUID_MASKING
-
-// Original function pointers
-extern void (CNetworkLibrary::*pLoadGame)(const CTFileName &) = NULL;
 
 // Load saved game
 void CNetworkPatch::P_Load(const CTFileName &fnmGame) {
@@ -211,6 +218,60 @@ void CNetworkPatch::P_Load(const CTFileName &fnmGame) {
 
   // Load game for Core
   GetAPI()->OnGameLoad(fnmGame);
+};
+
+// Start playing a demo
+void CNetworkPatch::P_StartDemoPlay(const CTFileName &fnDemo) {
+  // Proceed to the original function
+  (this->*pStartDemoPlay)(fnDemo);
+
+  // Play demo for Core
+  GetAPI()->OnDemoPlay(fnDemo);
+};
+
+// Start recording a demo
+void CNetworkPatch::P_StartDemoRec(const CTFileName &fnDemo) {
+  // Synchronize access to network
+  CTSingleLock slNetwork(&ga_csNetwork, TRUE);
+
+  // Already recording
+  if (ga_bDemoRec) {
+    throw LOCALIZE("Already recording a demo!");
+  }
+
+  // Create the file
+  ga_strmDemoRec.Create_t(fnDemo);
+
+  // Write initial info to stream
+  ga_strmDemoRec.WriteID_t("DEMO");
+  ga_strmDemoRec.WriteID_t("MVER");
+  ga_strmDemoRec << ULONG(_SE_BUILD_MINOR);
+  ga_sesSessionState.Write_t(&ga_strmDemoRec);
+
+  // Set demo recording state
+  ga_bDemoRec = TRUE;
+
+  // [Cecil] Start demo recording for Core
+  GetAPI()->OnDemoStart(fnDemo);
+};
+
+// Stop recording a demo
+void CNetworkPatch::P_StopDemoRec(void) {
+  // Synchronize access to network
+  CTSingleLock slNetwork(&ga_csNetwork, TRUE);
+
+  // Not recording
+  if (!ga_bDemoRec) return;
+
+  // Write terminal info to the stream and close the file
+  ga_strmDemoRec.WriteID_t("DEND"); // Demo end
+  ga_strmDemoRec.Close();
+
+  // Set demo recording state
+  ga_bDemoRec = FALSE;
+
+  // [Cecil] Stop demo recording for Core
+  GetAPI()->OnDemoStop();
 };
 
 void CSessionStatePatch::P_FlushProcessedPredictions(void) {

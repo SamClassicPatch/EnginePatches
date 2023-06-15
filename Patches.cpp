@@ -134,14 +134,24 @@ void CPatches::Network(void) {
   pChangeLevel = &CNetworkLibrary::ChangeLevel_internal;
   NewPatch(pChangeLevel, &CNetworkPatch::P_ChangeLevelInternal, "CNetworkLibrary::ChangeLevel_internal()");
 
+#endif // CLASSICSPATCH_GUID_MASKING
+
   void (CNetworkLibrary::*pSaveGame)(const CTFileName &) = &CNetworkLibrary::Save_t;
   NewPatch(pSaveGame, &CNetworkPatch::P_Save, "CNetworkLibrary::Save_t(...)");
-
-#endif // CLASSICSPATCH_GUID_MASKING
 
   extern void (CNetworkLibrary::*pLoadGame)(const CTFileName &);
   pLoadGame = &CNetworkLibrary::Load_t;
   NewPatch(pLoadGame, &CNetworkPatch::P_Load, "CNetworkLibrary::Load_t(...)");
+
+  extern void (CNetworkLibrary::*pStartDemoPlay)(const CTFileName &);
+  pStartDemoPlay = &CNetworkLibrary::StartDemoPlay_t;
+  NewPatch(pStartDemoPlay, &CNetworkPatch::P_StartDemoPlay, "CNetworkLibrary::StartDemoPlay_t(...)");
+
+  void (CNetworkLibrary::*pStartDemoRec)(const CTFileName &) = &CNetworkLibrary::StartDemoRec_t;
+  NewPatch(pStartDemoRec, &CNetworkPatch::P_StartDemoRec, "CNetworkLibrary::StartDemoRec_t(...)");
+
+  void (CNetworkLibrary::*pStopDemoRec)(void) = &CNetworkLibrary::StopDemoRec;
+  NewPatch(pStopDemoRec, &CNetworkPatch::P_StopDemoRec, "CNetworkLibrary::StopDemoRec()");
 
   // CSessionState
   extern void (CSessionState::*pFlushPredictions)(void);
