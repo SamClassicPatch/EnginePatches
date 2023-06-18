@@ -88,19 +88,15 @@ void CPatches::Entities(void) {
 
 #if CLASSICSPATCH_EXTEND_NETWORK && CLASSICSPATCH_GUID_MASKING
 
-BOOL _bMaskGUIDsCommand = TRUE;
-
-static void UpdateMaskGUIDs(void *pSymbol) {
+static BOOL UpdateMaskGUIDs(void *pSymbol) {
   // Cannot change the state of the variable while running the game as a server
   if (_pNetwork->IsServer()) {
     CPutString(TRANS("Cannot change the state of GUID masking while the server is running!\n"));
-
-    // Restore value
-    _bMaskGUIDsCommand = IProcessPacket::_bMaskGUIDs;
-    return;
+    return FALSE;
   }
 
-  IProcessPacket::_bMaskGUIDs = _bMaskGUIDsCommand;
+  // Safe to change
+  return TRUE;
 };
 
 #endif // CLASSICSPATCH_GUID_MASKING
@@ -185,8 +181,8 @@ void CPatches::Network(void) {
   NewPatch(pChecksumForSync, &CPlayerEntityPatch::P_ChecksumForSync, "CPlayerEntity::ChecksumForSync(...)");
 
   // Custom symbols
-  _pShell->DeclareSymbol("user void UpdateMaskGUIDs(INDEX);", &UpdateMaskGUIDs);
-  _pShell->DeclareSymbol("user INDEX ser_bMaskGUIDs post:UpdateMaskGUIDs;", &_bMaskGUIDsCommand);
+  _pShell->DeclareSymbol("INDEX UpdateMaskGUIDs(INDEX);", &UpdateMaskGUIDs);
+  _pShell->DeclareSymbol("persistent user INDEX ser_bMaskGUIDs pre:UpdateMaskGUIDs;", &IProcessPacket::_bMaskGUIDs);
 
 #endif // CLASSICSPATCH_GUID_MASKING
 
