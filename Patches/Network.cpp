@@ -192,12 +192,8 @@ void CNetworkPatch::P_Save(const CTFileName &fnmGame) {
     ThrowF_t(LOCALIZE("Cannot save game - not a server!\n"));
   }
 
-#if CLASSICSPATCH_GUID_MASKING
-
   // Currently saving
   IProcessPacket::_iHandlingClient = IProcessPacket::CLT_SAVE;
-
-#endif // CLASSICSPATCH_GUID_MASKING
 
   // Create the file
   CTFileStream strmFile;
