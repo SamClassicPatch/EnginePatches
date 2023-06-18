@@ -139,6 +139,10 @@ void CPatches::Network(void) {
   pLoadGame = &CNetworkLibrary::Load_t;
   NewPatch(pLoadGame, &CNetworkPatch::P_Load, "CNetworkLibrary::Load_t(...)");
 
+  extern void (CNetworkLibrary::*pStopGame)(void);
+  pStopGame = &CNetworkLibrary::StopGame;
+  NewPatch(pStopGame, &CNetworkPatch::P_StopGame, "CNetworkLibrary::StopGame()");
+
   extern void (CNetworkLibrary::*pStartDemoPlay)(const CTFileName &);
   pStartDemoPlay = &CNetworkLibrary::StartDemoPlay_t;
   NewPatch(pStartDemoPlay, &CNetworkPatch::P_StartDemoPlay, "CNetworkLibrary::StartDemoPlay_t(...)");

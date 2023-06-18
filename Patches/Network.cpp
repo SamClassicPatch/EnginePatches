@@ -163,6 +163,7 @@ BOOL CMessageDisPatch::P_ReceiveFromClientReliable(INDEX iClient, CNetworkMessag
 void (CSessionState::*pFlushPredictions)(void) = NULL;
 
 void (CNetworkLibrary::*pLoadGame)(const CTFileName &) = NULL;
+void (CNetworkLibrary::*pStopGame)(void) = NULL;
 void (CNetworkLibrary::*pStartDemoPlay)(const CTFileName &) = NULL;
 
 #if CLASSICSPATCH_GUID_MASKING
@@ -218,6 +219,15 @@ void CNetworkPatch::P_Load(const CTFileName &fnmGame) {
 
   // Load game for Core
   GetAPI()->OnGameLoad(fnmGame);
+};
+
+// Stop current game
+void CNetworkPatch::P_StopGame(void) {
+  // Stop game for Core
+  GetAPI()->OnGameStop();
+
+  // Proceed to the original function
+  (this->*pStopGame)();
 };
 
 // Start playing a demo

@@ -61,6 +61,9 @@ class CNetworkPatch : public CNetworkLibrary {
     // Load saved game
     void P_Load(const CTFileName &fnmGame);
 
+    // Stop current game
+    void P_StopGame(void);
+
     // Start playing a demo
     void P_StartDemoPlay(const CTFileName &fnDemo);
 
