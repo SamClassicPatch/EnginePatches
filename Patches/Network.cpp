@@ -320,11 +320,13 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
       CPlayerCharacter pcCharacter;
       nmMessage >> iNewPlayer >> pcCharacter;
 
+      CPlayerTarget &plt = ses_apltPlayers[iNewPlayer];
+
       // Delete all predictors
       _pNetwork->ga_World.DeletePredictors();
 
       // Activate the player
-      ses_apltPlayers[iNewPlayer].Activate();
+      plt.Activate();
 
       // Find entity with this character
       CPlayerEntity *penNewPlayer = _pNetwork->ga_World.FindEntityWithCharacter(pcCharacter);
@@ -339,7 +341,7 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
           penNewPlayer = (CPlayerEntity *)_pNetwork->ga_World.CreateEntity_t(pl, strPlayerClass);
 
           // Attach entity to client data
-          ses_apltPlayers[iNewPlayer].AttachEntity(penNewPlayer);
+          plt.AttachEntity(penNewPlayer);
 
           // Attach character to it
           penNewPlayer->en_pcCharacter = pcCharacter;
@@ -358,7 +360,7 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
       // If found some entity
       } else {
         // Attach entity to client data
-        ses_apltPlayers[iNewPlayer].AttachEntity(penNewPlayer);
+        plt.AttachEntity(penNewPlayer);
 
         // Update its character
         penNewPlayer->CharacterChanged(pcCharacter);
@@ -367,6 +369,9 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
           CPrintF(LOCALIZE("%s rejoined\n"), penNewPlayer->GetPlayerName());
         }
       }
+
+      // [Cecil] Call player addition for Core
+      GetAPI()->OnAddPlayer(plt, _pNetwork->IsPlayerLocal(penNewPlayer));
     } break;
 
     // Removing a player
@@ -378,15 +383,21 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
       INDEX iPlayer;
       nmMessage >> iPlayer;
 
+      CPlayerTarget &plt = ses_apltPlayers[iPlayer];
+      CPlayerEntity *penRemPlayer = plt.plt_penPlayerEntity;
+
       // Delete all predictors
       _pNetwork->ga_World.DeletePredictors();
 
+      // [Cecil] Call player removal for Core
+      GetAPI()->OnRemovePlayer(plt, _pNetwork->IsPlayerLocal(penRemPlayer));
+
       // Inform entity of disconnnection
-      CPrintF(LOCALIZE("%s left\n"), ses_apltPlayers[iPlayer].plt_penPlayerEntity->GetPlayerName());
-      ses_apltPlayers[iPlayer].plt_penPlayerEntity->Disconnect();
+      CPrintF(LOCALIZE("%s left\n"), penRemPlayer->GetPlayerName());
+      penRemPlayer->Disconnect();
 
       // Deactivate the player
-      ses_apltPlayers[iPlayer].Deactivate();
+      plt.Deactivate();
 
       // Handle sent entity events
       ses_bAllowRandom = TRUE;
