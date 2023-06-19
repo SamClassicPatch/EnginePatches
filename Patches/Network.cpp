@@ -415,11 +415,20 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
       CPlayerCharacter pcCharacter;
       nmMessage >> iPlayer >> pcCharacter;
 
+      CPlayerEntity *penPlayer = ses_apltPlayers[iPlayer].plt_penPlayerEntity;
+
       // Delete all predictors
       _pNetwork->ga_World.DeletePredictors();
 
-      // Change the character
-      ses_apltPlayers[iPlayer].plt_penPlayerEntity->CharacterChanged(pcCharacter);
+      // [Cecil] Check if the entity is even capable of changing its appearance
+      if (IProcessPacket::CanChangeCharacter(penPlayer)) {
+        // Change the character
+        penPlayer->CharacterChanged(pcCharacter);
+
+      } else {
+        static CTString strWarning = TRANS("Please wait until you are fully connected to change your character.");
+        CPutString(strWarning + "\n");
+      }
 
       // Handle sent entity events
       ses_bAllowRandom = TRUE;
