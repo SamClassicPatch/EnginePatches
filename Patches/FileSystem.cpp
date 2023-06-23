@@ -105,7 +105,7 @@ void P_InitStreams(void) {
   #endif
 
   // Read list of content directories without engine's streams
-  const CTFileName fnmDirList = _fnmApplicationPath + "Data\\ContentDir.lst";
+  const CTFileName fnmDirList = CCoreAPI::AppPath() + "Data\\ContentDir.lst";
 
   if (IFiles::IsReadable(fnmDirList.str_String)) {
     std::ifstream inDirList(fnmDirList.str_String);
@@ -147,8 +147,9 @@ void P_InitStreams(void) {
 
       // Check if a mod has its own libraries under the current extension
       if (_fnmMod != "") {
-        const CTString strModDir = _fnmApplicationPath + _fnmMod;
+        const CTString strModDir = CCoreAPI::AppPath() + _fnmMod;
 
+        // Search specifically under "Bin" because that's how all classic mods are structured
         const CTString strEntities = strModDir + "Bin\\Entities" + _strModExt + ".dll";
         const CTString strGameLib  = strModDir + "Bin\\Game"     + _strModExt + ".dll";
 
@@ -199,7 +200,7 @@ static INDEX ExpandPathForReading(ULONG ulType, const CTFileName &fnmFile, CTFil
   if (_fnmMod != "") {
     // Try mod directory before archives
     if (!bPreferZips) {
-      fnmExpanded = _fnmApplicationPath + _fnmMod + fnmFile;
+      fnmExpanded = CCoreAPI::AppPath() + _fnmMod + fnmFile;
 
       if (IFiles::IsReadable(fnmExpanded)) {
         return EFP_FILE;
@@ -217,7 +218,7 @@ static INDEX ExpandPathForReading(ULONG ulType, const CTFileName &fnmFile, CTFil
 
     // Try mod directory after archives
     if (bPreferZips) {
-      fnmExpanded = _fnmApplicationPath + _fnmMod + fnmFile;
+      fnmExpanded = CCoreAPI::AppPath() + _fnmMod + fnmFile;
 
       if (IFiles::IsReadable(fnmExpanded)) {
         return EFP_FILE;
@@ -227,13 +228,13 @@ static INDEX ExpandPathForReading(ULONG ulType, const CTFileName &fnmFile, CTFil
 
   // Try game root directory before archives
   if (!bPreferZips) {
-    CTFileName fnmAppPath = _fnmApplicationPath;
-    IFiles::SetAbsolutePath(fnmAppPath);
+    CTFileName fnmAppPath = CCoreAPI::AppPath();
+    IFiles::SetAbsolutePath(fnmAppPath); // [Cecil] TEMP: Probably useless? Originally copied from 1.10
 
     if (fnmFile.HasPrefix(fnmAppPath)) {
       fnmExpanded = fnmFile;
     } else {
-      fnmExpanded = _fnmApplicationPath + fnmFile;
+      fnmExpanded = CCoreAPI::AppPath() + fnmFile;
     }
 
     if (IFiles::IsReadable(fnmExpanded)) {
@@ -252,7 +253,7 @@ static INDEX ExpandPathForReading(ULONG ulType, const CTFileName &fnmFile, CTFil
 
   // Try game root directory after archives
   if (bPreferZips) {
-    fnmExpanded = _fnmApplicationPath + fnmFile;
+    fnmExpanded = CCoreAPI::AppPath() + fnmFile;
 
     if (IFiles::IsReadable(fnmExpanded)) {
       return EFP_FILE;
@@ -292,13 +293,13 @@ INDEX P_ExpandFilePath(ULONG ulType, const CTFileName &fnmFile, CTFileName &fnmE
     if (_fnmMod != "" && (IFiles::MatchesList(IFiles::aBaseWriteInc, fnmFileAbsolute) == -1
                        || IFiles::MatchesList(IFiles::aBaseWriteExc, fnmFileAbsolute) != -1))
     {
-      fnmExpanded = _fnmApplicationPath + _fnmMod + fnmFileAbsolute;
+      fnmExpanded = CCoreAPI::AppPath() + _fnmMod + fnmFileAbsolute;
       IFiles::SetAbsolutePath(fnmExpanded);
       return EFP_FILE;
 
     // Otherwise write into the root directory
     } else {
-      fnmExpanded = _fnmApplicationPath + fnmFileAbsolute;
+      fnmExpanded = CCoreAPI::AppPath() + fnmFileAbsolute;
       IFiles::SetAbsolutePath(fnmExpanded);
       return EFP_FILE;
     }
@@ -326,12 +327,12 @@ INDEX P_ExpandFilePath(ULONG ulType, const CTFileName &fnmFile, CTFileName &fnmE
   // If unknown
   } else {
     ASSERT(FALSE);
-    fnmExpanded = _fnmApplicationPath + fnmFileAbsolute;
+    fnmExpanded = CCoreAPI::AppPath() + fnmFileAbsolute;
     IFiles::SetAbsolutePath(fnmExpanded);
     return EFP_FILE;
   }
 
-  fnmExpanded = _fnmApplicationPath + fnmFileAbsolute;
+  fnmExpanded = CCoreAPI::AppPath() + fnmFileAbsolute;
   IFiles::SetAbsolutePath(fnmExpanded);
   return EFP_NONE;
 };
