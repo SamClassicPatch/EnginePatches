@@ -26,6 +26,75 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #if CLASSICSPATCH_EXTEND_FILESYSTEM
 
+// Obtain components of the entity class
+void CEntityClassPatch::P_ObtainComponents(void)
+{
+  static CSymbolPtr piPrecachePolicy("gam_iPrecachePolicy");
+  const INDEX iPolicy = piPrecachePolicy.GetIndex();
+
+  for (INDEX i = 0; i < ec_pdecDLLClass->dec_ctComponents; i++) {
+    CEntityComponent &ec = ec_pdecDLLClass->dec_aecComponents[i];
+
+    // If not precaching everything
+    if (iPolicy < PRECACHE_ALL) {
+      // Skip non-class components
+      if (ec.ec_ectType != ECT_CLASS) continue;
+    }
+
+    // Try to obtain the component
+    try {
+      ec.Obtain_t();
+
+    } catch (char *) {
+      // Fail if in paranoia mode
+      if (iPolicy == PRECACHE_PARANOIA) throw;
+    }
+  }
+};
+
+// Load entity class from a library
+void CEntityClassPatch::P_Read(CTStream *istr) {
+  // Read library filename and class name
+  CTFileName fnmDLL;
+  fnmDLL.ReadFromText_t(*istr, "Package: ");
+
+  CTString strClassName;
+  strClassName.ReadFromText_t(*istr, "Class: ");
+
+  // [Cecil] Construct full path to the entities library
+  fnmDLL = CCoreAPI::AppPath() + CCoreAPI::FullLibPath(fnmDLL.FileName() + _strModExt, fnmDLL.FileExt());
+
+  // Load class library
+  ec_hiClassDLL = CCoreAPI::LoadLib(fnmDLL.str_String);
+  ec_fnmClassDLL = fnmDLL;
+
+  // Get pointer to the library class structure
+  ec_pdecDLLClass = (CDLLEntityClass *)GetProcAddress(ec_hiClassDLL, (strClassName + "_DLLClass").str_String);
+
+  // Class structure is not found
+  if (ec_pdecDLLClass == NULL) {
+    BOOL bSuccess = FreeLibrary(ec_hiClassDLL);
+    ASSERT(bSuccess);
+
+    ec_hiClassDLL = NULL;
+    ec_fnmClassDLL.Clear();
+
+    ThrowF_t(TRANS("Class '%s' not found in entity class package file '%s'"), strClassName, fnmDLL);
+  }
+
+  // Obtain all components needed by the class
+  {
+    CTmpPrecachingNow tpn;
+    P_ObtainComponents();
+  }
+
+  // Attach the library
+  ec_pdecDLLClass->dec_OnInitClass();
+
+  // Make sure that the properties have been properly declared
+  CheckClassProperties();
+};
+
 // List of extra content directories
 static CFileList _aContentDirs;
 
@@ -59,7 +128,7 @@ static CTString sam_strTFEDir = "";
 
 // Save TFE directory into a variable file
 static void SaveTFEDirectory(void *) {
-  CCoreAPI::SetPropValue("TFEDir", sam_strTFEDir);
+  CCoreAPI::Props().SetValue("", "TFEDir", sam_strTFEDir);
 
   CPutString(TRANS("Saved new directory with The First Encounter installation into 'TFEDir' property!\n"));
   CPutString(TRANS("Restart the game to load content from the new directory!\n"));
@@ -74,7 +143,7 @@ void P_InitStreams(void) {
     _pShell->DeclareSymbol("user CTString sam_strTFEDir post:SaveTFEDirectory;", &sam_strTFEDir);
 
     // Try getting saved TFE directory
-    sam_strTFEDir = CCoreAPI::GetPropValue("TFEDir", "");
+    sam_strTFEDir = CCoreAPI::Props().GetValue("", "TFEDir", "");
 
     // Rewrite it if it's not set yet
     if (_fnmCDPath == "" && sam_strTFEDir != "") {
@@ -142,16 +211,16 @@ void P_InitStreams(void) {
 
   #if SE1_VER >= SE1_107
     // Set custom mod extension to utilize Entities & Game libraries from the patch
-    if (CCoreAPI::GetPropValue("CustomMod", "1") != "0") {
+    if (CCoreAPI::Props().GetBoolValue("", "CustomMod", TRUE)) {
       BOOL bChangeExtension = TRUE;
 
       // Check if a mod has its own libraries under the current extension
       if (_fnmMod != "") {
-        const CTString strModDir = CCoreAPI::AppPath() + _fnmMod;
+        const CTString strModBin = CCoreAPI::AppPath() + _fnmMod + "Bin\\";
 
         // Search specifically under "Bin" because that's how all classic mods are structured
-        const CTString strEntities = strModDir + "Bin\\Entities" + _strModExt + ".dll";
-        const CTString strGameLib  = strModDir + "Bin\\Game"     + _strModExt + ".dll";
+        const CTString strEntities = strModBin + CCoreAPI::GetLibFile("Entities" + _strModExt);
+        const CTString strGameLib  = strModBin + CCoreAPI::GetLibFile("Game" + _strModExt);
 
         // Safe to change if no mod libraries
         bChangeExtension = (!IFiles::IsReadable(strEntities.str_String) && !IFiles::IsReadable(strGameLib.str_String));

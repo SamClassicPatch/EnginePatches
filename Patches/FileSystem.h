@@ -20,9 +20,19 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #pragma once
 #endif
 
+#include <Engine/Entities/EntityClass.h>
 #include <CoreLib/Interfaces/FileFunctions.h>
 
 #if CLASSICSPATCH_ENGINEPATCHES && CLASSICSPATCH_EXTEND_FILESYSTEM
+
+class CEntityClassPatch : public CEntityClass {
+  public:
+    // Obtain components of the entity class
+    void P_ObtainComponents(void);
+
+    // Load entity class from a library
+    void P_Read(CTStream *istr);
+};
 
 // Initialize various file paths and load game content
 void P_InitStreams(void);

@@ -418,6 +418,15 @@ void CPatches::FileSystem(void) {
     PatchStreams();
   #endif
 
+  // CEntityClass
+  void (CEntityClass::*pObtainComponents)(void) = &CEntityClass::ObtainComponents_t;
+  NewRawPatch(pObtainComponents, &CEntityClassPatch::P_ObtainComponents, "CEntityClass::ObtainComponents_t()");
+
+  void *pReadClassPtr = CPatchAPI::GetEngineSymbolPortable("?Read_t@CEntityClass@@UAEXPAVCTStream@@@Z");
+  void (*pReadClass)(CTStream *) = (void (*)(CTStream *))pReadClassPtr;
+  NewRawPatch(pReadClass, &CEntityClassPatch::P_Read, "CEntityClass::Read_t(...)");
+
+  // Global methods
   extern void (*pInitStreams)(void);
   pInitStreams = StructPtr(ADDR_INITSTREAMS)(&P_InitStreams);
   NewRawPatch(pInitStreams, &P_InitStreams, "::InitStreams()");
