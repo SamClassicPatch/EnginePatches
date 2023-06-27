@@ -259,29 +259,30 @@ void P_InitStreams(void) {
   // Proceed to the original function
   pInitStreams();
 
-  #if SE1_VER >= SE1_107
-    // Set custom mod extension to utilize Entities & Game libraries from the patch
-    if (CCoreAPI::Props().GetBoolValue("", "CustomMod", TRUE)) {
-      BOOL bChangeExtension = TRUE;
+  // Set custom mod extension to utilize Entities & Game libraries from the patch
+  if (CCoreAPI::Props().GetBoolValue("", "CustomMod", TRUE)) {
+    BOOL bChangeExtension = TRUE;
 
-      // Check if a mod has its own libraries under the current extension
-      if (_fnmMod != "") {
-        const CTString strModBin = CCoreAPI::AppPath() + _fnmMod + "Bin\\";
+    // Check if a mod has its own libraries under the current extension
+    if (_fnmMod != "") {
+      const CTString strModBin = CCoreAPI::AppPath() + _fnmMod + "Bin\\";
 
-        // Search specifically under "Bin" because that's how all classic mods are structured
-        const CTString strEntities = strModBin + CCoreAPI::GetLibFile("Entities" + _strModExt);
-        const CTString strGameLib  = strModBin + CCoreAPI::GetLibFile("Game" + _strModExt);
+      // Search specifically under "Bin" because that's how all classic mods are structured
+      const CTString strEntities = strModBin + CCoreAPI::GetLibFile("Entities" + _strModExt);
+      const CTString strGameLib  = strModBin + CCoreAPI::GetLibFile("Game" + _strModExt);
 
-        // Safe to change if no mod libraries
-        bChangeExtension = (!IFiles::IsReadable(strEntities.str_String) && !IFiles::IsReadable(strGameLib.str_String));
-      }
-
-      // Change mod extension for the base game or for mods with no libraries
-      if (bChangeExtension) {
-        _strModExt = "_Custom";
-      }
+      // Safe to change if no mod libraries
+      bChangeExtension = (!IFiles::IsReadable(strEntities.str_String) && !IFiles::IsReadable(strGameLib.str_String));
     }
-  #endif
+
+    // Change mod extension for the base game or for mods with no libraries
+    if (bChangeExtension) {
+      _strModExt = "_Custom";
+
+      // Activate custom mod
+      CCoreAPI::bCustomMod = TRUE;
+    }
+  }
 };
 
 // Make a list of all files in a directory
