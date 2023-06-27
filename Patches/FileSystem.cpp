@@ -62,7 +62,21 @@ void CEntityClassPatch::P_Read(CTStream *istr) {
   strClassName.ReadFromText_t(*istr, "Class: ");
 
   // [Cecil] Construct full path to the entities library
-  fnmDLL = CCoreAPI::AppPath() + CCoreAPI::FullLibPath(fnmDLL.FileName() + _strModExt, fnmDLL.FileExt());
+  const CTString strLibName = fnmDLL.FileName();
+  const CTString strLibExt = fnmDLL.FileExt();
+
+#if SE1_VER >= SE1_107
+  // Find appropriate default entities library
+  if (fnmDLL == "Bin\\Entities.dll") {
+    fnmDLL = CCoreAPI::AppPath() + CCoreAPI::FullLibPath(strLibName + _strModExt, strLibExt);
+
+  } else
+#endif
+  // Use original path to the library
+  {
+    CTFileName fnmExpand = fnmDLL.FileDir() + CCoreAPI::GetLibFile(strLibName + CCoreAPI::GetVanillaExt(), strLibExt);
+    ExpandFilePath(EFP_READ, fnmExpand, fnmDLL);
+  }
 
   // Load class library
   ec_hiClassDLL = CCoreAPI::LoadLib(fnmDLL.str_String);
