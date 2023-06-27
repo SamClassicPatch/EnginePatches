@@ -426,6 +426,13 @@ void CPatches::FileSystem(void) {
   void (*pReadClass)(CTStream *) = (void (*)(CTStream *))pReadClassPtr;
   NewRawPatch(pReadClass, &CEntityClassPatch::P_Read, "CEntityClass::Read_t(...)");
 
+#if SE1_VER >= SE1_107
+  // CShader
+  void *pReadShaderPtr = CPatchAPI::GetEngineSymbolPortable("?Read_t@CShader@@UAEXPAVCTStream@@@Z");
+  void (*pReadShader)(CTStream *) = (void (*)(CTStream *))pReadShaderPtr;
+  NewRawPatch(pReadShader, &CShaderPatch::P_Read, "CShader::Read_t(...)");
+#endif
+
   // Global methods
   extern void (*pInitStreams)(void);
   pInitStreams = StructPtr(ADDR_INITSTREAMS)(&P_InitStreams);

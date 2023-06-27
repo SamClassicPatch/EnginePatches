@@ -79,7 +79,7 @@ void CEntityClassPatch::P_Read(CTStream *istr) {
     ec_hiClassDLL = NULL;
     ec_fnmClassDLL.Clear();
 
-    ThrowF_t(TRANS("Class '%s' not found in entity class package file '%s'"), strClassName, fnmDLL);
+    ThrowF_t(LOCALIZE("Class '%s' not found in entity class package file '%s'"), strClassName, fnmDLL);
   }
 
   // Obtain all components needed by the class
@@ -94,6 +94,42 @@ void CEntityClassPatch::P_Read(CTStream *istr) {
   // Make sure that the properties have been properly declared
   CheckClassProperties();
 };
+
+#if SE1_VER >= SE1_107
+
+// Load shader from a library
+void CShaderPatch::P_Read(CTStream *istrFile) {
+  // Read library filename and function names
+  CTFileName fnmDLL;
+  CTString strShaderFunc, strShaderInfo;
+
+  fnmDLL.ReadFromText_t(*istrFile, "Package: ");
+  strShaderFunc.ReadFromText_t(*istrFile, "Name: ");
+  strShaderInfo.ReadFromText_t(*istrFile, "Info: ");
+
+  // [Cecil] Construct full path to the shaders library
+  fnmDLL = CCoreAPI::AppPath() + CCoreAPI::FullLibPath(fnmDLL.FileName(), fnmDLL.FileExt());
+
+  // Load shader library
+  const UINT iOldErrorMode = SetErrorMode(SEM_NOOPENFILEERRORBOX | SEM_FAILCRITICALERRORS);
+
+  hLibrary = CCoreAPI::LoadLib(fnmDLL.str_String);
+
+  SetErrorMode(iOldErrorMode);
+
+  // Make sure it's loaded
+  if (hLibrary == NULL) istrFile->Throw_t("Error loading '%s' library", fnmDLL.str_String);
+
+  // Get shader rendering function
+  ShaderFunc = (void (*)(void))GetProcAddress(hLibrary, strShaderFunc.str_String);
+  if (ShaderFunc == NULL) istrFile->Throw_t("GetProcAddress 'ShaderFunc' Error");
+
+  // Get shader info function
+  GetShaderDesc = (void (*)(ShaderDesc &))GetProcAddress(hLibrary, strShaderInfo.str_String);
+  if (GetShaderDesc == NULL) istrFile->Throw_t("GetProcAddress 'ShaderDesc' Error");
+};
+
+#endif
 
 // List of extra content directories
 static CFileList _aContentDirs;

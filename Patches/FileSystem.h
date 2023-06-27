@@ -21,6 +21,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #endif
 
 #include <Engine/Entities/EntityClass.h>
+
+#if SE1_VER >= SE1_107
+  #include <Engine/Graphics/Shader.h>
+#endif
+
 #include <CoreLib/Interfaces/FileFunctions.h>
 
 #if CLASSICSPATCH_ENGINEPATCHES && CLASSICSPATCH_EXTEND_FILESYSTEM
@@ -33,6 +38,16 @@ class CEntityClassPatch : public CEntityClass {
     // Load entity class from a library
     void P_Read(CTStream *istr);
 };
+
+#if SE1_VER >= SE1_107
+
+class CShaderPatch : public CShader {
+  public:
+    // Load shader from a library
+    void P_Read(CTStream *istr);
+};
+
+#endif
 
 // Initialize various file paths and load game content
 void P_InitStreams(void);
