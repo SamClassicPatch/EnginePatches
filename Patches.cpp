@@ -64,6 +64,9 @@ void CPatches::Entities(void) {
 #if CLASSICSPATCH_EXTEND_ENTITIES
 
   // CEntity
+  void (CEntity::*pReadProps)(CTStream &) = &CEntity::ReadProperties_t;
+  NewPatch(pReadProps, &CEntityPatch::P_ReadProperties, "CEntity::ReadProperties_t(...)");
+
   extern void (CEntity::*pSendEvent)(const CEntityEvent &);
   pSendEvent = &CEntity::SendEvent;
   NewPatch(pSendEvent, &CEntityPatch::P_SendEvent, "CEntity::SendEvent(...)");

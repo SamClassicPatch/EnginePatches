@@ -28,6 +28,9 @@ class CEntityPatch : public CEntity {
     typedef BOOL (CEntity::*CReceiveItem)(const CEntityEvent &);
 
   public:
+    // Read entity property values
+    void P_ReadProperties(CTStream &istrm);
+
     // Send an event to this entity
     void P_SendEvent(const CEntityEvent &ee);
 
