@@ -89,9 +89,11 @@ void CEntityPatch::P_ReadProperties(CTStream &istrm) {
           IRes::Models::Skip_t(istrm);
         } break;
 
+      #if SE1_VER >= SE1_107
         case CEntityProperty::EPT_MODELINSTANCE: {
           IRes::SKA::Skip_t(istrm);
         } break;
+      #endif
 
         case CEntityProperty::EPT_ANIMOBJECT: {
           IRes::Anims::Skip_t(istrm);
@@ -179,9 +181,11 @@ void CEntityPatch::P_ReadProperties(CTStream &istrm) {
         IRes::Models::Read_t(istrm, GET_PROP(CModelObject));
       } break;
 
+    #if SE1_VER >= SE1_107
       case CEntityProperty::EPT_MODELINSTANCE: {
         IRes::SKA::Read_t(istrm, GET_PROP(CModelInstance));
       } break;
+    #endif
 
       case CEntityProperty::EPT_ANIMOBJECT: {
         IRes::Anims::Read_t(istrm, GET_PROP(CAnimObject));
