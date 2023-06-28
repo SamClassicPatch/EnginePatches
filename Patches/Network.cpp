@@ -161,6 +161,7 @@ BOOL CMessageDisPatch::P_ReceiveFromClientReliable(INDEX iClient, CNetworkMessag
 
 // Original function pointers
 void (CSessionState::*pFlushPredictions)(void) = NULL;
+void (CSessionState::*pStartAtClient)(INDEX) = NULL;
 
 void (CNetworkLibrary::*pLoadGame)(const CTFileName &) = NULL;
 void (CNetworkLibrary::*pStopGame)(void) = NULL;
@@ -497,6 +498,28 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
     // Invalid packet
     default: ASSERT(FALSE);
   }
+};
+
+void CSessionStatePatch::P_Start_AtClient(INDEX ctLocalPlayers) {
+  // Get passwords
+  static CSymbolPtr pstrPwd1("net_strConnectPassword");
+  static CSymbolPtr pstrPwd2("net_strVIPPassword");
+
+  const CTString strOldPwd1 = pstrPwd1.GetString();
+  const CTString strOldPwd2 = pstrPwd2.GetString();
+
+  // Set temporary passwords for client connection
+  if (cli_strConnectPassword != "") {
+    pstrPwd1.GetString() = cli_strConnectPassword;
+    pstrPwd2.GetString() = cli_strConnectPassword;
+  }
+
+  // Proceed to the original function
+  (this->*pStartAtClient)(ctLocalPlayers);
+
+  // Restore passwords
+  pstrPwd1.GetString() = strOldPwd1;
+  pstrPwd2.GetString() = strOldPwd2;
 };
 
 void CSessionStatePatch::P_Stop(void) {

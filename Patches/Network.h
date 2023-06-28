@@ -81,6 +81,8 @@ class CSessionStatePatch : public CSessionState {
     // Client processes received packet from the server
     void P_ProcessGameStreamBlock(CNetworkMessage &nmMessage);
 
+    void P_Start_AtClient(INDEX ctLocalPlayers);
+
     void P_Stop(void);
 
   #if CLASSICSPATCH_GUID_MASKING

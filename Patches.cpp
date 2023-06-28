@@ -161,6 +161,10 @@ void CPatches::Network(void) {
   pFlushPredictions = &CSessionState::FlushProcessedPredictions;
   NewPatch(pFlushPredictions, &CSessionStatePatch::P_FlushProcessedPredictions, "CSessionState::FlushProcessedPredictions()");
 
+  extern void (CSessionState::*pStartAtClient)(INDEX);
+  pStartAtClient = &CSessionState::Start_AtClient_t;
+  NewPatch(pStartAtClient, &CSessionStatePatch::P_Start_AtClient, "CSessionState::Start_AtClient_t(...)");
+
   void (CSessionState::*pProcGameStreamBlock)(CNetworkMessage &) = &CSessionState::ProcessGameStreamBlock;
   NewPatch(pProcGameStreamBlock, &CSessionStatePatch::P_ProcessGameStreamBlock, "CSessionState::ProcessGameStreamBlock(...)");
 
