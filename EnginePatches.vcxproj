@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Converters\TFEMaps.h" />
     <ClInclude Include="DummyMethods.h" />
     <ClInclude Include="MapConversion.h" />
     <ClInclude Include="Patches.h" />
@@ -35,6 +36,7 @@
     <ClInclude Include="StdH.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Converters\TFEMaps.cpp" />
     <ClCompile Include="MapConversion.cpp" />
     <ClCompile Include="Patches.cpp" />
     <ClCompile Include="Patches\Entities.cpp" />

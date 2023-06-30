@@ -22,66 +22,15 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #if CLASSICSPATCH_CONVERT_MAPS
 
-#if TSE_FUSION_MODE
+#include <EnginePatches/Converters/TFEMaps.h>
 
-// Interface for converting worlds from The First Encounter
-class PATCHES_API IConvertTFE {
-  public:
-    // Types from TSE's PlayerWeapons
-    enum EWeaponTSE {
-      E_WPN_NONE = 0,
-      E_WPN_KNIFE = 1,
-      E_WPN_COLT = 2,
-      E_WPN_DOUBLECOLT = 3,
-      E_WPN_SINGLESHOTGUN = 4,
-      E_WPN_DOUBLESHOTGUN = 5,
-      E_WPN_TOMMYGUN = 6,
-      E_WPN_MINIGUN = 7,
-      E_WPN_ROCKETLAUNCHER = 8,
-      E_WPN_GRENADELAUNCHER = 9,
-      E_WPN_CHAINSAW = 10,
-      E_WPN_FLAMER = 11,
-      E_WPN_LASER = 12,
-      E_WPN_SNIPER = 13,
-      E_WPN_IRONCANNON = 14,
-      E_WPN_LAST = 15,
-    };
+// Check if the entity state doesn't match
+BOOL CheckEntityState(CRationalEntity *pen, SLONG slState, const char *strClass);
 
-    // Types from TSE's KeyItem
-    enum EKeyTSE {
-      E_KEY_BOOKOFWISDOM = 0,
-      E_KEY_CROSSWOODEN = 1,
-      E_KEY_CROSSMETAL = 2,
-      E_KEY_CROSSGOLD = 3,
-      E_KEY_JAGUARGOLDDUMMY = 4,
-      E_KEY_HAWKWINGS01DUMMY = 5,
-      E_KEY_HAWKWINGS02DUMMY = 6,
-      E_KEY_HOLYGRAIL = 7,
-      E_KEY_TABLESDUMMY = 8,
-      E_KEY_WINGEDLION = 9,
-      E_KEY_ELEPHANTGOLD = 10,
-      E_KEY_STATUEHEAD01 = 11,
-      E_KEY_STATUEHEAD02 = 12,
-      E_KEY_STATUEHEAD03 = 13,
-      E_KEY_KINGSTATUE = 14,
-      E_KEY_CRYSTALSKULL = 15,
-    };
-
-  public:
-    // Convert TFE weapon flags into TSE weapon flags
-    static void ConvertWeapon(INDEX &iFlags, INDEX iWeapon);
-
-    // Convert TFE keys to TSE keys
-    static void ConvertKeyType(EKeyTSE &eKey);
-
-    // Convert one TFE entity into TSE
-    static BOOL ConvertEntity(CEntity *pen);
-
-    // Make entire world TSE-compatible
-    static void ConvertWorld(CWorld *pwo);
+// Get weapon flag from type
+__forceinline INDEX WeaponFlag(INDEX iWeapon) {
+  return (1 << (iWeapon - 1));
 };
-
-#endif // TSE_FUSION_MODE
 
 #endif // CLASSICSPATCH_CONVERT_MAPS
 
