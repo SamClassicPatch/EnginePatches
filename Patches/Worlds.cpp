@@ -35,6 +35,11 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
     bForceReinit |= _EnginePatches._bFirstEncounter;
   #endif
 
+  // [Cecil] Reset map converters
+  #if CLASSICSPATCH_CONVERT_MAPS
+    IMapConverters::Reset();
+  #endif
+
   CTFileStream strmFile;
   strmFile.Open_t(fnmWorld);
 

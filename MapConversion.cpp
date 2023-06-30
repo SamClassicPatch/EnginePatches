@@ -19,6 +19,20 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #if CLASSICSPATCH_CONVERT_MAPS
 
+namespace IMapConverters {
+
+// Reset map converters before using them
+void Reset(void)
+{
+  #if TSE_FUSION_MODE
+    if (_EnginePatches._bFirstEncounter) {
+      IConvertTFE::Reset();
+    }
+  #endif
+};
+
+}; // namespace
+
 // Check if the entity state doesn't match
 BOOL CheckEntityState(CRationalEntity *pen, SLONG slState, const char *strClass) {
   // Wrong entity class

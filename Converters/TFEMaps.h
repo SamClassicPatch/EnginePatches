@@ -66,6 +66,9 @@ class PATCHES_API IConvertTFE {
     };
 
   public:
+    // Reset the converter before loading a new world
+    static void Reset(void);
+
     // Convert TFE weapon flags into TSE weapon flags
     static void ConvertWeapon(INDEX &iFlags, INDEX iWeapon);
 

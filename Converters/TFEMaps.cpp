@@ -21,6 +21,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #if CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
 
+// Reset the converter before loading a new world
+void IConvertTFE::Reset(void)
+{
+};
+
 // Convert TFE weapon flags into TSE weapon flags
 void IConvertTFE::ConvertWeapon(INDEX &iFlags, INDEX iWeapon) {
   switch (iWeapon) {

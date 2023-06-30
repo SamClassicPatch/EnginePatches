@@ -24,6 +24,14 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <EnginePatches/Converters/TFEMaps.h>
 
+// Interface for unifying logic of different map converters
+namespace IMapConverters {
+
+// Reset map converters before using them
+void Reset(void);
+
+}; // namespace
+
 // Check if the entity state doesn't match
 BOOL CheckEntityState(CRationalEntity *pen, SLONG slState, const char *strClass);
 
