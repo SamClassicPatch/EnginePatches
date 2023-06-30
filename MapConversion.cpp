@@ -31,6 +31,11 @@ void Reset(void)
   #endif
 };
 
+// Handle unknown entity property upon reading it via CEntity::ReadProperties_t()
+void HandleProperty(CEntity *pen, ULONG ulType, ULONG ulID, void *pValue) {
+  UnknownProp prop(ulType, ulID, pValue);
+};
+
 }; // namespace
 
 // Check if the entity state doesn't match

@@ -18,6 +18,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #if CLASSICSPATCH_EXTEND_ENTITIES && CLASSICSPATCH_ENGINEPATCHES
 
 #include "Entities.h"
+#include "../MapConversion.h"
 
 #include <CoreLib/Interfaces/ResourceFunctions.h>
 
@@ -27,9 +28,16 @@ CEntityPatch::CReceiveItem pReceiveItem = NULL;
 
 // Read entity property values
 void CEntityPatch::P_ReadProperties(CTStream &istrm) {
+  // Helper macros
   #define GET_PROP(_Type) ENTITYPROPERTY(this, pepProp->ep_slOffset, _Type)
   #define READ_PROP(_Type) istrm.Read_t(&GET_PROP(_Type), sizeof(_Type))
-  #define SKIP_PROP(_Type) { _Type valSkip; istrm.Read_t(&valSkip, sizeof(_Type)); }
+
+  #define HANDLE_UNKNOWN(_Field) IMapConverters::HandleProperty(this, eptType, ulID, &_Field)
+  #define HANDLE_SIMPLE(_Type) { \
+    _Type valSkip; \
+    istrm.Read_t(&valSkip, sizeof(_Type)); \
+    HANDLE_UNKNOWN(valSkip); \
+  }
 
   istrm.ExpectID_t("PRPS"); // Properties
 
@@ -65,10 +73,16 @@ void CEntityPatch::P_ReadProperties(CTStream &istrm) {
         case CEntityProperty::EPT_COLOR: case CEntityProperty::EPT_FLAGS:
         case CEntityProperty::EPT_INDEX: case CEntityProperty::EPT_FLOAT:
         case CEntityProperty::EPT_RANGE: case CEntityProperty::EPT_ANGLE:
-        case CEntityProperty::EPT_ANIMATION: case CEntityProperty::EPT_ILLUMINATIONTYPE:
-        case CEntityProperty::EPT_ENTITYPTR: {
+        case CEntityProperty::EPT_ANIMATION: case CEntityProperty::EPT_ILLUMINATIONTYPE: {
           INDEX iDummy;
           istrm >> iDummy;
+          HANDLE_UNKNOWN(iDummy);
+        } break;
+
+        case CEntityProperty::EPT_ENTITYPTR: {
+          CEntityPointer pen;
+          ReadEntityPointer_t(&istrm, pen);
+          HANDLE_UNKNOWN(pen);
         } break;
 
         case CEntityProperty::EPT_STRINGTRANS:
@@ -78,39 +92,49 @@ void CEntityPatch::P_ReadProperties(CTStream &istrm) {
         case CEntityProperty::EPT_STRING: {
           CTString strDummy;
           istrm >> strDummy;
+          HANDLE_UNKNOWN(strDummy);
         } break;
 
         case CEntityProperty::EPT_FILENAME: {
           CTFileName fnmDummy;
           istrm >> fnmDummy;
+          HANDLE_UNKNOWN(fnmDummy);
         } break;
 
         case CEntityProperty::EPT_MODELOBJECT: {
-          IRes::Models::Skip_t(istrm);
+          CModelObject mo;
+          IRes::Models::Read_t(istrm, mo);
+          HANDLE_UNKNOWN(mo);
         } break;
 
       #if SE1_VER >= SE1_107
         case CEntityProperty::EPT_MODELINSTANCE: {
-          IRes::SKA::Skip_t(istrm);
+          CModelInstance mi;
+          IRes::SKA::Read_t(istrm, mi);
+          HANDLE_UNKNOWN(mi);
         } break;
       #endif
 
         case CEntityProperty::EPT_ANIMOBJECT: {
-          IRes::Anims::Skip_t(istrm);
+          CAnimObject ao;
+          IRes::Anims::Read_t(istrm, ao);
+          HANDLE_UNKNOWN(ao);
         } break;
 
         case CEntityProperty::EPT_SOUNDOBJECT: {
-          CSoundObject soDummy;
-          soDummy.Read_t(&istrm);
+          CSoundObject so;
+          so.Read_t(&istrm);
+          so.so_penEntity = this;
+          HANDLE_UNKNOWN(so);
         } break;
 
-        case CEntityProperty::EPT_FLOAT3D:       SKIP_PROP(FLOAT3D); break;
-        case CEntityProperty::EPT_ANGLE3D:       SKIP_PROP(ANGLE3D); break;
-        case CEntityProperty::EPT_PLACEMENT3D:   SKIP_PROP(CPlacement3D); break;
-        case CEntityProperty::EPT_FLOATAABBOX3D: SKIP_PROP(FLOATaabbox3D); break;
-        case CEntityProperty::EPT_FLOATplane3D:  SKIP_PROP(FLOATplane3D); break;
-        case CEntityProperty::EPT_FLOATQUAT3D:   SKIP_PROP(FLOATquat3D); break;
-        case CEntityProperty::EPT_FLOATMATRIX3D: SKIP_PROP(FLOATmatrix3D); break;
+        case CEntityProperty::EPT_FLOAT3D:       HANDLE_SIMPLE(FLOAT3D); break;
+        case CEntityProperty::EPT_ANGLE3D:       HANDLE_SIMPLE(ANGLE3D); break;
+        case CEntityProperty::EPT_PLACEMENT3D:   HANDLE_SIMPLE(CPlacement3D); break;
+        case CEntityProperty::EPT_FLOATAABBOX3D: HANDLE_SIMPLE(FLOATaabbox3D); break;
+        case CEntityProperty::EPT_FLOATplane3D:  HANDLE_SIMPLE(FLOATplane3D); break;
+        case CEntityProperty::EPT_FLOATQUAT3D:   HANDLE_SIMPLE(FLOATquat3D); break;
+        case CEntityProperty::EPT_FLOATMATRIX3D: HANDLE_SIMPLE(FLOATmatrix3D); break;
 
         default: ASSERTALWAYS("Unknown property type");
       }
@@ -127,7 +151,7 @@ void CEntityPatch::P_ReadProperties(CTStream &istrm) {
       eptLoad = CEntityProperty::EPT_STRING;
     }
 
-    // depending on the property type
+    // Depending on the property type
     switch (eptLoad)
     {
       // 32-bit long numerical values
