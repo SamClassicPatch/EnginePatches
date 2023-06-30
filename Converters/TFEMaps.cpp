@@ -261,11 +261,9 @@ void IConvertTFE::ConvertWorld(CWorld *pwo) {
   }
 
   // Create an invisible light to fix shadow issues with brush polygon layers
-  const CPlacement3D pl(FLOAT3D(0.0f, 0.0f, 0.0f), ANGLE3D(0.0f, 0.0f, 0.0f));
-
   try {
     static const CTString strLightClass = "Classes\\Light.ecl";
-    CEntity *penLight = IWorld::GetWorld()->CreateEntity_t(pl, strLightClass);
+    CEntity *penLight = IWorld::GetWorld()->CreateEntity_t(IDummy::plCenter, strLightClass);
 
     // Retrieve light properties
     static CPropertyPtr pptrType(penLight); // CLight::m_ltType

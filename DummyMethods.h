@@ -23,6 +23,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // Interface of various dummy methods
 namespace IDummy {
 
+// Dummy placement
+static const CPlacement3D plCenter(FLOAT3D(0.0f, 0.0f, 0.0f), ANGLE3D(0.0f, 0.0f, 0.0f));
+
 // Empty method
 inline void Void(void) {
   NOTHING;
