@@ -21,9 +21,22 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #if CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
 
+// List of triggers and storm controllers in the world
+extern CEntities _cWorldTriggers;
+extern CEntities _cWorldStorms;
+
 // Reset the converter before loading a new world
-void IConvertTFE::Reset(void)
+void IConvertTFE::Reset(void) {
+  // Clear the rain
+  IRainTFE::ClearRainVariables();
+};
+
+// Handle some unknown property
+void IConvertTFE::HandleProperty(CEntity *pen, const IMapConverters::UnknownProp &prop)
 {
+  if (IsOfClass(pen, "WorldSettingsController")) {
+    IRainTFE::RememberWSC(pen, prop);
+  }
 };
 
 // Convert TFE weapon flags into TSE weapon flags
@@ -204,6 +217,9 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
     ENTITYPROPERTY(pen, pptrShadeStart.Offset(), COLOR) = C_WHITE | CT_OPAQUE;
     ENTITYPROPERTY(pen, pptrShadeStop.Offset(), COLOR) = C_dGRAY | CT_OPAQUE;
 
+    // Add to the list of storm controllers
+    _cWorldStorms.Add(pen);
+
     // Proceed with reinitialization
     return FALSE;
   }
@@ -220,6 +236,13 @@ void IConvertTFE::ConvertWorld(CWorld *pwo) {
 
     // Convert specific entities regardless of state first
     if (ConvertEntity(pen)) continue;
+
+    // Remember triggers for future use
+    if (IsOfClass(pen, "Trigger")) {
+      _cWorldTriggers.Add(pen);
+      cEntities.Add(pen);
+      continue;
+    }
 
     // Reinitialize all spawners
     if (IsOfClass(pen, "Enemy Spawner")) {
@@ -256,6 +279,9 @@ void IConvertTFE::ConvertWorld(CWorld *pwo) {
     }
   }
 
+  // Restore rain
+  IRainTFE::ApplyRainProperties();
+
   FOREACHINDYNAMICCONTAINER(cEntities, CEntity, itenReinit) {
     itenReinit->Reinitialize();
   }
@@ -284,7 +310,7 @@ void IConvertTFE::ConvertWorld(CWorld *pwo) {
     penLight->GetLightSource()->FindShadowLayers(FALSE);
 
   } catch (char *strError) {
-    FatalError(TRANS("Cannot load Light class:\n%s"), strError);
+    FatalError(TRANS("Cannot load %s class:\n%s"), "Light", strError);
   }
 };
 

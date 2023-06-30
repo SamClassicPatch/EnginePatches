@@ -34,6 +34,12 @@ void Reset(void)
 // Handle unknown entity property upon reading it via CEntity::ReadProperties_t()
 void HandleProperty(CEntity *pen, ULONG ulType, ULONG ulID, void *pValue) {
   UnknownProp prop(ulType, ulID, pValue);
+
+  #if TSE_FUSION_MODE
+    if (_EnginePatches._bFirstEncounter) {
+      IConvertTFE::HandleProperty(pen, prop);
+    }
+  #endif
 };
 
 }; // namespace

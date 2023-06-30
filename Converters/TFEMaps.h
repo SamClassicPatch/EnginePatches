@@ -69,6 +69,9 @@ class PATCHES_API IConvertTFE {
     // Reset the converter before loading a new world
     static void Reset(void);
 
+    // Handle some unknown property
+    static void HandleProperty(CEntity *pen, const IMapConverters::UnknownProp &prop);
+
     // Convert TFE weapon flags into TSE weapon flags
     static void ConvertWeapon(INDEX &iFlags, INDEX iWeapon);
 
@@ -81,6 +84,20 @@ class PATCHES_API IConvertTFE {
     // Make entire world TSE-compatible
     static void ConvertWorld(CWorld *pwo);
 };
+
+// Rain handling methods
+namespace IRainTFE {
+
+// Clear rain variables
+void ClearRainVariables(void);
+
+// Remember rain properties of CWorldSettingsController
+void RememberWSC(CEntity *penWSC, const IMapConverters::UnknownProp &prop);
+
+// Apply remembered rain properties from controllers
+void ApplyRainProperties(void);
+
+}; // namespace
 
 #endif // CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
 

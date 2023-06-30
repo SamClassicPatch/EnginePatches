@@ -37,6 +37,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Converters\TFEMaps.cpp" />
+    <ClCompile Include="Converters\TFERain.cpp" />
     <ClCompile Include="MapConversion.cpp" />
     <ClCompile Include="Patches.cpp" />
     <ClCompile Include="Patches\Entities.cpp" />

@@ -116,5 +116,8 @@
     <ClCompile Include="Converters\TFEMaps.cpp">
       <Filter>Source Files\Converters</Filter>
     </ClCompile>
+    <ClCompile Include="Converters\TFERain.cpp">
+      <Filter>Source Files\Converters</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
