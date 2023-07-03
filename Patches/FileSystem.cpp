@@ -171,33 +171,15 @@ static void LoadPackages(const CTString &strDirectory, const CTString &strMatchF
   _findclose(hFile);
 };
 
-#if TSE_FUSION_MODE
-
-// New directory with TFE installation that will be set next time
-static CTString sam_strTFEDir = "";
-
-// Save TFE directory into a variable file
-static void SaveTFEDirectory(void *) {
-  CCoreAPI::Props().SetValue("", "TFEDir", sam_strTFEDir);
-
-  CPutString(TRANS("Saved new directory with The First Encounter installation into 'TFEDir' property!\n"));
-  CPutString(TRANS("Restart the game to load content from the new directory!\n"));
-};
-
-#endif
-
 // Initialize various file paths and load game content
 void P_InitStreams(void) {
   #if TSE_FUSION_MODE
-    _pShell->DeclareSymbol("void SaveTFEDirectory(INDEX);", &SaveTFEDirectory);
-    _pShell->DeclareSymbol("user CTString sam_strTFEDir post:SaveTFEDirectory;", &sam_strTFEDir);
-
     // Try getting saved TFE directory
-    sam_strTFEDir = CCoreAPI::Props().GetValue("", "TFEDir", "");
+    CTString &strTFEDir = CCoreAPI::Props().strTFEDir;
 
     // Rewrite it if it's not set yet
-    if (_fnmCDPath == "" && sam_strTFEDir != "") {
-      _fnmCDPath = sam_strTFEDir;
+    if (_fnmCDPath == "" && strTFEDir != "") {
+      _fnmCDPath = strTFEDir;
     }
 
     // If CD path still hasn't been set
@@ -205,8 +187,8 @@ void P_InitStreams(void) {
       // Go outside the game directory and enter TFE nearby
       _fnmCDPath = CTString("..\\Serious Sam Classic The First Encounter\\");
 
-      // Update directory in the command
-      sam_strTFEDir = _fnmCDPath;
+      // Update directory in the config
+      strTFEDir = _fnmCDPath;
     }
 
     // If any path has been set
@@ -260,7 +242,7 @@ void P_InitStreams(void) {
   pInitStreams();
 
   // Set custom mod extension to utilize Entities & Game libraries from the patch
-  if (CCoreAPI::Props().GetBoolValue("", "CustomMod", TRUE)) {
+  if (CCoreAPI::Props().bCustomMod) {
     BOOL bChangeExtension = TRUE;
 
     // Check if a mod has its own libraries under the current extension
