@@ -120,11 +120,14 @@ void CPatches::Network(void) {
   NewPatch(pServerClose, &CComIntPatch::P_ServerClose, "CCommunicationInterface::Server_Close()");
 
   // CMessageDispatcher
+  void (CMessageDispatcher::*pSendToServer)(const CNetworkMessage &) = &CMessageDispatcher::SendToServerReliable;
+  NewPatch(pSendToServer, &CMessageDisPatch::P_SendToServerReliable, "CMessageDispatcher::SendToServerReliable(...)");
+
   BOOL (CMessageDispatcher::*pRecFromClient)(INDEX, CNetworkMessage &) = &CMessageDispatcher::ReceiveFromClient;
   NewPatch(pRecFromClient, &CMessageDisPatch::P_ReceiveFromClient, "CMessageDispatcher::ReceiveFromClient(...)");
 
-  BOOL (CMessageDispatcher::*pRecFromClientReliable)(INDEX, CNetworkMessage &) = &CMessageDispatcher::ReceiveFromClientReliable;
-  NewPatch(pRecFromClientReliable, &CMessageDisPatch::P_ReceiveFromClientReliable, "CMessageDispatcher::ReceiveFromClientReliable(...)");
+  pRecFromClient = &CMessageDispatcher::ReceiveFromClientReliable;
+  NewPatch(pRecFromClient, &CMessageDisPatch::P_ReceiveFromClientReliable, "CMessageDispatcher::ReceiveFromClientReliable(...)");
 
   // CNetworkLibrary
 #if CLASSICSPATCH_GUID_MASKING

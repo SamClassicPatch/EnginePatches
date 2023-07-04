@@ -39,6 +39,9 @@ class CMessageDisPatch : public CMessageDispatcher {
     typedef BOOL (CCommunicationInterface::*CReceiveFunc)(INDEX, void *, SLONG &);
 
   public:
+    // Send a reliable packet to the server
+    void P_SendToServerReliable(const CNetworkMessage &nmMessage);
+
     // Server receives a speciifc packet
     BOOL ReceiveFromClientSpecific(INDEX iClient, CNetworkMessage &nmMessage, CReceiveFunc pFunc);
 

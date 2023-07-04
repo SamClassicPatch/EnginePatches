@@ -90,6 +90,27 @@ void CComIntPatch::P_ServerClose(void) {
   }
 };
 
+// Send a reliable packet to the server
+void CMessageDisPatch::P_SendToServerReliable(const CNetworkMessage &nmMessage) {
+  // [Cecil] Append extra info to the session state to distinguish patch users from normal clients
+  if (nmMessage.GetType() == MSG_REQ_CONNECTREMOTESESSIONSTATE) {
+    CNetworkMessage &nmWriteable = const_cast<CNetworkMessage &>(nmMessage);
+
+    // Patch identification tag and the release version
+    nmWriteable.Write(_aSessionStatePatchTag, sizeof(_aSessionStatePatchTag));
+    nmWriteable << (ULONG)CCoreAPI::ulCoreVersion;
+  }
+
+  GetComm().Client_Send_Reliable((void *)nmMessage.nm_pubMessage, nmMessage.nm_slSize);
+
+  // Relevant inline reimplementation of UpdateSentMessageStats()
+  static CSymbolPtr pbReport("net_bReportTraffic");
+
+  if (pbReport.GetIndex()) {
+    CPrintF("Sent: %d\n", nmMessage.nm_slSize);
+  }
+};
+
 // Server receives a speciifc packet
 BOOL CMessageDisPatch::ReceiveFromClientSpecific(INDEX iClient, CNetworkMessage &nmMessage, CReceiveFunc pFunc) {
   // Receive message in static buffer
