@@ -118,11 +118,11 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
     static CPropertyPtr pptrNapalm(pen);
     static CPropertyPtr pptrSniper(pen);
 
-    if (pptrNapalm.ByNameOrId(CEntityProperty::EPT_INDEX, "Napalm", (0x326 << 8) + 14)) {
+    if (pptrNapalm.ByVariable("CAmmoPack", "m_iNapalm")) {
       ENTITYPROPERTY(pen, pptrNapalm.Offset(), INDEX) = 0;
     }
 
-    if (pptrSniper.ByNameOrId(CEntityProperty::EPT_INDEX, "Sniper bullets", (0x326 << 8) + 17)) {
+    if (pptrSniper.ByVariable("CAmmoPack", "m_iSniperBullets")) {
       ENTITYPROPERTY(pen, pptrSniper.Offset(), INDEX) = 0;
     }
 
@@ -133,11 +133,11 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
     static CPropertyPtr pptrTake(pen);
 
     // Properties don't exist
-    if (!pptrGive.ByNameOrId(CEntityProperty::EPT_INDEX, "Give Weapons", (0x194 << 8) + 3)) {
+    if (!pptrGive.ByVariable("CPlayerMarker", "m_iGiveWeapons")) {
       return FALSE;
     }
 
-    if (!pptrTake.ByNameOrId(CEntityProperty::EPT_INDEX, "Take Weapons", (0x194 << 8) + 4)) {
+    if (!pptrTake.ByVariable("CPlayerMarker", "m_iTakeWeapons")) {
       return FALSE;
     }
 
@@ -168,12 +168,12 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
     static CPropertyPtr pptrSound(pen);
 
     // Convert key type
-    if (pptrType.ByNameOrId(CEntityProperty::EPT_ENUM, "Type", (0x325 << 8) + 1)) {
+    if (pptrType.ByVariable("CKeyItem", "m_kitType")) {
       ConvertKeyType(ENTITYPROPERTY(pen, pptrType.Offset(), EKeyTSE));
     }
 
     // Fix sound component index (301 -> 300)
-    if (pptrSound.ByIdOrOffset(CEntityProperty::EPT_INDEX, (0x325 << 8) + 3, 0x3B0)) {
+    if (pptrSound.ByVariable("CKeyItem", "m_iSoundComponent")) {
       ENTITYPROPERTY(pen, pptrSound.Offset(), INDEX) = (0x325 << 8) + 300;
     }
 
@@ -184,7 +184,7 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
     static CPropertyPtr pptrKey(pen);
 
     // Property doesn't exist
-    if (!pptrType.ByNameOrId(CEntityProperty::EPT_ENUM, "Type", (0xDD << 8) + 8)) {
+    if (!pptrType.ByVariable("CDoorController", "m_dtType")) {
       return FALSE;
     }
 
@@ -194,7 +194,7 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
     }
 
     // Convert key type
-    if (pptrKey.ByNameOrId(CEntityProperty::EPT_ENUM, "Key", (0xDD << 8) + 12)) {
+    if (pptrKey.ByVariable("CDoorController", "m_kitKey")) {
       ConvertKeyType(ENTITYPROPERTY(pen, pptrKey.Offset(), EKeyTSE));
     }
 
@@ -205,11 +205,11 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
     static CPropertyPtr pptrShadeStop(pen);
 
     // Properties don't exist
-    if (!pptrShadeStart.ByNameOrId(CEntityProperty::EPT_COLOR, "Color shade start", (0x25E << 8) + 52)) {
+    if (!pptrShadeStart.ByVariable("CStormController", "m_colShadeStart")) {
       return FALSE;
     }
 
-    if (!pptrShadeStop.ByNameOrId(CEntityProperty::EPT_COLOR, "Color shade stop", (0x25E << 8) + 53)) {
+    if (!pptrShadeStop.ByVariable("CStormController", "m_colShadeStop")) {
       return FALSE;
     }
 
@@ -297,9 +297,9 @@ void IConvertTFE::ConvertWorld(CWorld *pwo) {
     static CPropertyPtr pptrColor(penLight); // CLight::m_colColor
 
     // Set strong ambient type that covers the whole map
-    if (pptrType.ByNameOrId(CEntityProperty::EPT_ENUM, "Type", (0xC8 << 8) + 8)
-     && pptrFallOff.ByNameOrId(CEntityProperty::EPT_RANGE, "Fall-off", (0xC8 << 8) + 1)
-     && pptrColor.ByNameOrId(CEntityProperty::EPT_COLOR, "Color", (0xC8 << 8) + 2))
+    if (pptrType   .ByVariable("CLight", "m_ltType")
+     && pptrFallOff.ByVariable("CLight", "m_rFallOffRange")
+     && pptrColor  .ByVariable("CLight", "m_colColor"))
     {
       ENTITYPROPERTY(penLight, pptrType.Offset(), INDEX) = 2; // LightType::LT_STRONG_AMBIENT
       ENTITYPROPERTY(penLight, pptrFallOff.Offset(), RANGE) = 10000.0f;

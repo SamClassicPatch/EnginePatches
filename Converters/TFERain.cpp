@@ -137,19 +137,19 @@ void ApplyRainProperties(void) {
       if (_penFirstEPH == NULL) _penFirstEPH = penEnv;
 
       // Retrieve environment properties
-      static CPropertyPtr pptrTex(penEnv); // CEnvironmentParticlesHolder::m_fnHeightMap
+      static CPropertyPtr pptrHght(penEnv); // CEnvironmentParticlesHolder::m_fnHeightMap
       static CPropertyPtr pptrArea(penEnv); // CEnvironmentParticlesHolder::m_boxHeightMap
       static CPropertyPtr pptrType(penEnv); // CEnvironmentParticlesHolder::m_eptType
       static CPropertyPtr pptrNext(penEnv); // CEnvironmentParticlesHolder::m_penNextHolder
       static CPropertyPtr pptrRain(penEnv); // CEnvironmentParticlesHolder::m_fRainAppearLen
 
       // Setup rain
-      if (pptrTex.ByNameOrId(CEntityProperty::EPT_FILENAME, "Height map", (0xED << 8) + 2)
-       && pptrArea.ByNameOrId(CEntityProperty::EPT_FLOATAABBOX3D, "Height map box", (0xED << 8) + 3)
-       && pptrType.ByNameOrId(CEntityProperty::EPT_ENUM, "Type", (0xED << 8) + 4)
-       && pptrRain.ByNameOrId(CEntityProperty::EPT_FLOAT, "Rain start duration", (0xED << 8) + 70))
+      if (pptrHght.ByVariable("CEnvironmentParticlesHolder", "m_fnHeightMap")
+       && pptrArea.ByVariable("CEnvironmentParticlesHolder", "m_boxHeightMap")
+       && pptrType.ByVariable("CEnvironmentParticlesHolder", "m_eptType")
+       && pptrRain.ByVariable("CEnvironmentParticlesHolder", "m_fRainAppearLen"))
       {
-        ENTITYPROPERTY(penEnv, pptrTex.Offset(), CTFileName) = rain.fnm;
+        ENTITYPROPERTY(penEnv, pptrHght.Offset(), CTFileName) = rain.fnm;
         ENTITYPROPERTY(penEnv, pptrArea.Offset(), FLOATaabbox3D) = rain.box;
         ENTITYPROPERTY(penEnv, pptrType.Offset(), INDEX) = 2; // EnvironmentParticlesHolderType::EPTH_RAIN
         ENTITYPROPERTY(penEnv, pptrRain.Offset(), FLOAT) = 3.0f; // Average duration for the rain to start/stop
@@ -159,7 +159,7 @@ void ApplyRainProperties(void) {
       penEnv->Initialize();
 
       // Connect last EPH with this one
-      if (pptrNext.ByNameOrId(CEntityProperty::EPT_ENTITYPTR, "Next env. particles holder", (0xED << 8) + 5)) {
+      if (pptrNext.ByVariable("CEnvironmentParticlesHolder", "m_penNextHolder")) {
         if (_penLastEPH != NULL) {
           ENTITYPROPERTY(_penLastEPH, pptrNext.Offset(), CEntityPointer) = penEnv;
         }
@@ -170,7 +170,7 @@ void ApplyRainProperties(void) {
       // Set pointer to the new environment particles holder
       static CPropertyPtr pptrEnvPtr(penWSC); // CWorldSettingsController::m_penEnvPartHolder
 
-      if (pptrEnvPtr.ByNameOrId(CEntityProperty::EPT_ENTITYPTR, "Environment Particles Holder", (0x25D << 8) + 28)) {
+      if (pptrEnvPtr.ByVariable("CWorldSettingsController", "m_penEnvPartHolder")) {
         ENTITYPROPERTY(penWSC, pptrEnvPtr.Offset(), CEntityPointer) = _penFirstEPH;
       }
 
@@ -197,37 +197,27 @@ void ApplyRainProperties(void) {
     };
 
     // Names of target & event entity properties
-    static const char *astrTargets[10] = {
-      "Target 01", "Target 02", "Target 03", "Target 04", "Target 05",
-      "Target 06", "Target 07", "Target 08", "Target 09", "Target 10",
-    };
-
-    static const char *astrEvents[10] = {
-      "Event type Target 01", "Event type Target 02", "Event type Target 03", "Event type Target 04", "Event type Target 05",
-      "Event type Target 06", "Event type Target 07", "Event type Target 08", "Event type Target 09", "Event type Target 10",
-    };
-
-    // Indices of target & event entity properties
-    static const INDEX aiTargets[10] = {
-      (0xCD << 8) +  3, (0xCD << 8) +  4, (0xCD << 8) +  5, (0xCD << 8) +  6, (0xCD << 8) +  7,
-      (0xCD << 8) + 20, (0xCD << 8) + 21, (0xCD << 8) + 22, (0xCD << 8) + 23, (0xCD << 8) + 24,
-    };
-
-    static const INDEX aiEvents[10] = {
-      (0xCD << 8) +  8, (0xCD << 8) +  9, (0xCD << 8) + 10, (0xCD << 8) + 11, (0xCD << 8) + 12,
-      (0xCD << 8) + 50, (0xCD << 8) + 51, (0xCD << 8) + 52, (0xCD << 8) + 53, (0xCD << 8) + 54,
+    static const char *astrPropVars[20] = {
+      "m_penTarget1", "m_penTarget2", "m_penTarget3", "m_penTarget4", "m_penTarget5",
+      "m_penTarget6", "m_penTarget7", "m_penTarget8", "m_penTarget9", "m_penTarget10",
+      "m_eetEvent1",  "m_eetEvent2",  "m_eetEvent3",  "m_eetEvent4",  "m_eetEvent5",
+      "m_eetEvent6",  "m_eetEvent7",  "m_eetEvent8",  "m_eetEvent9",  "m_eetEvent10",
     };
 
     // Go through all target properties
     for (INDEX i = 0; i < 10; i++) {
       // Find properties
-      if (!apProps[i].ByNameOrId(CEntityProperty::EPT_ENTITYPTR, astrTargets[i], aiTargets[i])) continue;
-      if (!apProps[i + 10].ByNameOrId(CEntityProperty::EPT_ENUM, astrEvents[i], aiEvents[i])) continue;
+      INDEX iProp = i;
+
+      if (!apProps[iProp].ByVariable("CTrigger", astrPropVars[iProp])) continue;
+      CEntityPointer &penTarget = ENTITYPROPERTY(pen, apProps[iProp].Offset(), CEntityPointer);
+
+      iProp += 10;
+
+      if (!apProps[iProp].ByVariable("CTrigger", astrPropVars[iProp])) continue;
+      INDEX &iEvent = ENTITYPROPERTY(pen, apProps[iProp].Offset(), INDEX);
 
       // Check if it points at some storm controller
-      CEntityPointer &penTarget = ENTITYPROPERTY(pen, apProps[i].Offset(), CEntityPointer);
-      INDEX &iEvent = ENTITYPROPERTY(pen, apProps[i + 10].Offset(), INDEX);
-
       FOREACHINDYNAMICCONTAINER(_cWorldStorms, CEntity, itenStorm) {
         if (penTarget != &itenStorm.Current()) continue;
 
