@@ -76,7 +76,8 @@ static void RenderViewCopy(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D 
   }
 
   // Retrieve renderer from '_areRenderers[0]'
-  CRenderer &re = *ADDR_RENDERER_ARRAY;
+  static StructPtr pRenderers(ADDR_RENDERER_ARRAY);
+  CRenderer &re = pRenderers((CRenderer *)NULL)[0];
 
   re.re_penViewer = &enViewer;
   re.re_pcspoViewPolygons = NULL;
