@@ -32,6 +32,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 void (CCommunicationInterface::*pServerInit)(void) = NULL;
 void (CCommunicationInterface::*pServerClose)(void) = NULL;
 
+#if CLASSICSPATCH_NEW_QUERY
+
 void CComIntPatch::P_EndWinsock(void) {
   // Stop master server enumeration
   if (ms_bDebugOutput) {
@@ -52,6 +54,8 @@ void CComIntPatch::P_EndWinsock(void) {
   #endif
 };
 
+#endif // CLASSICSPATCH_NEW_QUERY
+
 void CComIntPatch::P_ServerInit(void) {
   // Proceed to the original function
   (this->*pServerInit)();
@@ -60,6 +64,7 @@ void CComIntPatch::P_ServerInit(void) {
   IProcessPacket::ClearSyncChecks();
 #endif
 
+#if CLASSICSPATCH_NEW_QUERY
   if (ms_bDebugOutput) {
     CPutString("CCommunicationInterface::Server_Init_t()\n");
   }
@@ -68,6 +73,7 @@ void CComIntPatch::P_ServerInit(void) {
   if (GetComm().IsNetworkEnabled()) {
     IMasterServer::OnServerStart();
   }
+#endif // CLASSICSPATCH_NEW_QUERY
 };
 
 void CComIntPatch::P_ServerClose(void) {
@@ -78,6 +84,7 @@ void CComIntPatch::P_ServerClose(void) {
   IProcessPacket::ClearSyncChecks();
 #endif
 
+#if CLASSICSPATCH_NEW_QUERY
   if (ms_bDebugOutput) {
     CPutString("CCommunicationInterface::Server_Close()\n");
   }
@@ -88,6 +95,7 @@ void CComIntPatch::P_ServerClose(void) {
   if (symptr.GetIndex()) {
     IMasterServer::OnServerEnd();
   }
+#endif // CLASSICSPATCH_NEW_QUERY
 };
 
 // Send a reliable packet to the server

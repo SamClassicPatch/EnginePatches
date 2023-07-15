@@ -27,7 +27,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 class CComIntPatch : public CCommunicationInterface {
   public:
+  #if CLASSICSPATCH_NEW_QUERY
     void P_EndWinsock(void);
+  #endif
 
     void P_ServerInit(void);
     void P_ServerClose(void);

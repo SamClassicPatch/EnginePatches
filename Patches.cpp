@@ -93,8 +93,10 @@ void CPatches::Network(void) {
 #if CLASSICSPATCH_EXTEND_NETWORK
 
   // CCommunicationInterface
+#if CLASSICSPATCH_NEW_QUERY
   void (CCommunicationInterface::*pEndWindock)(void) = &CCommunicationInterface::EndWinsock;
   NewPatch(pEndWindock, &CComIntPatch::P_EndWinsock, "CCommunicationInterface::EndWinsock()");
+#endif
 
   extern void (CCommunicationInterface::*pServerInit)(void);
   pServerInit = &CCommunicationInterface::Server_Init_t;
