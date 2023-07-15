@@ -192,15 +192,13 @@ void CPatches::Network(void) {
 void CPatches::Rendering(void) {
 #if CLASSICSPATCH_FIX_RENDERING
 
-  void (*pRenderView)(CWorld &, CEntity &, CAnyProjection3D &, CDrawPort &) = &RenderView;
+  extern void (*pRenderView)(CWorld &, CEntity &, CAnyProjection3D &, CDrawPort &);
+  pRenderView = &RenderView;
   NewPatch(pRenderView, &P_RenderView, "::RenderView(...)");
 
-  // Pointer to the virtual table of CPerspectiveProjection3D
-  size_t *pVFTable = (size_t *)GetPatchAPI()->GetEngineSymbol("??_7CPerspectiveProjection3D@@6B@");
-
   // Pointer to CPerspectiveProjection3D::Prepare()
-  typedef void (CPerspectiveProjection3D::*CPrepareFunc)(void);
-  CPrepareFunc pPrepare = *(CPrepareFunc *)(pVFTable + 0);
+  void *pPreparePtr = GetPatchAPI()->GetEngineSymbol("?Prepare@CPerspectiveProjection3D@@UAEXXZ");
+  void (*pPrepare)(void) = (void (*)(void))pPreparePtr;
   NewPatch(pPrepare, &CProjectionPatch::P_Prepare, "CPerspectiveProjection3D::Prepare()");
 
   // Custom symbols
@@ -295,12 +293,9 @@ void CPatches::Textures(void) {
   void (CTextureData::*pCreateTex)(const CImageInfo *, MEX, INDEX, int) = &CTextureData::Create_t;
   NewPatch(pCreateTex, &CTexDataPatch::P_Create, "CTextureData::Create_t(...)");
 
-  // Pointer to the virtual table of CTextureData
-  size_t *pVFTable = (size_t *)GetPatchAPI()->GetEngineSymbol("??_7CTextureData@@6B@");
-
   // Pointer to CTextureData::Write_t()
-  typedef void (CTextureData::*CWriteTexFunc)(CTStream *);
-  CWriteTexFunc pWriteTex = *(CWriteTexFunc *)(pVFTable + 4);
+  void *pWriteTexPtr = GetPatchAPI()->GetEngineSymbol("?Write_t@CTextureData@@UAEXPAVCTStream@@@Z");
+  void (*pWriteTex)(void) = (void (*)(void))pWriteTexPtr;
   NewPatch(pWriteTex, &CTexDataPatch::P_Write, "CTextureData::Write_t(...)");
 
   void (*pProcessScript)(const CTFileName &) = &ProcessScript_t;
@@ -408,9 +403,7 @@ void CPatches::FileSystem(void) {
   // Don't patch file system
   if (!CCoreAPI::Props().bExtendedFileSystem) return;
 
-  #ifdef _DEBUG
-    PatchStreams();
-  #endif
+  PatchStreams();
 
   // CEntityClass
   void (CEntityClass::*pObtainComponents)(void) = &CEntityClass::ObtainComponents_t;

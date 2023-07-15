@@ -21,86 +21,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #if CLASSICSPATCH_FIX_RENDERING
 
-// Coordinate conversion function
-static inline PIX PIXCoord(FLOAT f) {
-  static FLOAT fDiff;
-  static SLONG slTmp;
-
-  PIX pixRet;
-
-  __asm {
-    fld    dword ptr [f]
-    fist   dword ptr [slTmp]
-    fisubr dword ptr [slTmp]
-    fstp   dword ptr [fDiff]
-    mov    eax, dword ptr [slTmp]
-    mov    edx, dword ptr [fDiff]
-    add    edx, 0x7FFFFFFF
-    adc    eax, 0
-    mov    dword ptr [pixRet], eax
-  }
-
-  return pixRet;
-};
-
-// Define unexported method
-void CRenderer::InitClippingRectangle(PIX pixMinI, PIX pixMinJ, PIX pixSizeI, PIX pixSizeJ) {
-  re_pspoFirst = NULL;
-  re_pspoFirstTranslucent = NULL;
-  re_pspoFirstBackground = NULL;
-  re_pspoFirstBackgroundTranslucent = NULL;
-
-  const FLOAT fClipMarginAdd = -0.5f;
-  const FLOAT fClipMarginSub = 0.5f;
-
-  re_fMinJ = pixMinJ;
-  re_fMaxJ = pixMinJ + pixSizeJ;
-  re_pixSizeI = pixSizeI;
-  re_fbbClipBox = FLOATaabbox2D(FLOAT2D((FLOAT)pixMinI + fClipMarginAdd, (FLOAT)pixMinJ + fClipMarginAdd),
-                                FLOAT2D((FLOAT)pixMinI + pixSizeI - fClipMarginSub, (FLOAT)pixMinJ + pixSizeJ - fClipMarginSub));
-  re_pixTopScanLineJ = PIXCoord(pixMinJ + fClipMarginAdd);
-  re_ctScanLines = PIXCoord(pixSizeJ - fClipMarginSub) - PIXCoord(fClipMarginAdd);
-  re_pixBottomScanLineJ = re_pixTopScanLineJ + re_ctScanLines;
-};
-
-// RenderView() copy
-static void RenderViewCopy(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDrawPort &dp) {
-  if (woWorld.wo_pecWorldBaseClass != NULL
-   && woWorld.wo_pecWorldBaseClass->ec_pdecDLLClass != NULL
-   && woWorld.wo_pecWorldBaseClass->ec_pdecDLLClass->dec_OnWorldRender != NULL) {
-    woWorld.wo_pecWorldBaseClass->ec_pdecDLLClass->dec_OnWorldRender(&woWorld);
-  }
-
-  if (_wrpWorldRenderPrefs.GetShadowsType() == CWorldRenderPrefs::SHT_FULL) {
-    woWorld.CalculateNonDirectionalShadows();
-  }
-
-  // Retrieve renderer from '_areRenderers[0]'
-  static StructPtr pRenderers(ADDR_RENDERER_ARRAY);
-  CRenderer &re = pRenderers((CRenderer *)NULL)[0];
-
-  re.re_penViewer = &enViewer;
-  re.re_pcspoViewPolygons = NULL;
-  re.re_pwoWorld = &woWorld;
-  re.re_prProjection = apr;
-  re.re_pdpDrawPort = &dp;
-
-  re.InitClippingRectangle(0, 0, dp.GetWidth(), dp.GetHeight());
-  apr->ScreenBBoxL() = FLOATaabbox2D(FLOAT2D(0.0f, 0.0f), FLOAT2D(dp.GetWidth(), dp.GetHeight()));
-
-  re.re_bRenderingShadows = FALSE;
-  re.re_ubLightIllumination = 0;
-
-  // Pointer to CRenderer::Render()
-  static StructPtr pRenderFunc(ADDR_RENDERER_RENDER);
-
-  // Call CRenderer::Render() from the pointer
-  void (CRenderer::*pDummy)(void) = NULL;
-  (re.*pRenderFunc(pDummy))();
-
-  // Call API method after rendering the world
-  GetAPI()->OnRenderView(woWorld, &enViewer, apr, &dp);
-};
+// Original function pointer
+void (*pRenderView)(CWorld &, CEntity &, CAnyProjection3D &, CDrawPort &) = NULL;
 
 // Patched function
 void P_RenderView(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDrawPort &dp)
@@ -115,7 +37,10 @@ void P_RenderView(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDr
   // Not a perspective projection
   if (!apr.IsPerspective()) {
     // Proceed to the original function
-    RenderViewCopy(woWorld, enViewer, apr, dp);
+    (*pRenderView)(woWorld, enViewer, apr, dp);
+
+    // Call API method after rendering the world
+    GetAPI()->OnRenderView(woWorld, &enViewer, apr, &dp);
     return;
   }
 
@@ -183,7 +108,10 @@ void P_RenderView(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDr
   }
 
   // Proceed to the original function
-  RenderViewCopy(woWorld, enViewer, apr, dp);
+  (*pRenderView)(woWorld, enViewer, apr, dp);
+
+  // Call API method after rendering the world
+  GetAPI()->OnRenderView(woWorld, &enViewer, apr, &dp);
 };
 
 // Prepare the perspective projection
