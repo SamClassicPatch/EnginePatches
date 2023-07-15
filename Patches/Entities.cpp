@@ -79,6 +79,13 @@ void CEntityPatch::P_ReadProperties(CTStream &istrm) {
           HANDLE_UNKNOWN(iDummy);
         } break;
 
+        // [Cecil] Rev: 64-bit long numerical values (EPT_U64 and EPT_DOUBLE)
+        case 28: case 29: {
+          __int64 iDummy;
+          istrm.Read_t(&iDummy, sizeof(iDummy));
+          HANDLE_UNKNOWN(iDummy);
+        } break;
+
         case CEntityProperty::EPT_ENTITYPTR: {
           CEntityPointer pen;
           ReadEntityPointer_t(&istrm, pen);
@@ -161,6 +168,13 @@ void CEntityPatch::P_ReadProperties(CTStream &istrm) {
       case CEntityProperty::EPT_RANGE: case CEntityProperty::EPT_ANGLE:
       case CEntityProperty::EPT_ANIMATION: case CEntityProperty::EPT_ILLUMINATIONTYPE: {
         istrm >> GET_PROP(INDEX);
+      } break;
+
+      // [Cecil] Rev: 64-bit long numerical values (EPT_U64 and EPT_DOUBLE)
+      case 28: case 29: {
+        __int64 iValue;
+        istrm.Read_t(&iValue, sizeof(iValue));
+        GET_PROP(__int64) = iValue;
       } break;
 
       // Entity pointer
