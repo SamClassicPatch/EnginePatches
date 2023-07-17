@@ -422,6 +422,15 @@ void CPatches::FileSystem(void) {
   NewRawPatch(pReadShader, &CShaderPatch::P_Read, "CShader::Read_t(...)");
 #endif
 
+  // CTStream::GetLine_t(char *, SLONG, char)
+  #if SE1_GAME != SS_REV
+    void *pGetLinePtr = CPatchAPI::GetEngineSymbolPortable("?GetLine_t@CTStream@@QAEXPADJD@Z");
+  #else
+    void *pGetLinePtr = CPatchAPI::GetEngineSymbolPortable("?GetLine_t@CTStream@@UAEXPADJD@Z");
+  #endif
+  void (*pGetLine)(char *, SLONG, char) = (void (*)(char *, SLONG, char))pGetLinePtr;
+  NewRawPatch(pGetLine, &CStreamGetLinePatch::P_GetLine, "CTStream::GetLine_t(...)");
+
   // Global methods
   extern void (*pInitStreams)(void);
   pInitStreams = StructPtr(ADDR_INITSTREAMS)(&P_InitStreams);

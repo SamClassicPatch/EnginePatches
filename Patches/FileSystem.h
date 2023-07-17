@@ -49,6 +49,13 @@ class CShaderPatch : public CShader {
 
 #endif
 
+class CStreamGetLinePatch : public CTStream {
+  public:
+    void P_GetLine(char *strBuffer, SLONG slBufferSize, char cDelimiter) {
+      IData::GetLineFromStream_t(*this, strBuffer, slBufferSize, cDelimiter);
+    };
+};
+
 // Initialize various file paths and load game content
 void P_InitStreams(void);
 
