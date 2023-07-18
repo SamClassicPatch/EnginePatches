@@ -25,7 +25,7 @@ namespace IMapConverters {
 void Reset(void)
 {
   #if TSE_FUSION_MODE
-    if (_EnginePatches._bFirstEncounter) {
+    if (_EnginePatches._eWorldFormat == E_LF_TFE) {
       IConvertTFE::Reset();
     }
   #endif
@@ -36,7 +36,7 @@ void HandleProperty(CEntity *pen, ULONG ulType, ULONG ulID, void *pValue) {
   UnknownProp prop(ulType, ulID, pValue);
 
   #if TSE_FUSION_MODE
-    if (_EnginePatches._bFirstEncounter) {
+    if (_EnginePatches._eWorldFormat == E_LF_TFE) {
       IConvertTFE::HandleProperty(pen, prop);
     }
   #endif

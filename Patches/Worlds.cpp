@@ -27,12 +27,20 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
   // [Cecil] Determine forced reinitialization
   BOOL bForceReinit = _EnginePatches._bReinitWorld;
 
-  // [Cecil] Check if the level is being loaded from the TFE directory
-  _EnginePatches._bFirstEncounter = _EnginePatches.IsMapFromTFE(fnmWorld);
+  // [Cecil] Loading from the current game directory
+  _EnginePatches._eWorldFormat = E_LF_CURRENT;
 
-  // [Cecil] Reinitialize TFE for TSE
+  // [Cecil] Reinitialize other world types for TSE
   #if TSE_FUSION_MODE
-    bForceReinit |= _EnginePatches._bFirstEncounter;
+    // Check if the level is being loaded from any other game
+    if (IsFileFromDir(GAME_DIR_TFE, fnmWorld)) {
+      _EnginePatches._eWorldFormat = E_LF_TFE;
+
+    } else if (IsFileFromDir(GAME_DIR_SSR, fnmWorld)) {
+      _EnginePatches._eWorldFormat = E_LF_SSR;
+    }
+
+    bForceReinit |= (_EnginePatches._eWorldFormat != E_LF_CURRENT);
   #endif
 
   // [Cecil] Reset map converters
@@ -63,7 +71,7 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
 
     #if CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
       // Make TFE worlds TSE-compatible
-      if (_EnginePatches._bFirstEncounter) {
+      if (_EnginePatches._eWorldFormat == E_LF_TFE) {
         IConvertTFE::ConvertWorld(this);
       }
     #endif

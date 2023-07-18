@@ -34,28 +34,8 @@ CPatches::CPatches() {
 
   _ulMaxWriteMemory = (1 << 20) * 128; // 128 MB
 
-  _bFirstEncounter = FALSE;
+  _eWorldFormat = E_LF_CURRENT;
   _bReinitWorld = FALSE;
-};
-
-// Check if the map file is from the TFE directory
-BOOL CPatches::IsMapFromTFE(const CTFileName &fnm) {
-  #if TSE_FUSION_MODE
-    if (_fnmCDPath == "") return FALSE;
-
-    CTFileName fnmFull;
-
-    // Try checking the archive path
-    if (ExpandFilePath(EFP_READ, fnm, fnmFull) == EFP_BASEZIP) {
-      fnmFull = IUnzip::GetFileArchive(fnm);
-    }
-
-    return fnmFull.HasPrefix(_fnmCDPath);
-
-  #else
-    // Already playing TFE
-    return TRUE;
-  #endif
 };
 
 #include "Patches/Entities.h"

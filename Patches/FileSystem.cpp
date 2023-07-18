@@ -171,38 +171,45 @@ static void LoadPackages(const CTString &strDirectory, const CTString &strMatchF
   _findclose(hFile);
 };
 
+// Setup some game directory
+static BOOL SetupGameDir(CTString &strGameDir, CTString &strDirProperty, const CTString &strDefaultPath) {
+  // Set directory from the property if it's not set yet
+  if (strGameDir == "" && strDirProperty != "") {
+    strGameDir = strDirProperty;
+  }
+
+  // Set default path and update the property, if it's empty
+  if (strGameDir == "") {
+    strGameDir = strDefaultPath;
+    strDirProperty = strGameDir;
+  }
+
+  // Abort if still no path
+  if (strGameDir == "") return FALSE;
+
+  // Make it into a full path
+  IFiles::SetFullDirectory(strGameDir);
+
+  // Reset if the directory doesn't exist
+  DWORD dwAttrib = GetFileAttributesA(strGameDir.str_String);
+
+  if (dwAttrib == -1 || !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY)) {
+    strGameDir = "";
+    return FALSE;
+
+  // Otherwise add it as a content directory for loading extra GRO packages from
+  } else {
+    _aContentDirs.Push() = strGameDir;
+  }
+
+  return TRUE;
+};
+
 // Initialize various file paths and load game content
 void P_InitStreams(void) {
   #if TSE_FUSION_MODE
-    // Try getting saved TFE directory
-    CTString &strTFEDir = CCoreAPI::Props().strTFEDir;
-
-    // Rewrite it if it's not set yet
-    if (_fnmCDPath == "" && strTFEDir != "") {
-      _fnmCDPath = strTFEDir;
-    }
-
-    // If CD path still hasn't been set
-    if (_fnmCDPath == "") {
-      // Go outside the game directory and enter TFE nearby
-      _fnmCDPath = CTString("..\\Serious Sam Classic The First Encounter\\");
-
-      // Update directory in the config
-      strTFEDir = _fnmCDPath;
-    }
-
-    // If any path has been set
-    if (_fnmCDPath != "") {
-      // Make it into a full path
-      IFiles::SetFullDirectory(_fnmCDPath);
-
-      // Reset if the directory doesn't exist
-      DWORD dwAttrib = GetFileAttributesA(_fnmCDPath.str_String);
-
-      if (dwAttrib == -1 || !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY)) {
-        _fnmCDPath = CTString("");
-      }
-    }
+    // Setup other game directories
+    SetupGameDir(GAME_DIR_TFE, CCoreAPI::Props().strTFEDir, "..\\Serious Sam Classic The First Encounter\\");
   #endif
 
   // Read list of content directories without engine's streams
@@ -222,7 +229,10 @@ void P_InitStreams(void) {
     }
   }
 
-  for (INDEX iDir = 0; iDir < _aContentDirs.Count(); iDir++) {
+  // Load extra GRO packages from specified content directories
+  const INDEX ctDirs = _aContentDirs.Count();
+
+  for (INDEX iDir = 0; iDir < ctDirs; iDir++) {
     // Make directory into a full path
     CTFileName fnmDir = _aContentDirs[iDir];
     IFiles::SetFullDirectory(fnmDir);
@@ -234,12 +244,14 @@ void P_InitStreams(void) {
       continue;
     }
 
-    // Load extra packages from this directory
     LoadPackages(fnmDir, "*.gro");
   }
 
   // Proceed to the original function
   pInitStreams();
+
+  // Sort files in ZIP archives by content directory
+  IUnzip::SortEntries();
 
   // Set custom mod extension to utilize Entities & Game libraries from the patch
   if (CCoreAPI::Props().bCustomMod) {
@@ -291,28 +303,40 @@ static BOOL SubstituteExtension(CTFileName &fnmFullFileName)
   return FALSE;
 };
 
+// [Cecil] Check if file exists at a specific path (relative or absolute)
+static inline BOOL CheckFileAt(const CTString &strBaseDir, const CTFileName &fnmFile, CTFileName &fnmExpanded) {
+  if (fnmFile.HasPrefix(strBaseDir)) {
+    fnmExpanded = fnmFile;
+  } else {
+    fnmExpanded = strBaseDir + fnmFile;
+  }
+
+  return IFiles::IsReadable(fnmExpanded);
+};
+
 static INDEX ExpandPathForReading(ULONG ulType, const CTFileName &fnmFile, CTFileName &fnmExpanded) {
   // Search for the file in archives
-  INDEX iFileInZip = IUnzip::GetFileIndex(fnmFile);
+  const INDEX iFileInZip = IUnzip::GetFileIndex(fnmFile);
+  const BOOL bFoundInZip = (iFileInZip >= 0);
 
   static CSymbolPtr symptr("fil_bPreferZips");
   BOOL bPreferZips = symptr.GetIndex();
+
+  // [Cecil] Check file at a specific directory and return if it exists
+  #define RETURN_FILE_AT(_Dir) \
+    { if (CheckFileAt(_Dir, fnmFile, fnmExpanded)) return EFP_FILE; }
 
   // If a mod is active
   if (_fnmMod != "") {
     // Try mod directory before archives
     if (!bPreferZips) {
-      fnmExpanded = CCoreAPI::AppPath() + _fnmMod + fnmFile;
-
-      if (IFiles::IsReadable(fnmExpanded)) {
-        return EFP_FILE;
-      }
+      RETURN_FILE_AT(CCoreAPI::AppPath() + _fnmMod);
     }
 
     // If allowing archives
     if (!(ulType & EFP_NOZIPS)) {
       // Use if it exists in the mod archive
-      if (iFileInZip >= 0 && IUnzip::IsFileAtIndexMod(iFileInZip)) {
+      if (bFoundInZip && IUnzip::IsFileAtIndexMod(iFileInZip)) {
         fnmExpanded = fnmFile;
         return EFP_MODZIP;
       }
@@ -320,34 +344,19 @@ static INDEX ExpandPathForReading(ULONG ulType, const CTFileName &fnmFile, CTFil
 
     // Try mod directory after archives
     if (bPreferZips) {
-      fnmExpanded = CCoreAPI::AppPath() + _fnmMod + fnmFile;
-
-      if (IFiles::IsReadable(fnmExpanded)) {
-        return EFP_FILE;
-      }
+      RETURN_FILE_AT(CCoreAPI::AppPath() + _fnmMod);
     }
   }
 
   // Try game root directory before archives
   if (!bPreferZips) {
-    CTFileName fnmAppPath = CCoreAPI::AppPath();
-    IFiles::SetAbsolutePath(fnmAppPath); // [Cecil] TEMP: Probably useless? Originally copied from 1.10
-
-    if (fnmFile.HasPrefix(fnmAppPath)) {
-      fnmExpanded = fnmFile;
-    } else {
-      fnmExpanded = CCoreAPI::AppPath() + fnmFile;
-    }
-
-    if (IFiles::IsReadable(fnmExpanded)) {
-      return EFP_FILE;
-    }
+    RETURN_FILE_AT(CCoreAPI::AppPath());
   }
 
   // If allowing archives
   if (!(ulType & EFP_NOZIPS)) {
     // Use it if exists in any archive
-    if (iFileInZip >= 0) {
+    if (bFoundInZip) {
       fnmExpanded = fnmFile;
       return EFP_BASEZIP;
     }
@@ -355,29 +364,27 @@ static INDEX ExpandPathForReading(ULONG ulType, const CTFileName &fnmFile, CTFil
 
   // Try game root directory after archives
   if (bPreferZips) {
-    fnmExpanded = CCoreAPI::AppPath() + fnmFile;
+    RETURN_FILE_AT(CCoreAPI::AppPath());
+  }
 
-    if (IFiles::IsReadable(fnmExpanded)) {
-      return EFP_FILE;
-    }
+  // [Cecil] Try searching other game directories after the main one
+  for (INDEX iDir = GAME_DIRECTORIES_CT - 1; iDir >= 0; iDir--) {
+    const CTString &strDir = _astrGameDirs[iDir];
+
+    // No game directory
+    if (strDir == "") continue;
+
+    RETURN_FILE_AT(strDir);
   }
 
   // Finally, try the CD path
   if (_fnmCDPath != "") {
     // Prioritize the mod directory
     if (_fnmMod != "") {
-      fnmExpanded = _fnmCDPath + _fnmMod + fnmFile;
-
-      if (IFiles::IsReadable(fnmExpanded)) {
-        return EFP_FILE;
-      }
+      RETURN_FILE_AT(_fnmCDPath + _fnmMod);
     }
 
-    fnmExpanded = _fnmCDPath + fnmFile;
-
-    if (IFiles::IsReadable(fnmExpanded)) {
-      return EFP_FILE;
-    }
+    RETURN_FILE_AT(_fnmCDPath);
   }
 
   return EFP_NONE;

@@ -25,7 +25,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #endif
 
 // Check if the fusion mode is available (only for TSE)
-#define TSE_FUSION_MODE (SE1_GAME != SS_TFE)
+#define TSE_FUSION_MODE (SE1_GAME == SS_TSE)
 
 // Available engine patches
 class PATCHES_API CPatches {
@@ -44,7 +44,7 @@ class PATCHES_API CPatches {
     ULONG _ulMaxWriteMemory; // Enough memory for writing
 
     // Worlds
-    INDEX _bFirstEncounter; // Set if the last loaded map is from the TFE directory
+    ELevelFormat _eWorldFormat; // Format of the last loaded world
     INDEX _bReinitWorld; // Force entity reinitialization
 
   public:
@@ -83,9 +83,6 @@ class PATCHES_API CPatches {
         Worlds();
       }
     };
-
-    // Check if the map file is from the TFE directory
-    BOOL IsMapFromTFE(const CTFileName &fnm);
 
   // Patches after Serious Engine and Core initializations
   public:
