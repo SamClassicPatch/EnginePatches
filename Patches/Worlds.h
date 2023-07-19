@@ -28,6 +28,9 @@ class CWorldPatch : public CWorld {
 
     // Read world information
     void P_ReadInfo(CTStream *strm, BOOL bMaybeDescription);
+
+    // Create a new entity of a given class
+    CEntity *P_CreateEntity(const CPlacement3D &plPlacement, const CTFileName &fnmClass);
 };
 
 #endif // CLASSICSPATCH_ENGINEPATCHES

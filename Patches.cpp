@@ -301,6 +301,9 @@ void CPatches::Worlds(void) {
   void (CWorld::*pReadInfo)(CTStream *, BOOL) = &CWorld::ReadInfo_t;
   NewPatch(pReadInfo, &CWorldPatch::P_ReadInfo, "CWorld::ReadInfo_t(...)");
 
+  CEntity *(CWorld::*pCreateEntity)(const CPlacement3D &, const CTFileName &) = &CWorld::CreateEntity_t;
+  NewPatch(pCreateEntity, &CWorldPatch::P_CreateEntity, "CWorld::CreateEntity_t(...)");
+
   // Custom symbols
   _pShell->DeclareSymbol("user INDEX sam_bReinitWorld;", &_EnginePatches._bReinitWorld);
 };

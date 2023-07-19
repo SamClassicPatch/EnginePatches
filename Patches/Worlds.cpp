@@ -20,6 +20,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "Worlds.h"
 #include "../MapConversion.h"
 
+#include <Engine/Templates/Stock_CEntityClass.h>
+#include <CoreLib/Interfaces/ResourceFunctions.h>
+
 void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
   // Open the file
   wo_fnmFileName = fnmWorld;
@@ -173,6 +176,37 @@ void CWorldPatch::P_ReadInfo(CTStream *strm, BOOL bMaybeDescription) {
   } else if (bMaybeDescription) {
     *strm >> wo_strDescription;
   }
+};
+
+// Create a new entity of a given class
+CEntity *CWorldPatch::P_CreateEntity(const CPlacement3D &plPlacement, const CTFileName &fnmClass) {
+  CEntityClass *pecClass = NULL;
+
+  // [Cecil] Try obtaining a new entity class
+  try {
+    pecClass = _pEntityClassStock->Obtain_t(fnmClass);
+
+  // [Cecil] If the current file can't be loaded for any reason
+  } catch (char *strError) {
+    (void)strError;
+
+    // Try again with an explicit replacement
+    CTFileName fnmReplacement;
+
+    if (IRes::ReplaceFile(fnmClass, fnmReplacement, "Entity Class Links (*.ecl)\0*.ecl\0" FILTER_END)) {
+      pecClass = _pEntityClassStock->Obtain_t(fnmReplacement);
+
+    // Otherwise send the error further up
+    } else {
+      throw;
+    }
+  }
+
+  // Create an entity with that class (release because it obtains it once more)
+  CEntity *penNew = CreateEntity(plPlacement, pecClass);
+  _pEntityClassStock->Release(pecClass);
+
+  return penNew;
 };
 
 #endif // CLASSICSPATCH_ENGINEPATCHES
