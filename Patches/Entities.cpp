@@ -79,11 +79,18 @@ void CEntityPatch::P_ReadProperties(CTStream &istrm) {
           HANDLE_UNKNOWN(iDummy);
         } break;
 
-        // [Cecil] Rev: 64-bit long numerical values (EPT_U64 and EPT_DOUBLE)
-        case 28: case 29: {
+        // [Cecil] Rev: 64-bit integer (EPT_U64)
+        case 28: {
           __int64 iDummy;
           istrm.Read_t(&iDummy, sizeof(iDummy));
           HANDLE_UNKNOWN(iDummy);
+        } break;
+
+        // [Cecil] Rev: DOUBLE written as FLOAT (EPT_DOUBLE)
+        case 29: {
+          FLOAT fDummy;
+          istrm >> fDummy;
+          HANDLE_UNKNOWN(fDummy);
         } break;
 
         case CEntityProperty::EPT_ENTITYPTR: {
@@ -170,11 +177,18 @@ void CEntityPatch::P_ReadProperties(CTStream &istrm) {
         istrm >> GET_PROP(INDEX);
       } break;
 
-      // [Cecil] Rev: 64-bit long numerical values (EPT_U64 and EPT_DOUBLE)
-      case 28: case 29: {
+      // [Cecil] Rev: 64-bit integer (EPT_U64)
+      case 28: {
         __int64 iValue;
         istrm.Read_t(&iValue, sizeof(iValue));
         GET_PROP(__int64) = iValue;
+      } break;
+
+      // [Cecil] Rev: DOUBLE written as FLOAT (EPT_DOUBLE)
+      case 29: {
+        FLOAT fValue;
+        istrm >> fValue;
+        GET_PROP(DOUBLE) = fValue;
       } break;
 
       // Entity pointer
