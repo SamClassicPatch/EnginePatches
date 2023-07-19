@@ -426,6 +426,9 @@ void CPatches::FileSystem(void) {
   void (*pGetLine)(char *, SLONG, char) = (void (*)(char *, SLONG, char))pGetLinePtr;
   NewRawPatch(pGetLine, &CStreamPatch::P_GetLine, "CTStream::GetLine_t(...)");
 
+  void (CTStream::*pReadDictionary)(SLONG) = &CTStream::ReadDictionary_intenal_t;
+  NewRawPatch(pReadDictionary, &CStreamPatch::P_ReadDictionary_intenal, "CTStream::ReadDictionary_intenal_t(...)");
+
   // Global methods
   extern void (*pInitStreams)(void);
   pInitStreams = StructPtr(ADDR_INITSTREAMS)(&P_InitStreams);

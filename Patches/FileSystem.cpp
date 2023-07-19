@@ -145,6 +145,45 @@ void CShaderPatch::P_Read(CTStream *istrFile) {
 
 #endif
 
+// Read the dictionary from a given offset
+void CStreamPatch::P_ReadDictionary_intenal(SLONG slOffset) {
+  // Remember last position
+  const SLONG slContinue = GetPos_t();
+
+  // Start dictionary processing from a new position
+  SetPos_t(slOffset);
+  strm_dmDictionaryMode = DM_PROCESSING;
+
+  ExpectID_t("DICT"); // Dictionary
+
+  // Read number of new filenames
+  INDEX ctOld = strm_afnmDictionary.Count();
+
+  INDEX ctNew;
+  *this >> ctNew;
+
+  // If there are any new filenames
+  if (ctNew > 0) {
+    // Make space and read them
+    strm_afnmDictionary.Push(ctNew);
+
+    for (INDEX i = ctOld; i < ctOld + ctNew; i++) {
+      // Read path
+      CTFileName &fnm = strm_afnmDictionary[i];
+      *this >> fnm;
+
+      // [Cecil] Fix Revolution directories
+      IFiles::FixRevPath(fnm);
+    }
+  }
+
+  ExpectID_t("DEND"); // Dictionary end
+
+  // Remember dictionary end position and return back
+  strm_slDictionaryPos = GetPos_t();
+  SetPos_t(slContinue);
+};
+
 // List of extra content directories
 static CFileList _aContentDirs;
 

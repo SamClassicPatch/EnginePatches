@@ -54,6 +54,9 @@ class CStreamPatch : public CTStream {
     void P_GetLine(char *strBuffer, SLONG slBufferSize, char cDelimiter) {
       IData::GetLineFromStream_t(*this, strBuffer, slBufferSize, cDelimiter);
     };
+
+    // Read the dictionary from a given offset
+    void P_ReadDictionary_intenal(SLONG slOffset);
 };
 
 // Initialize various file paths and load game content
