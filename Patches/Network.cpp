@@ -70,7 +70,9 @@ void CComIntPatch::P_ServerInit(void) {
   }
 
   // Start new master server
-  if (GetComm().IsNetworkEnabled()) {
+  static CSymbolPtr symptr("ser_bEnumeration");
+
+  if (symptr.GetIndex() && GetComm().IsNetworkEnabled()) {
     IMasterServer::OnServerStart();
   }
 #endif // CLASSICSPATCH_NEW_QUERY
