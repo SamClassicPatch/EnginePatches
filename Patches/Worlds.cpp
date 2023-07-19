@@ -24,23 +24,14 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
   // Open the file
   wo_fnmFileName = fnmWorld;
 
-  // [Cecil] Determine forced reinitialization
-  BOOL bForceReinit = _EnginePatches._bReinitWorld;
-
   // [Cecil] Loading from the current game directory
   _EnginePatches._eWorldFormat = E_LF_CURRENT;
 
-  // [Cecil] Reinitialize other world types for TSE
+  // [Cecil] Check if the level is being loaded from TFE
   #if TSE_FUSION_MODE
-    // Check if the level is being loaded from any other game
     if (IsFileFromDir(GAME_DIR_TFE, fnmWorld)) {
       _EnginePatches._eWorldFormat = E_LF_TFE;
-
-    } else if (IsFileFromDir(GAME_DIR_SSR, fnmWorld)) {
-      _EnginePatches._eWorldFormat = E_LF_SSR;
     }
-
-    bForceReinit |= (_EnginePatches._eWorldFormat != E_LF_CURRENT);
   #endif
 
   // [Cecil] Reset map converters
@@ -55,10 +46,15 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
   BOOL bNeedsReinit;
   _pNetwork->CheckVersion_t(strmFile, TRUE, bNeedsReinit);
 
+  // [Cecil] Patched methods may set a different value to CPatches::_eWorldFormat
   // Read the world
   Read_t(&strmFile);
 
   strmFile.Close();
+
+  // [Cecil] Determine forced reinitialization and forcefully convert other world types
+  BOOL bForceReinit = _EnginePatches._bReinitWorld;
+  bForceReinit |= (_EnginePatches._eWorldFormat != E_LF_CURRENT);
 
   // [Cecil] Convert the world some specific way while in game
   if (!GetAPI()->IsEditorApp() && bForceReinit) {
@@ -105,6 +101,78 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
 
   // [Cecil] Call API method after loading the world
   GetAPI()->OnWorldLoad(this, fnmWorld);
+};
+
+// Read world information
+void CWorldPatch::P_ReadInfo(CTStream *strm, BOOL bMaybeDescription) {
+  // Read entire world info
+  if (strm->PeekID_t() == CChunkID("WLIF")) {
+    strm->ExpectID_t(CChunkID("WLIF"));
+
+    // [Cecil] "DTRS" in the EXE as is gets picked up by the Depend utility
+    static const CChunkID chnkDTRS(CTString("DT") + "RS");
+
+    if (strm->PeekID_t() == chnkDTRS) {
+      strm->ExpectID_t(chnkDTRS);
+    }
+
+    // [Cecil] Rev: Read new world info
+    {
+      CTString strLeaderboard = "";
+      ULONG aulExtra[3] = { 0, 0, 0 };
+
+      // Read leaderboard
+      if (strm->PeekID_t() == CChunkID("LDRB")) {
+        strm->ExpectID_t("LDRB");
+        *strm >> strLeaderboard;
+
+        _EnginePatches._eWorldFormat = E_LF_SSR;
+      }
+
+      // Read unknown values
+      if (strm->PeekID_t() == CChunkID("Plv0")) {
+        strm->ExpectID_t("Plv0");
+        *strm >> aulExtra[0];
+        *strm >> aulExtra[1];
+        *strm >> aulExtra[2];
+
+        _EnginePatches._eWorldFormat = E_LF_SSR;
+      }
+
+      // Set default or read values
+      #if SE1_GAME == SS_REV
+        wo_strLeaderboard = strLeaderboard;
+        wo_ulExtra3 = aulExtra[0];
+        wo_ulExtra4 = aulExtra[1];
+        wo_ulExtra5 = aulExtra[2];
+      #endif
+    }
+
+    // Read display name
+    *strm >> wo_strName;
+
+    // Read flags
+    *strm >> wo_ulSpawnFlags;
+
+    // [Cecil] Rev: Read special gamemode chunk
+    if (strm->PeekID_t() == CChunkID("SpGM")) {
+      strm->ExpectID_t("SpGM");
+      _EnginePatches._eWorldFormat = E_LF_SSR;
+
+    } else {
+      // Otherwise remove some flags
+      #if SE1_GAME == SS_REV
+        wo_ulSpawnFlags &= ~0xE00000;
+      #endif
+    }
+
+    // Read world description
+    *strm >> wo_strDescription;
+
+  // Only read description
+  } else if (bMaybeDescription) {
+    *strm >> wo_strDescription;
+  }
 };
 
 #endif // CLASSICSPATCH_ENGINEPATCHES

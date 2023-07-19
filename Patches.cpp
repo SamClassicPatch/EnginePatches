@@ -298,6 +298,9 @@ void CPatches::Worlds(void) {
   void (CWorld::*pWorldLoad)(const CTFileName &) = &CWorld::Load_t;
   NewPatch(pWorldLoad, &CWorldPatch::P_Load, "CWorld::Load_t(...)");
 
+  void (CWorld::*pReadInfo)(CTStream *, BOOL) = &CWorld::ReadInfo_t;
+  NewPatch(pReadInfo, &CWorldPatch::P_ReadInfo, "CWorld::ReadInfo_t(...)");
+
   // Custom symbols
   _pShell->DeclareSymbol("user INDEX sam_bReinitWorld;", &_EnginePatches._bReinitWorld);
 };

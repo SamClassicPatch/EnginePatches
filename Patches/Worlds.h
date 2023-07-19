@@ -25,6 +25,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 class CWorldPatch : public CWorld {
   public:
     void P_Load(const CTFileName &fnmWorld);
+
+    // Read world information
+    void P_ReadInfo(CTStream *strm, BOOL bMaybeDescription);
 };
 
 #endif // CLASSICSPATCH_ENGINEPATCHES
