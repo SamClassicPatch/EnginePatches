@@ -60,7 +60,7 @@ void IConvertTFE::ConvertWeapon(INDEX &iFlags, INDEX iWeapon) {
 void IConvertTFE::ConvertKeyType(EKeyTSE &eKey) {
   switch (eKey) {
     // Dummy keys
-    case 4: eKey = E_KEY_JAGUARGOLDDUMMY; break; // Gold ankh
+    case 4: eKey = E_KEY_TABLESDUMMY; break; // Gold ankh
     case 15: eKey = E_KEY_TABLESDUMMY; break; // Metropolis scarab
 
     // Element keys
