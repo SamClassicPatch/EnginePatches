@@ -41,7 +41,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #undef TYPE
 
 // Allocate memory normally
-void CStreamPatch::P_AllocVirtualMemory(ULONG ulBytesToAllocate)
+void CUnpageStreamPatch::P_AllocVirtualMemory(ULONG ulBytesToAllocate)
 {
   // Allocate at least 128 bytes and align them to blocks of 64
   ULONG ulAlloc = (ulBytesToAllocate / 64 + 2) * 64;
@@ -56,7 +56,7 @@ void CStreamPatch::P_AllocVirtualMemory(ULONG ulBytesToAllocate)
 };
 
 // Free memory normally
-void CStreamPatch::P_FreeBuffer(void)
+void CUnpageStreamPatch::P_FreeBuffer(void)
 {
   if (strm_pubBufferBegin != NULL) {
     free(strm_pubBufferBegin);

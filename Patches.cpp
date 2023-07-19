@@ -316,10 +316,10 @@ static void PatchStreams(void) {
 
   // CTStream
   void (CTStream::*pAllocMemory)(ULONG) = &CTStream::AllocateVirtualMemory;
-  NewRawPatch(pAllocMemory, &CStreamPatch::P_AllocVirtualMemory, "CTStream::AllocateVirtualMemory(...)");
+  NewRawPatch(pAllocMemory, &CUnpageStreamPatch::P_AllocVirtualMemory, "CTStream::AllocateVirtualMemory(...)");
 
   void (CTStream::*pFreeBufferFunc)(void) = &CTStream::FreeBuffer;
-  NewRawPatch(pFreeBufferFunc, &CStreamPatch::P_FreeBuffer, "CTStream::FreeBuffer()");
+  NewRawPatch(pFreeBufferFunc, &CUnpageStreamPatch::P_FreeBuffer, "CTStream::FreeBuffer()");
 
   // CTFileStream
   void (CTFileStream::*pCreateFunc)(const CTFileName &, CTStream::CreateMode) = &CTFileStream::Create_t;
@@ -402,14 +402,14 @@ void CPatches::FileSystem(void) {
   NewRawPatch(pReadShader, &CShaderPatch::P_Read, "CShader::Read_t(...)");
 #endif
 
-  // CTStream::GetLine_t(char *, SLONG, char)
+  // CTStream
   #if SE1_GAME != SS_REV
     void *pGetLinePtr = CPatchAPI::GetEngineSymbolPortable("?GetLine_t@CTStream@@QAEXPADJD@Z");
   #else
     void *pGetLinePtr = CPatchAPI::GetEngineSymbolPortable("?GetLine_t@CTStream@@UAEXPADJD@Z");
   #endif
   void (*pGetLine)(char *, SLONG, char) = (void (*)(char *, SLONG, char))pGetLinePtr;
-  NewRawPatch(pGetLine, &CStreamGetLinePatch::P_GetLine, "CTStream::GetLine_t(...)");
+  NewRawPatch(pGetLine, &CStreamPatch::P_GetLine, "CTStream::GetLine_t(...)");
 
   // Global methods
   extern void (*pInitStreams)(void);

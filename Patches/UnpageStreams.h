@@ -25,7 +25,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #if CLASSICSPATCH_ENGINEPATCHES && CLASSICSPATCH_FIX_STREAMPAGING
 
 // CTStream patches
-class CStreamPatch : public CTStream {
+class CUnpageStreamPatch : public CTStream {
   public:
     // Allocate memory normally
     void P_AllocVirtualMemory(ULONG ulBytesToAllocate);
@@ -35,7 +35,7 @@ class CStreamPatch : public CTStream {
 };
 
 // CTFileStream patches
-class CFileStreamPatch : public CStreamPatch {
+class CFileStreamPatch : public CUnpageStreamPatch {
   // Copies of private fields
   public:
     FILE *fstrm_pFile;
@@ -55,7 +55,7 @@ class CFileStreamPatch : public CStreamPatch {
 };
 
 // CRememberedLevel clone that saves session state into itself
-class CRemLevel : public CStreamPatch {
+class CRemLevel : public CUnpageStreamPatch {
   public:
     CListNode rl_lnInSessionState; // Node in the remembered levels list
     CTString rl_strFileName; // World filename

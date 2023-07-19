@@ -49,7 +49,7 @@ class CShaderPatch : public CShader {
 
 #endif
 
-class CStreamGetLinePatch : public CTStream {
+class CStreamPatch : public CTStream {
   public:
     void P_GetLine(char *strBuffer, SLONG slBufferSize, char cDelimiter) {
       IData::GetLineFromStream_t(*this, strBuffer, slBufferSize, cDelimiter);
