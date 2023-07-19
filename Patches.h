@@ -58,14 +58,15 @@ class PATCHES_API CPatches {
       const BOOL bEditor = GetAPI()->IsEditorApp();
 
       // Patch for everything
-      Network();
       Strings();
       Textures();
 
       // Patch for the game and the editor
       if (bGame || bEditor) {
         Entities();
+        Network();
         Rendering();
+        Worlds();
 
         #if SE1_VER >= SE1_107
           Ska();
@@ -73,13 +74,13 @@ class PATCHES_API CPatches {
 
         if (bGame) {
           SoundLibrary();
-          Worlds();
         }
       }
 
       // Patch for the server
       if (bServer) {
         Entities();
+        Network();
         Worlds();
       }
     };
@@ -113,7 +114,7 @@ class PATCHES_API CPatches {
     // Enhance worlds
     void Worlds(void);
 
-  // Patches before Serious Engine and Core initialization
+  // Patches before Serious Engine and Core initializations
   public:
 
     // Customize core file handling in the engine
