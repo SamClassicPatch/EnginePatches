@@ -220,7 +220,7 @@ void CEntityPatch::P_ReadProperties(CTStream &istrm) {
           // Ask for a replacement file
           CTFileName fnmReplacement;
 
-          if (IRes::GetReplacingFile(fnm, fnmReplacement, FILTER_ALL FILTER_END)) {
+          if (IRes::ReplaceFile(fnm, fnmReplacement, FILTER_ALL FILTER_END)) {
             fnm = fnmReplacement;
 
           } else {
