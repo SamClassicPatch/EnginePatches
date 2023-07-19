@@ -340,6 +340,12 @@ static void PatchStreams(void) {
 void CPatches::UnpageStreams(void) {
 #if CLASSICSPATCH_FIX_STREAMPAGING
 
+  // Streams have been unpaged
+  static BOOL _bStreamsUnpaged = FALSE;
+
+  if (_bStreamsUnpaged) return;
+  _bStreamsUnpaged = TRUE;
+
   PatchStreams();
 
   // Dummy methods
@@ -384,6 +390,12 @@ void CPatches::UnpageStreams(void) {
 
 void CPatches::FileSystem(void) {
 #if CLASSICSPATCH_EXTEND_FILESYSTEM
+
+  // File system has been extended
+  static BOOL _bFileSystemExtended = FALSE;
+
+  if (_bFileSystemExtended) return;
+  _bFileSystemExtended = TRUE;
 
   // Don't patch file system
   if (!CCoreAPI::Props().bExtendedFileSystem) return;
