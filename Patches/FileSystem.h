@@ -62,8 +62,15 @@ void P_InitStreams(void);
 // Make a list of all files in a directory
 void P_MakeDirList(CFileList &afnmDir, const CTFileName &fnmDir, const CTString &strPattern, ULONG ulFlags);
 
+// Argument list for the ExpandFilePath() function
+#if SE1_GAME != SS_REV
+  #define EXPAND_PATH_ARGS(_Type, _File, _Expanded, _UseRPH) _Type, _File, _Expanded
+#else
+  #define EXPAND_PATH_ARGS(_Type, _File, _Expanded, _UseRPH) _Type, _File, _Expanded, _UseRPH
+#endif
+
 // Expand a filename to absolute path
-INDEX P_ExpandFilePath(ULONG ulType, const CTFileName &fnmFile, CTFileName &fnmExpanded);
+INDEX P_ExpandFilePath(EXPAND_PATH_ARGS(ULONG ulType, const CTFileName &fnmFile, CTFileName &fnmExpanded, BOOL bUseRPH = 0));
 
 #endif // CLASSICSPATCH_EXTEND_FILESYSTEM
 

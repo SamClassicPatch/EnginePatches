@@ -391,7 +391,7 @@ static INDEX ExpandPathForReading(ULONG ulType, const CTFileName &fnmFile, CTFil
 };
 
 // Expand a filename to absolute path
-INDEX P_ExpandFilePath(ULONG ulType, const CTFileName &fnmFile, CTFileName &fnmExpanded)
+INDEX P_ExpandFilePath(EXPAND_PATH_ARGS(ULONG ulType, const CTFileName &fnmFile, CTFileName &fnmExpanded, BOOL bUseRPH))
 {
   CTFileName fnmFileAbsolute = fnmFile;
   IFiles::SetAbsolutePath(fnmFileAbsolute);

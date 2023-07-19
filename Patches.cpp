@@ -434,7 +434,7 @@ void CPatches::FileSystem(void) {
   void (*pMakeDirList)(CFileList &, const CTFileName &, const CTString &, ULONG) = &MakeDirList;
   NewRawPatch(pMakeDirList, &P_MakeDirList, "::MakeDirList(...)");
 
-  INDEX (*pExpandFilePath)(ULONG, const CTFileName &, CTFileName &) = &ExpandFilePath;
+  INDEX (*pExpandFilePath)(EXPAND_PATH_ARGS(ULONG, const CTFileName &, CTFileName &, BOOL)) = &ExpandFilePath;
   NewRawPatch(pExpandFilePath, &P_ExpandFilePath, "::ExpandFilePath(...)");
 
 #endif // CLASSICSPATCH_EXTEND_FILESYSTEM
