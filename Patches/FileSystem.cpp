@@ -269,6 +269,7 @@ void P_InitStreams(void) {
     if (dwAttrib != -1 && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY)) {
       CFileList aWorkshop;
       IFiles::ListInDir(strWorkshop, aWorkshop, "", "*.gro", TRUE, NULL, NULL);
+      IFiles::ListInDir(strWorkshop, aWorkshop, "", "*_legacy.bin", TRUE, NULL, NULL); // Legacy archives
 
       // Add directories with GRO packages from workshop
       const INDEX ctDirs = aWorkshop.Count();
@@ -314,6 +315,7 @@ void P_InitStreams(void) {
     }
 
     LoadPackages(fnmDir, "*.gro");
+    LoadPackages(fnmDir, "*_legacy.bin"); // Legacy SSR workshop archives
   }
 
   // Proceed to the original function
