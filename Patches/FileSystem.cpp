@@ -465,6 +465,25 @@ static INDEX ExpandPathForReading(ULONG ulType, const CTFileName &fnmFile, CTFil
 INDEX P_ExpandFilePath(EXPAND_PATH_ARGS(ULONG ulType, const CTFileName &fnmFile, CTFileName &fnmExpanded, BOOL bUseRPH))
 {
   CTFileName fnmFileAbsolute = fnmFile;
+
+  #if SE1_GAME == SS_REV
+    // [Cecil] Rev: Fix path formatting and use replace history
+    fnmFileAbsolute.FixFormatting();
+
+    if (bUseRPH) {
+      rphPassReplace(fnmFileAbsolute);
+    }
+
+  #else
+    // [Cecil] Reading resources from Revolution worlds
+    const BOOL bRevWorld = (_EnginePatches._eWorldFormat == E_LF_SSR);
+
+    // [Cecil] Fix formatting of Revolution paths
+    if (bRevWorld) {
+      IFiles::FixRevPath(fnmFileAbsolute);
+    }
+  #endif
+
   IFiles::SetAbsolutePath(fnmFileAbsolute);
 
   // If writing
@@ -488,6 +507,39 @@ INDEX P_ExpandFilePath(EXPAND_PATH_ARGS(ULONG ulType, const CTFileName &fnmFile,
   } else if (ulType & EFP_READ) {
     // Check for expansions
     INDEX iRes = ExpandPathForReading(ulType, fnmFileAbsolute, fnmExpanded);
+
+  #if SE1_GAME != SS_REV
+    // [Cecil] Try remapping Revolution paths, if can't find a file
+    if (bRevWorld && iRes == EFP_NONE) {
+      CTFileName fnmRemap;
+
+      #define REMAP_PATH(_Old, _New) if (fnmFileAbsolute.RemovePrefix(_Old)) fnmRemap = _New + fnmFileAbsolute
+
+      REMAP_PATH("TexturesMP\\", "Textures\\");
+      else
+      REMAP_PATH("SoundsMP\\", "Sounds\\");
+      else
+      REMAP_PATH("MusicMP\\", "Music\\");
+      else
+      REMAP_PATH("ModelsMP\\", "Models\\");
+      else
+      REMAP_PATH("Levels\\LevelsMP\\", "Levels\\");
+      else
+      REMAP_PATH("DataMP\\", "Data\\");
+      else
+      REMAP_PATH("AnimationsMP\\", "Animations\\");
+      else
+      REMAP_PATH("Chaos_Studios\\", "Textures\\Chaos_Studios\\");
+      else
+      REMAP_PATH("NifransTextures\\", "Textures\\NifransTextures\\");
+
+      // Try searching under a remapped directory
+      if (fnmRemap != "") {
+        fnmFileAbsolute = fnmRemap;
+        iRes = ExpandPathForReading(ulType, fnmFileAbsolute, fnmExpanded);
+      }
+    }
+  #endif
 
     // If not found
     if (iRes == EFP_NONE) {
