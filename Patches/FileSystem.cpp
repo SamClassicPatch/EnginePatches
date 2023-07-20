@@ -246,10 +246,40 @@ static BOOL SetupGameDir(CTString &strGameDir, CTString &strDirProperty, const C
 
 // Initialize various file paths and load game content
 void P_InitStreams(void) {
+  BOOL bRev = FALSE;
+
   #if TSE_FUSION_MODE
     // Setup other game directories
-    SetupGameDir(GAME_DIR_TFE, CCoreAPI::Props().strTFEDir, "..\\Serious Sam Classic The First Encounter\\");
+    SetupGameDir(GAME_DIR_TFE, CCoreAPI::Props().strTFEDir, CONFIG_DEFAULT_DIR_TFE);
+    bRev = SetupGameDir(GAME_DIR_SSR, CCoreAPI::Props().strSSRDir, CONFIG_DEFAULT_DIR_SSR);
   #endif
+
+  // Specify path to Revolution workshop relative to the Steam game
+  CTString strWorkshop = CCoreAPI::Props().strSSRWorkshop;
+
+  if (bRev && strWorkshop == "") {
+    strWorkshop = GAME_DIR_SSR + "..\\" + CONFIG_DEFAULT_DIR_WORKSHOP;
+  }
+
+  // Verify workshop directory and load workshop files
+  IFiles::SetAbsolutePath(strWorkshop);
+  {
+    DWORD dwAttrib = GetFileAttributesA(strWorkshop.str_String);
+
+    if (dwAttrib != -1 && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY)) {
+      CFileList aWorkshop;
+      IFiles::ListInDir(strWorkshop, aWorkshop, "", "*.gro", TRUE, NULL, NULL);
+
+      // Add directories with GRO packages from workshop
+      const INDEX ctDirs = aWorkshop.Count();
+
+      for (INDEX iDir = 0; iDir < ctDirs; iDir++) {
+        // Add path to the workshop directory
+        CTFileName fnmDir = strWorkshop + aWorkshop[iDir].FileDir();
+        _aContentDirs.Push() = fnmDir;
+      }
+    }
+  }
 
   // Read list of content directories without engine's streams
   const CTFileName fnmDirList = CCoreAPI::AppPath() + "Data\\ContentDir.lst";
