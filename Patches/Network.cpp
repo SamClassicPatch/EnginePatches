@@ -588,11 +588,6 @@ void CSessionStatePatch::P_Stop(void) {
 
 #if CLASSICSPATCH_GUID_MASKING
 
-// Check if should mask player GUIDs
-static inline BOOL ShouldMaskGUIDs(void) {
-  return IProcessPacket::_bMaskGUIDs && _pNetwork->IsServer();
-};
-
 // Send synchronization packet to the server (as client) or add it to the buffer (as server)
 void CSessionStatePatch::P_MakeSynchronisationCheck(void) {
   if (!IsCommInitialized()) return;
@@ -608,7 +603,7 @@ void CSessionStatePatch::P_MakeSynchronisationCheck(void) {
   CSyncCheck scLocal;
 
   // Buffer sync checks for the server
-  if (ShouldMaskGUIDs()) {
+  if (IProcessPacket::ShouldMaskGUIDs()) {
     CServer &srv = _pNetwork->ga_srvServer;
 
     // Make local checksum for each session separately
@@ -685,7 +680,7 @@ void CPlayerEntityPatch::P_Write(CTStream *ostr) {
   const INDEX iClient = IProcessPacket::_iHandlingClient;
 
   // Normal writing for clients
-  if (!ShouldMaskGUIDs() || iClient == IProcessPacket::CLT_NONE) {
+  if (!IProcessPacket::ShouldMaskGUIDs() || iClient == IProcessPacket::CLT_NONE) {
     *ostr << en_pcCharacter << en_plViewpoint;
     return;
   }
@@ -729,7 +724,7 @@ void CPlayerEntityPatch::P_ChecksumForSync(ULONG &ulCRC, INDEX iExtensiveSyncChe
   const INDEX iClient = IProcessPacket::_iHandlingClient;
 
   // Normal check for clients
-  if (!ShouldMaskGUIDs() || iClient == IProcessPacket::CLT_NONE) {
+  if (!IProcessPacket::ShouldMaskGUIDs() || iClient == IProcessPacket::CLT_NONE) {
     CRC_AddBlock(ulCRC, en_pcCharacter.pc_aubGUID, sizeof(en_pcCharacter.pc_aubGUID));
     CRC_AddBlock(ulCRC, en_pcCharacter.pc_aubAppearance, sizeof(en_pcCharacter.pc_aubAppearance));
     return;
