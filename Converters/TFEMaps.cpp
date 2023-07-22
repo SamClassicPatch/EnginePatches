@@ -21,32 +21,28 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #if CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
 
-// List of triggers and storm controllers in the world
-extern CEntities _cWorldTriggers;
-extern CEntities _cWorldStorms;
+// Converter instance
+IConvertTFE _convTFE;
 
 // Reset the converter before loading a new world
 void IConvertTFE::Reset(void) {
   // Clear the rain
-  IRainTFE::ClearRainVariables();
+  ClearRainVariables();
 };
 
 // Handle some unknown property
-void IConvertTFE::HandleProperty(CEntity *pen, const IMapConverters::UnknownProp &prop)
+void IConvertTFE::HandleProperty(CEntity *pen, const UnknownProp &prop)
 {
   if (IsOfClass(pen, "WorldSettingsController")) {
-    IRainTFE::RememberWSC(pen, prop);
+    RememberWSC(pen, prop);
   }
 };
 
-// Convert TFE weapon flags into TSE weapon flags
+// Convert invalid weapon flag in a mask
 void IConvertTFE::ConvertWeapon(INDEX &iFlags, INDEX iWeapon) {
   switch (iWeapon) {
-    // Laser
-    case 14: iFlags |= WeaponFlag(E_WPN_LASER); break;
-
-    // Cannon
-    case 16: iFlags |= WeaponFlag(E_WPN_IRONCANNON); break;
+    case IMapsTFE::WEAPON_LASER: iFlags |= WeaponFlag(IMapsTSE::WEAPON_LASER); break;
+    case IMapsTFE::WEAPON_IRONCANNON: iFlags |= WeaponFlag(IMapsTSE::WEAPON_IRONCANNON); break;
 
     // Nonexistent weapons
     case 10: case 11: case 12: case 13: case 15: case 17: break;
@@ -56,40 +52,40 @@ void IConvertTFE::ConvertWeapon(INDEX &iFlags, INDEX iWeapon) {
   }
 };
 
-// Convert TFE keys into TSE keys
-void IConvertTFE::ConvertKeyType(EKeyTSE &eKey) {
+// Convert invalid key types
+void IConvertTFE::ConvertKeyType(INDEX &eKey) {
   switch (eKey) {
     // Dummy keys
-    case 4: eKey = E_KEY_TABLESDUMMY; break; // Gold ankh
-    case 15: eKey = E_KEY_TABLESDUMMY; break; // Metropolis scarab
+    case 4: eKey = IMapsTSE::KIT_TABLESDUMMY; break; // Gold ankh
+    case 15: eKey = IMapsTSE::KIT_TABLESDUMMY; break; // Metropolis scarab
 
     // Element keys
-    case 5: eKey = E_KEY_CROSSWOODEN; break; // Earth
-    case 6: eKey = E_KEY_CROSSMETAL; break; // Water
-    case 7: eKey = E_KEY_CRYSTALSKULL; break; // Air
-    case 8: eKey = E_KEY_CROSSGOLD; break; // Fire
+    case 5: eKey = IMapsTSE::KIT_CROSSWOODEN; break; // Earth
+    case 6: eKey = IMapsTSE::KIT_CROSSMETAL; break; // Water
+    case 7: eKey = IMapsTSE::KIT_CRYSTALSKULL; break; // Air
+    case 8: eKey = IMapsTSE::KIT_CROSSGOLD; break; // Fire
 
     // Other keys
-    case 0:  eKey = E_KEY_CROSSWOODEN; break;
-    case 1:  eKey = E_KEY_CROSSMETAL; break;
-    case 2:  eKey = E_KEY_CROSSGOLD; break;
-    case 3:  eKey = E_KEY_KINGSTATUE; break;
-    case 9:  eKey = E_KEY_HOLYGRAIL; break;
-    case 10: eKey = E_KEY_BOOKOFWISDOM; break;
-    case 12: eKey = E_KEY_BOOKOFWISDOM; break;
-    case 13: eKey = E_KEY_STATUEHEAD03; break; // Metropolis scarab
-    case 14: eKey = E_KEY_HOLYGRAIL; break;
-    case 16: eKey = E_KEY_STATUEHEAD01; break; // Luxor pair
-    case 17: eKey = E_KEY_STATUEHEAD02; break; // Luxor pair
-    case 18: eKey = E_KEY_WINGEDLION; break; // Sacred Yards sphinx
-    case 19: eKey = E_KEY_ELEPHANTGOLD; break; // Sacred Yards sphinx
+    case 0:  eKey = IMapsTSE::KIT_CROSSWOODEN; break;
+    case 1:  eKey = IMapsTSE::KIT_CROSSMETAL; break;
+    case 2:  eKey = IMapsTSE::KIT_CROSSGOLD; break;
+    case 3:  eKey = IMapsTSE::KIT_KINGSTATUE; break;
+    case 9:  eKey = IMapsTSE::KIT_HOLYGRAIL; break;
+    case 10: eKey = IMapsTSE::KIT_BOOKOFWISDOM; break;
+    case 12: eKey = IMapsTSE::KIT_BOOKOFWISDOM; break;
+    case 13: eKey = IMapsTSE::KIT_STATUEHEAD03; break; // Metropolis scarab
+    case 14: eKey = IMapsTSE::KIT_HOLYGRAIL; break;
+    case 16: eKey = IMapsTSE::KIT_STATUEHEAD01; break; // Luxor pair
+    case 17: eKey = IMapsTSE::KIT_STATUEHEAD02; break; // Luxor pair
+    case 18: eKey = IMapsTSE::KIT_WINGEDLION; break; // Sacred Yards sphinx
+    case 19: eKey = IMapsTSE::KIT_ELEPHANTGOLD; break; // Sacred Yards sphinx
 
     // Edge case
-    default: eKey = E_KEY_KINGSTATUE; break;
+    default: eKey = IMapsTSE::KIT_KINGSTATUE; break;
   }
 };
 
-// Convert one TFE entity into TSE
+// Convert one specific entity without reinitializing it
 BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
   enum {
     EN_DOOR, EN_KEY, EN_START, EN_PACK, EN_STORM,
@@ -169,7 +165,7 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
 
     // Convert key type
     if (pptrType.ByVariable("CKeyItem", "m_kitType")) {
-      ConvertKeyType(ENTITYPROPERTY(pen, pptrType.Offset(), EKeyTSE));
+      ConvertKeyType(ENTITYPROPERTY(pen, pptrType.Offset(), INDEX));
     }
 
     // Fix sound component index (301 -> 300)
@@ -195,7 +191,7 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
 
     // Convert key type
     if (pptrKey.ByVariable("CDoorController", "m_kitKey")) {
-      ConvertKeyType(ENTITYPROPERTY(pen, pptrKey.Offset(), EKeyTSE));
+      ConvertKeyType(ENTITYPROPERTY(pen, pptrKey.Offset(), INDEX));
     }
 
   // Adjust storm shade color
@@ -218,7 +214,7 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
     ENTITYPROPERTY(pen, pptrShadeStop.Offset(), COLOR) = C_dGRAY | CT_OPAQUE;
 
     // Add to the list of storm controllers
-    _cWorldStorms.Add(pen);
+    cenStorms.Add(pen);
 
     // Proceed with reinitialization
     return FALSE;
@@ -227,7 +223,7 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
   return TRUE;
 };
 
-// Make entire world TSE-compatible
+// Convert the entire world with possible entity reinitializations
 void IConvertTFE::ConvertWorld(CWorld *pwo) {
   CEntities cEntities;
 
@@ -239,7 +235,7 @@ void IConvertTFE::ConvertWorld(CWorld *pwo) {
 
     // Remember triggers for future use
     if (IsOfClass(pen, "Trigger")) {
-      _cWorldTriggers.Add(pen);
+      cenTriggers.Add(pen);
       cEntities.Add(pen);
       continue;
     }
@@ -280,7 +276,7 @@ void IConvertTFE::ConvertWorld(CWorld *pwo) {
   }
 
   // Restore rain
-  IRainTFE::ApplyRainProperties();
+  ApplyRainProperties();
 
   FOREACHINDYNAMICCONTAINER(cEntities, CEntity, itenReinit) {
     itenReinit->Reinitialize();

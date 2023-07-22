@@ -23,6 +23,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Converters\Common.h" />
     <ClInclude Include="Converters\TFEMaps.h" />
     <ClInclude Include="DummyMethods.h" />
     <ClInclude Include="MapConversion.h" />

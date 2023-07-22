@@ -22,76 +22,97 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #if CLASSICSPATCH_CONVERT_MAPS
 
-// Interface for unifying logic of different map converters
-namespace IMapConverters {
+// Common data for converters
+#include <EnginePatches/Converters/Common.h>
 
-// Property data for handling unknown entity properties
-struct UnknownProp {
-  ULONG ulType; // Property type, i.e. CEntityProperty::PropertyType
-  ULONG ulID;   // Property ID, i.e. what should've been in CEntityProperty::ep_ulID
-  void *pValue; // Pointer to any value type
+// Abstract base for different map converters
+class IMapConverter {
+  public:
+    // Property data for handling unknown entity properties
+    struct UnknownProp {
+      ULONG ulType; // Property type, i.e. CEntityProperty::PropertyType
+      ULONG ulID;   // Property ID, i.e. what should've been in CEntityProperty::ep_ulID
+      void *pValue; // Pointer to any value type
 
-  // Default constructor
-  __forceinline UnknownProp(ULONG ulSetType, ULONG ulSetID, void *pSetValue)
-    : ulType(ulSetType), ulID(ulSetID), pValue(pSetValue)
-  {
-  };
+      // Default constructor
+      __forceinline UnknownProp(ULONG ulSetType, ULONG ulSetID, void *pSetValue)
+        : ulType(ulSetType), ulID(ulSetID), pValue(pSetValue)
+      {
+      };
 
-  // Define methods for converting any pointer to a typed reference
-  #define DEFINE_VALUE_REF(_Type, _Method) \
-    __forceinline _Type &_Method(void) const { return *static_cast<_Type *>(pValue); };
+      // Define methods for converting any pointer to a typed reference
+      #define DEFINE_VALUE_REF(_Type, _Method) \
+        __forceinline _Type &_Method(void) const { return *static_cast<_Type *>(pValue); };
 
-  DEFINE_VALUE_REF(BOOL, Bool);
-  DEFINE_VALUE_REF(COLOR, Color);
-  DEFINE_VALUE_REF(CEntityPointer, Entity);
+      DEFINE_VALUE_REF(BOOL, Bool);
+      DEFINE_VALUE_REF(COLOR, Color);
+      DEFINE_VALUE_REF(CEntityPointer, Entity);
+      DEFINE_VALUE_REF(ULONG, Flags); // flags
+      DEFINE_VALUE_REF(INDEX, Index); // enum, INDEX, ANIMATION, ILLUMINATIONTYPE
+      DEFINE_VALUE_REF(FLOAT, Float); // FLOAT, ANGLE, RANGE
+      DEFINE_VALUE_REF(CTString, String); // CTString, CTStringTrans, CTFileNameNoDep
 
-  // 'flags' - EPT_FLAGS
-  DEFINE_VALUE_REF(ULONG, Flags);
+      // Resources
+      DEFINE_VALUE_REF(CTFileName, Filename);
+      DEFINE_VALUE_REF(CModelObject, ModelObject);
+    #if SE1_VER >= SE1_107
+      DEFINE_VALUE_REF(CModelInstance, ModelInstance);
+    #endif
+      DEFINE_VALUE_REF(CAnimObject, AnimObject);
+      DEFINE_VALUE_REF(CSoundObject, SoundObject);
 
-  // 'enum', 'INDEX', 'ANIMATION', 'ILLUMINATIONTYPE'
-  DEFINE_VALUE_REF(INDEX, Index);
+      // 3D environment
+      DEFINE_VALUE_REF(FLOAT3D, Float3D);
+      DEFINE_VALUE_REF(ANGLE3D, Angle3D);
+      DEFINE_VALUE_REF(CPlacement3D, Placement);
+      DEFINE_VALUE_REF(FLOATaabbox3D, Box);
+      DEFINE_VALUE_REF(FLOATplane3D, Plane);
+      DEFINE_VALUE_REF(FLOATquat3D, Quat);
+      DEFINE_VALUE_REF(FLOATmatrix3D, Matrix);
 
-  // FLOAT, ANGLE, RANGE
-  DEFINE_VALUE_REF(FLOAT, Float);
+      #undef DEFINE_VALUE_REF
+    };
 
-  // CTString, CTStringTrans, CTFileNameNoDep
-  DEFINE_VALUE_REF(CTString, String);
+  // Common methods
+  public:
 
-  // Resources
-  DEFINE_VALUE_REF(CTFileName, Filename);
-  DEFINE_VALUE_REF(CModelObject, ModelObject);
-#if SE1_VER >= SE1_107
-  DEFINE_VALUE_REF(CModelInstance, ModelInstance);
-#endif
-  DEFINE_VALUE_REF(CAnimObject, AnimObject);
-  DEFINE_VALUE_REF(CSoundObject, SoundObject);
+    // Set current map converter for a specific format
+    static IMapConverter *SetConverter(ELevelFormat eFormat);
 
-  // 3D environment
-  DEFINE_VALUE_REF(FLOAT3D, Float3D);
-  DEFINE_VALUE_REF(ANGLE3D, Angle3D);
-  DEFINE_VALUE_REF(CPlacement3D, Placement);
-  DEFINE_VALUE_REF(FLOATaabbox3D, Box);
-  DEFINE_VALUE_REF(FLOATplane3D, Plane);
-  DEFINE_VALUE_REF(FLOATquat3D, Quat);
-  DEFINE_VALUE_REF(FLOATmatrix3D, Matrix);
+    // Handle unknown entity property upon reading it via CEntity::ReadProperties_t()
+    static void HandleUnknownProperty(CEntity *pen, ULONG ulType, ULONG ulID, void *pValue);
 
-  #undef DEFINE_VALUE_REF
-};
+    // Check if the entity state doesn't match
+    static BOOL CheckEntityState(CRationalEntity *pen, SLONG slState, const char *strClass);
 
-// Reset map converters before using them
-void Reset(void);
+    // Get weapon flag from type
+    static __forceinline INDEX WeaponFlag(INDEX iWeapon) {
+      return (1 << (iWeapon - 1));
+    };
 
-// Handle unknown entity property upon reading it via CEntity::ReadProperties_t()
-void HandleProperty(CEntity *pen, ULONG ulType, ULONG ulID, void *pValue);
+  // Converter methods
+  public:
 
-}; // namespace
+    // Destructor
+    virtual ~IMapConverter() {};
 
-// Check if the entity state doesn't match
-BOOL CheckEntityState(CRationalEntity *pen, SLONG slState, const char *strClass);
+    // Reset the converter before loading a new world
+    virtual void Reset(void) = 0;
 
-// Get weapon flag from type
-__forceinline INDEX WeaponFlag(INDEX iWeapon) {
-  return (1 << (iWeapon - 1));
+    // Handle some unknown property
+    virtual void HandleProperty(CEntity *pen, const UnknownProp &prop) = 0;
+
+    // Convert invalid weapon flag in a mask
+    virtual void ConvertWeapon(INDEX &iFlags, INDEX iWeapon) = 0;
+
+    // Convert invalid key types
+    virtual void ConvertKeyType(INDEX &eKey) = 0;
+
+    // Convert one specific entity without reinitializing it
+    virtual BOOL ConvertEntity(CEntity *pen) = 0;
+
+    // Convert the entire world with possible entity reinitializations
+    virtual void ConvertWorld(CWorld *pwo) = 0;
 };
 
 // Specific converters

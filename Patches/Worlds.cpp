@@ -28,28 +28,53 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
   wo_fnmFileName = fnmWorld;
 
   // [Cecil] Loading from the current game directory
-  _EnginePatches._eWorldFormat = E_LF_CURRENT;
+  ELevelFormat &eWorld = _EnginePatches._eWorldFormat;
+  eWorld = E_LF_CURRENT;
 
   // [Cecil] Check if the level is being loaded from TFE
   #if TSE_FUSION_MODE
     if (IsFileFromDir(GAME_DIR_TFE, fnmWorld)) {
-      _EnginePatches._eWorldFormat = E_LF_TFE;
+      eWorld = E_LF_TFE;
     }
-  #endif
-
-  // [Cecil] Reset map converters
-  #if CLASSICSPATCH_CONVERT_MAPS
-    IMapConverters::Reset();
   #endif
 
   CTFileStream strmFile;
   strmFile.Open_t(fnmWorld);
 
+  // [Cecil] Determine world format before loading anything else
+  {
+    strmFile.ExpectID_t("BUIV");
+
+    INDEX iDummy;
+    strmFile >> iDummy;
+
+    // Levels from other games
+    if (iDummy != 10000) {
+      eWorld = E_LF_150;
+    }
+
+    strmFile.ExpectID_t("WRLD");
+
+    // World info may set a different value to CPatches::_eWorldFormat
+    P_ReadInfo(&strmFile, FALSE);
+
+    // Reset the stream
+    strmFile.SetPos_t(0);
+  }
+
+  // [Cecil] Set converter for the world format and reset it
+  #if CLASSICSPATCH_CONVERT_MAPS
+    IMapConverter *pconv = IMapConverter::SetConverter(eWorld);
+
+    if (pconv != NULL) {
+      pconv->Reset();
+    }
+  #endif
+
   // Check engine build
   BOOL bNeedsReinit;
   _pNetwork->CheckVersion_t(strmFile, TRUE, bNeedsReinit);
 
-  // [Cecil] Patched methods may set a different value to CPatches::_eWorldFormat
   // Read the world
   Read_t(&strmFile);
 
@@ -57,7 +82,7 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
 
   // [Cecil] Determine forced reinitialization and forcefully convert other world types
   BOOL bForceReinit = _EnginePatches._bReinitWorld;
-  bForceReinit |= (_EnginePatches._eWorldFormat != E_LF_CURRENT);
+  bForceReinit |= (eWorld != E_LF_CURRENT);
 
   // [Cecil] Convert the world some specific way while in game
   if (!GetAPI()->IsEditorApp() && bForceReinit) {
@@ -68,10 +93,10 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
     CSetFPUPrecision FPUPrecision(FPT_24BIT);
     CTmpPrecachingNow tpn;
 
-    #if CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
-      // Make TFE worlds TSE-compatible
-      if (_EnginePatches._eWorldFormat == E_LF_TFE) {
-        IConvertTFE::ConvertWorld(this);
+    #if CLASSICSPATCH_CONVERT_MAPS
+      // Use map converter
+      if (pconv != NULL) {
+        pconv->ConvertWorld(this);
       }
     #endif
 

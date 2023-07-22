@@ -72,6 +72,9 @@
     <ClInclude Include="Converters\TFEMaps.h">
       <Filter>Header Files\Converters headers</Filter>
     </ClInclude>
+    <ClInclude Include="Converters\Common.h">
+      <Filter>Header Files\Converters headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Patches.cpp">

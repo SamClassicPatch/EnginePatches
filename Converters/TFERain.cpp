@@ -21,51 +21,25 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #if CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
 
-// Structure with rain properties for a specific CWorldSettingsController
-struct SRainProps {
-  CEntity *penWSC; // Pointer to CWorldSettingsController
-
-  CTFileName fnm; // CWorldSettingsController::m_fnHeightMap
-  FLOATaabbox3D box; // CWorldSettingsController::m_boxHeightMap
-
-  // Constructor
-  SRainProps() : penWSC(NULL)
-  {
-  };
-};
-
-// List of rain properties for each controller in the world
-static CStaticStackArray<SRainProps> _aRainProps;
-
-// List of triggers and storm controllers in the world
-CEntities _cWorldTriggers;
-CEntities _cWorldStorms;
-
-// First and last created environment particles holders
-static CEntity *_penFirstEPH = NULL;
-static CEntity *_penLastEPH = NULL;
-
-namespace IRainTFE {
-
 // Clear rain variables
-void ClearRainVariables(void) {
-  _aRainProps.PopAll();
+void IConvertTFE::ClearRainVariables(void) {
+  aRainProps.PopAll();
 
-  _cWorldTriggers.Clear();
-  _cWorldStorms.Clear();
-  
-  _penFirstEPH = NULL;
-  _penLastEPH = NULL;
+  cenTriggers.Clear();
+  cenStorms.Clear();
+
+  penFirstEPH = NULL;
+  penLastEPH = NULL;
 };
 
 // Remember rain properties of CWorldSettingsController
-void RememberWSC(CEntity *penWSC, const IMapConverters::UnknownProp &prop) {
+void IConvertTFE::RememberWSC(CEntity *penWSC, const UnknownProp &prop) {
   // Find existing entry for this controller
   SRainProps *pRain = NULL;
-  INDEX ct = _aRainProps.Count();
+  INDEX ct = aRainProps.Count();
 
   for (INDEX iRain = 0; iRain < ct; iRain++) {
-    SRainProps &rainCheck = _aRainProps[iRain];
+    SRainProps &rainCheck = aRainProps[iRain];
 
     if (rainCheck.penWSC == penWSC) {
       pRain = &rainCheck;
@@ -74,7 +48,7 @@ void RememberWSC(CEntity *penWSC, const IMapConverters::UnknownProp &prop) {
   }
 
   // Create new rain properties entry
-  if (pRain == NULL) pRain = &_aRainProps.Push();
+  if (pRain == NULL) pRain = &aRainProps.Push();
 
   pRain->penWSC = penWSC;
 
@@ -90,7 +64,7 @@ void RememberWSC(CEntity *penWSC, const IMapConverters::UnknownProp &prop) {
 };
 
 // Create a new trigger that targets storm & EPH
-static CEntity *CreateStormTrigger(CPropertyPtr *apProps, INDEX iEvent, CEntity *penStorm)
+static CEntity *CreateStormTrigger(CPropertyPtr *apProps, INDEX iEvent, CEntity *penStorm, CEntity *penFirstEPH)
 {
   CEntity *penTrigger = NULL;
 
@@ -100,7 +74,7 @@ static CEntity *CreateStormTrigger(CPropertyPtr *apProps, INDEX iEvent, CEntity 
 
     // Set first two targets and target events
     ENTITYPROPERTY(penTrigger, apProps[0].Offset(), CEntityPointer) = penStorm;
-    ENTITYPROPERTY(penTrigger, apProps[1].Offset(), CEntityPointer) = _penFirstEPH;
+    ENTITYPROPERTY(penTrigger, apProps[1].Offset(), CEntityPointer) = penFirstEPH;
 
     ENTITYPROPERTY(penTrigger, apProps[10].Offset(), INDEX) = iEvent;
 
@@ -121,12 +95,12 @@ static CEntity *CreateStormTrigger(CPropertyPtr *apProps, INDEX iEvent, CEntity 
 };
 
 // Apply remembered rain properties from controllers
-void ApplyRainProperties(void) {
+void IConvertTFE::ApplyRainProperties(void) {
   // Pair environment particles with each world settings controller
-  INDEX ct = _aRainProps.Count();
+  INDEX ct = aRainProps.Count();
 
   for (INDEX iRain = 0; iRain < ct; iRain++) {
-    const SRainProps &rain = _aRainProps[iRain];
+    const SRainProps &rain = aRainProps[iRain];
     CEntity *penWSC = rain.penWSC;
 
     try {
@@ -134,7 +108,7 @@ void ApplyRainProperties(void) {
       CEntity *penEnv = IWorld::GetWorld()->CreateEntity_t(IDummy::plCenter, strEnvClass);
 
       // Set first EPH
-      if (_penFirstEPH == NULL) _penFirstEPH = penEnv;
+      if (penFirstEPH == NULL) penFirstEPH = penEnv;
 
       // Retrieve environment properties
       static CPropertyPtr pptrHght(penEnv); // CEnvironmentParticlesHolder::m_fnHeightMap
@@ -160,18 +134,18 @@ void ApplyRainProperties(void) {
 
       // Connect last EPH with this one
       if (pptrNext.ByVariable("CEnvironmentParticlesHolder", "m_penNextHolder")) {
-        if (_penLastEPH != NULL) {
-          ENTITYPROPERTY(_penLastEPH, pptrNext.Offset(), CEntityPointer) = penEnv;
+        if (penLastEPH != NULL) {
+          ENTITYPROPERTY(penLastEPH, pptrNext.Offset(), CEntityPointer) = penEnv;
         }
       }
 
-      _penLastEPH = penEnv;
+      penLastEPH = penEnv;
 
       // Set pointer to the new environment particles holder
       static CPropertyPtr pptrEnvPtr(penWSC); // CWorldSettingsController::m_penEnvPartHolder
 
       if (pptrEnvPtr.ByVariable("CWorldSettingsController", "m_penEnvPartHolder")) {
-        ENTITYPROPERTY(penWSC, pptrEnvPtr.Offset(), CEntityPointer) = _penFirstEPH;
+        ENTITYPROPERTY(penWSC, pptrEnvPtr.Offset(), CEntityPointer) = penFirstEPH;
       }
 
     } catch (char *strError) {
@@ -180,10 +154,10 @@ void ApplyRainProperties(void) {
   }
 
   // No rain particles
-  if (_penFirstEPH == NULL) return;
+  if (penFirstEPH == NULL) return;
 
   // Find triggers that target storm controllers
-  FOREACHINDYNAMICCONTAINER(_cWorldTriggers, CEntity, itenTrigger) {
+  FOREACHINDYNAMICCONTAINER(cenTriggers, CEntity, itenTrigger) {
     CEntity *pen = itenTrigger;
 
     static CPropertyPtr apProps[20] = {
@@ -218,11 +192,11 @@ void ApplyRainProperties(void) {
       INDEX &iEvent = ENTITYPROPERTY(pen, apProps[iProp].Offset(), INDEX);
 
       // Check if it points at some storm controller
-      FOREACHINDYNAMICCONTAINER(_cWorldStorms, CEntity, itenStorm) {
+      FOREACHINDYNAMICCONTAINER(cenStorms, CEntity, itenStorm) {
         if (penTarget != &itenStorm.Current()) continue;
 
         // Replace with a new trigger that points at both storm & EPH
-        penTarget = CreateStormTrigger(apProps, iEvent, penTarget.ep_pen);
+        penTarget = CreateStormTrigger(apProps, iEvent, penTarget.ep_pen, penFirstEPH);
         iEvent = 2; // EventEType::EET_TRIGGER
         break;
       }
@@ -232,7 +206,5 @@ void ApplyRainProperties(void) {
   // Clear the rain
   ClearRainVariables();
 };
-
-}; // namespace
 
 #endif // CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE

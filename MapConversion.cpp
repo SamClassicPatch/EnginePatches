@@ -19,33 +19,32 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #if CLASSICSPATCH_CONVERT_MAPS
 
-namespace IMapConverters {
+// Currently used converter
+static IMapConverter *_pconvCurrent = NULL;
 
-// Reset map converters before using them
-void Reset(void)
+// Get map converter for a specific format
+IMapConverter *IMapConverter::SetConverter(ELevelFormat eFormat)
 {
+  switch (eFormat) {
   #if TSE_FUSION_MODE
-    if (_EnginePatches._eWorldFormat == E_LF_TFE) {
-      IConvertTFE::Reset();
-    }
+    case E_LF_TFE: _pconvCurrent = &_convTFE; break;
   #endif
+    default: _pconvCurrent = NULL;
+  }
+
+  ASSERTMSG(_pconvCurrent != NULL, "No converter available for the desired level format!");
+  return _pconvCurrent;
 };
 
 // Handle unknown entity property upon reading it via CEntity::ReadProperties_t()
-void HandleProperty(CEntity *pen, ULONG ulType, ULONG ulID, void *pValue) {
+void IMapConverter::HandleUnknownProperty(CEntity *pen, ULONG ulType, ULONG ulID, void *pValue)
+{
   UnknownProp prop(ulType, ulID, pValue);
-
-  #if TSE_FUSION_MODE
-    if (_EnginePatches._eWorldFormat == E_LF_TFE) {
-      IConvertTFE::HandleProperty(pen, prop);
-    }
-  #endif
+  _pconvCurrent->HandleProperty(pen, prop);
 };
 
-}; // namespace
-
 // Check if the entity state doesn't match
-BOOL CheckEntityState(CRationalEntity *pen, SLONG slState, const char *strClass) {
+BOOL IMapConverter::CheckEntityState(CRationalEntity *pen, SLONG slState, const char *strClass) {
   // Wrong entity class
   if (!IsOfClass(pen, strClass)) return FALSE;
 
