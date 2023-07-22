@@ -258,7 +258,7 @@ void P_InitStreams(void) {
   CTString strWorkshop = CCoreAPI::Props().strSSRWorkshop;
 
   if (bRev && strWorkshop == "") {
-    strWorkshop = GAME_DIR_SSR + "..\\" + CONFIG_DEFAULT_DIR_WORKSHOP;
+    strWorkshop = GAME_DIR_SSR + CONFIG_DEFAULT_DIR_WORKSHOP;
   }
 
   // Verify workshop directory and load workshop files
@@ -391,7 +391,7 @@ static INDEX ExpandPathForReading(ULONG ulType, const CTFileName &fnmFile, CTFil
   const BOOL bFoundInZip = (iFileInZip >= 0);
 
   static CSymbolPtr symptr("fil_bPreferZips");
-  BOOL bPreferZips = symptr.GetIndex();
+  BOOL bPreferZips = (symptr.Exists() ? symptr.GetIndex() : FALSE);
 
   // [Cecil] Check file at a specific directory and return if it exists
   #define RETURN_FILE_AT(_Dir) \
