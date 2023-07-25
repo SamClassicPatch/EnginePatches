@@ -67,7 +67,7 @@ void CEntityClassPatch::P_Read(CTStream *istr) {
 
 #if SE1_VER >= SE1_107
   // Find appropriate default entities library
-  if (fnmDLL == "Bin\\Entities.dll") {
+  if (CCoreAPI::IsCustomModActive() && fnmDLL == "Bin\\Entities.dll") {
     fnmDLL = CCoreAPI::AppPath() + CCoreAPI::FullLibPath(strLibName + _strModExt, strLibExt);
 
   } else
@@ -325,6 +325,8 @@ void P_InitStreams(void) {
   IUnzip::SortEntries();
 
   // Set custom mod extension to utilize Entities & Game libraries from the patch
+  BOOL bSetMod = FALSE;
+
   if (CCoreAPI::Props().bCustomMod) {
     BOOL bChangeExtension = TRUE;
 
@@ -345,9 +347,11 @@ void P_InitStreams(void) {
       _strModExt = "_Custom";
 
       // Activate custom mod
-      CCoreAPI::bCustomMod = TRUE;
+      bSetMod = TRUE;
     }
   }
+
+  CCoreAPI::SetCustomMod(bSetMod);
 };
 
 // Make a list of all files in a directory
