@@ -192,6 +192,7 @@ BOOL CMessageDisPatch::P_ReceiveFromClientReliable(INDEX iClient, CNetworkMessag
 
 // Original function pointers
 void (CSessionState::*pFlushPredictions)(void) = NULL;
+void (CSessionState::*pStartAtServer)(void) = NULL;
 void (CSessionState::*pStartAtClient)(INDEX) = NULL;
 
 void (CNetworkLibrary::*pLoadGame)(const CTFileName &) = NULL;
@@ -531,6 +532,16 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
   }
 };
 
+// Start session as a server
+void CSessionStatePatch::P_Start_AtServer(void) {
+  // Reset data before starting
+  IProcessPacket::ResetSessionData(TRUE);
+
+  // Proceed to the original function
+  (this->*pStartAtServer)();
+};
+
+// Start session as a client
 void CSessionStatePatch::P_Start_AtClient(INDEX ctLocalPlayers) {
   // Get passwords
   static CSymbolPtr pstrPwd1("net_strConnectPassword");
@@ -545,12 +556,135 @@ void CSessionStatePatch::P_Start_AtClient(INDEX ctLocalPlayers) {
     pstrPwd2.GetString() = cli_strConnectPassword;
   }
 
+  // Reset data before starting
+  IProcessPacket::ResetSessionData(FALSE);
+
   // Proceed to the original function
   (this->*pStartAtClient)(ctLocalPlayers);
 
   // Restore passwords
   pstrPwd1.GetString() = strOldPwd1;
   pstrPwd2.GetString() = strOldPwd2;
+};
+
+// Wait for a stream from a server
+void CSessionStatePatch::P_WaitStream(CTMemoryStream &strmMessage, const CTString &strName, INDEX iMsgCode) {
+  // Start waiting for server's response
+  SetProgressDescription(LOCALIZE("waiting for ") + strName);
+  CallProgressHook_t(0.0f);
+
+  SLONG slReceivedLast = 0;
+
+  // [Cecil] NOTE: This code doesn't set '_bRunNetUpdates' variable from the engine because it's not exported and
+  // it isn't used for any checks; it's some kind of leftover from 1.07 netcode changes (it doesn't exist in 1.05)
+  static CSymbolPtr pfTimeout("net_tmConnectionTimeout");
+
+  // Repeat until timed out
+  for (TIME tmWait = 0; tmWait < pfTimeout.GetFloat() * 1000;
+    Sleep(NET_WAITMESSAGE_DELAY), tmWait += NET_WAITMESSAGE_DELAY)
+  {
+    // Update network connection sockets
+    #if SE1_VER >= SE1_107
+      if (!GetComm().Client_Update()) break;
+    #else
+      GetComm().Client_Update();
+    #endif
+
+    // Check how much is received so far
+    SLONG slExpectedSize, slReceivedSize;
+    GetComm().Client_PeekSize_Reliable(slExpectedSize, slReceivedSize);
+
+    // If nothing received yet
+    if (slExpectedSize == 0) {
+      // Progress with waiting
+      CallProgressHook_t(tmWait / (pfTimeout.GetFloat() * 1000));
+
+    // If something is received
+    } else {
+      // Remember new data
+      if (slReceivedSize != slReceivedLast) {
+        slReceivedLast = slReceivedSize;
+
+        // Reset timeout
+        tmWait = 0;
+      }
+
+      // Progress with receiving
+      SetProgressDescription(LOCALIZE("receiving ") + strName + "  ");
+      CallProgressHook_t((FLOAT)slReceivedSize / (FLOAT)slExpectedSize);
+    }
+
+    // Continue waiting if not everything received yet
+    if (!_pNetwork->ReceiveFromServerReliable(strmMessage)) {
+      continue;
+    }
+
+    // Read message identifier
+    strmMessage.SetPos_t(0);
+
+    INDEX iID;
+    strmMessage >> iID;
+
+    // Received the message
+    if (iID == iMsgCode) {
+      CallProgressHook_t(1.0f);
+
+      // [Cecil] If received session state data
+      if (iMsgCode == MSG_REP_CONNECTREMOTESESSIONSTATE) {
+        // Remember stream position
+        const SLONG slStreamPos = strmMessage.GetPos_t();
+
+        try {
+          // Skip strings
+          CTString strMOTD;
+          CTFileName fnmWorld;
+          strmMessage >> strMOTD;
+          strmMessage >> fnmWorld;
+
+          // Skip flags (4) and session properties (2048)
+          strmMessage.Seek_t(sizeof(ULONG) + NET_MAXSESSIONPROPERTIES, CTStream::SD_CUR);
+
+          // Read server info
+          IProcessPacket::ReadServerInfoFromSessionState(strmMessage);
+
+        // Catch and report random errors, just in case
+        } catch (char *strError) {
+          CPrintF(TRANS("Cannot read server info from session state:\n%s\n"), strError);
+        }
+
+        // Reset stream position
+        strmMessage.SetPos_t(slStreamPos);
+      }
+      return;
+
+    // If disconnected
+    } else if (iID == MSG_INF_DISCONNECTED) {
+      // Confirm disconnection
+      CNetworkMessage nmConfirmDisconnect((MESSAGETYPE)INetwork::PCK_REP_DISCONNECTED);
+      _pNetwork->SendToServerReliable(nmConfirmDisconnect);
+
+      // Report the reason
+      CTString strReason;
+      strmMessage >> strReason;
+      ses_strDisconnected = strReason;
+
+      ThrowF_t(LOCALIZE("Disconnected: %s\n"), strReason);
+
+    // Otherwise it's an invalid message
+    } else {
+      ThrowF_t(LOCALIZE("Invalid stream while waiting for %s"), strName);
+    }
+
+    // [Cecil] NOTE: Unreachable code?
+    #if SE1_VER >= SE1_107
+      // Quit if client is disconnected
+      if (!GetComm().Client_IsConnected()) {
+        ThrowF_t(LOCALIZE("Client disconnected"));
+      }
+    #endif
+  }
+
+  ThrowF_t(LOCALIZE("Timeout while waiting for %s"), strName);
 };
 
 void CSessionStatePatch::P_Stop(void) {

@@ -86,7 +86,14 @@ class CSessionStatePatch : public CSessionState {
     // Client processes received packet from the server
     void P_ProcessGameStreamBlock(CNetworkMessage &nmMessage);
 
+    // Start session as a server
+    void P_Start_AtServer(void);
+
+    // Start session as a client
     void P_Start_AtClient(INDEX ctLocalPlayers);
+
+    // Wait for a stream from a server
+    void P_WaitStream(CTMemoryStream &strmMessage, const CTString &strName, INDEX iMsgCode);
 
     void P_Stop(void);
 
