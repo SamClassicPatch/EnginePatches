@@ -148,6 +148,14 @@ void CPatches::Network(void) {
   void (CSessionState::*pStopSession)(void) = &CSessionState::Stop;
   NewPatch(pStopSession, &CSessionStatePatch::P_Stop, "CSessionState::Stop()");
 
+  extern void (CSessionState::*pReadSessionState)(CTStream *);
+  pReadSessionState = &CSessionState::Read_t;
+  NewPatch(pReadSessionState, &CSessionStatePatch::P_Read, "CSessionState::Read_t(...)");
+
+  extern void (CSessionState::*pWriteSessionState)(CTStream *);
+  pWriteSessionState = &CSessionState::Write_t;
+  NewPatch(pWriteSessionState, &CSessionStatePatch::P_Write, "CSessionState::Write_t(...)");
+
 #if CLASSICSPATCH_GUID_MASKING
 
   void (CSessionState::*pMakeSyncCheck)(void) = &CSessionState::MakeSynchronisationCheck;

@@ -194,10 +194,28 @@ BOOL CMessageDisPatch::P_ReceiveFromClientReliable(INDEX iClient, CNetworkMessag
 void (CSessionState::*pFlushPredictions)(void) = NULL;
 void (CSessionState::*pStartAtServer)(void) = NULL;
 void (CSessionState::*pStartAtClient)(INDEX) = NULL;
+void (CSessionState::*pReadSessionState)(CTStream *) = NULL;
+void (CSessionState::*pWriteSessionState)(CTStream *) = NULL;
 
 void (CNetworkLibrary::*pLoadGame)(const CTFileName &) = NULL;
 void (CNetworkLibrary::*pStopGame)(void) = NULL;
 void (CNetworkLibrary::*pStartDemoPlay)(const CTFileName &) = NULL;
+
+// Read or write server info after the session state (for saves & demos)
+static BOOL _bSerializeServerInfo = FALSE;
+
+// Enable info serialization and auto-disable it upon exiting the function
+struct SerializeServerInfoNow {
+  int iDummy;
+
+  SerializeServerInfoNow() {
+    _bSerializeServerInfo = TRUE;
+  };
+
+  ~SerializeServerInfoNow() {
+    _bSerializeServerInfo = FALSE;
+  };
+};
 
 #if CLASSICSPATCH_GUID_MASKING
 
@@ -243,6 +261,7 @@ void CNetworkPatch::P_Save(const CTFileName &fnmGame) {
 
 // Load saved game
 void CNetworkPatch::P_Load(const CTFileName &fnmGame) {
+  // [Cecil] NOTE: This will call IProcessPacket::ResetSessionData(TRUE) via session start
   // Proceed to the original function
   (this->*pLoadGame)(fnmGame);
 
@@ -261,6 +280,12 @@ void CNetworkPatch::P_StopGame(void) {
 
 // Start playing a demo
 void CNetworkPatch::P_StartDemoPlay(const CTFileName &fnDemo) {
+  // Reset data before starting
+  IProcessPacket::ResetSessionData(FALSE);
+
+  // Read server info
+  SerializeServerInfoNow serInfo;
+
   // Proceed to the original function
   (this->*pStartDemoPlay)(fnDemo);
 
@@ -277,6 +302,9 @@ void CNetworkPatch::P_StartDemoRec(const CTFileName &fnDemo) {
   if (ga_bDemoRec) {
     throw LOCALIZE("Already recording a demo!");
   }
+
+  // [Cecil] Write server info
+  SerializeServerInfoNow serInfo;
 
   // Create the file
   ga_strmDemoRec.Create_t(fnDemo);
@@ -794,6 +822,32 @@ void CSessionStatePatch::P_MakeSynchronisationCheck(void) {
   nmSyncCheck.Write(&scLocal, sizeof(scLocal));
 
   _pNetwork->SendToServer(nmSyncCheck);
+};
+
+// Read session state
+void CSessionStatePatch::P_Read(CTStream *pstr) {
+  // Proceed to the original function
+  (this->*pReadSessionState)(pstr);
+
+  // Read server info, if needed
+  if (_bSerializeServerInfo) {
+    IProcessPacket::ReadServerInfoFromSessionState(*pstr);
+  }
+
+  _bSerializeServerInfo = FALSE;
+};
+
+// Write session state
+void CSessionStatePatch::P_Write(CTStream *pstr) {
+  // Proceed to the original function
+  (this->*pWriteSessionState)(pstr);
+
+  // Write server info, if needed
+  if (_bSerializeServerInfo) {
+    IProcessPacket::WriteServerInfoToSessionState(*pstr);
+  }
+
+  _bSerializeServerInfo = FALSE;
 };
 
 // Get player buffer from the server associated with a player entity in the world

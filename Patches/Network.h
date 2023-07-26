@@ -101,6 +101,12 @@ class CSessionStatePatch : public CSessionState {
     // Send synchronization packet to the server (as client) or add it to the buffer (as server)
     void P_MakeSynchronisationCheck(void);
   #endif
+
+    // Read session state
+    void P_Read(CTStream *pstr);
+
+    // Write session state
+    void P_Write(CTStream *pstr);
 };
 
 #if CLASSICSPATCH_GUID_MASKING
