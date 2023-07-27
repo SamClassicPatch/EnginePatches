@@ -67,6 +67,17 @@ void CPatches::Entities(void) {
 #endif // CLASSICSPATCH_EXTEND_ENTITIES
 };
 
+#include "Patches/LogicTimers.h"
+
+void CPatches::LogicTimers(void) {
+#if CLASSICSPATCH_FIX_LOGICTIMERS
+
+  void (CRationalEntity::*pSetTimerAfter)(TIME) = &CRationalEntity::SetTimerAfter;
+  NewPatch(pSetTimerAfter, &CRationalEntityTimerPatch::P_SetTimerAfter, "CRationalEntity::SetTimerAfter(...)");
+
+#endif // CLASSICSPATCH_FIX_LOGICTIMERS
+};
+
 #include "Patches/Network.h"
 
 void CPatches::Network(void) {

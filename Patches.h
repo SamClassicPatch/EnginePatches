@@ -64,6 +64,7 @@ class PATCHES_API CPatches {
       // Patch for the game and the editor
       if (bGame || bEditor) {
         Entities();
+        LogicTimers();
         Network();
         Rendering();
         Worlds();
@@ -80,6 +81,7 @@ class PATCHES_API CPatches {
       // Patch for the server
       if (bServer) {
         Entities();
+        LogicTimers();
         Network();
         Worlds();
       }
@@ -90,6 +92,9 @@ class PATCHES_API CPatches {
 
     // Enhance entities usage
     void Entities(void);
+
+    // Fix timers for entity logic
+    void LogicTimers(void);
 
     // Enhance network library usage
     void Network(void);

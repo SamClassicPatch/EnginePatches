@@ -30,6 +30,7 @@
     <ClInclude Include="Patches.h" />
     <ClInclude Include="Patches\Entities.h" />
     <ClInclude Include="Patches\FileSystem.h" />
+    <ClInclude Include="Patches\LogicTimers.h" />
     <ClInclude Include="Patches\Network.h" />
     <ClInclude Include="Patches\Rendering.h" />
     <ClInclude Include="Patches\Ska.h" />
@@ -47,6 +48,7 @@
     <ClCompile Include="Patches.cpp" />
     <ClCompile Include="Patches\Entities.cpp" />
     <ClCompile Include="Patches\FileSystem.cpp" />
+    <ClCompile Include="Patches\LogicTimers.cpp" />
     <ClCompile Include="Patches\Ska.cpp" />
     <ClCompile Include="Patches\Textures.cpp" />
     <ClCompile Include="Patches\UnpageStreams.cpp" />
