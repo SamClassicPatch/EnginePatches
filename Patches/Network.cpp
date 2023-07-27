@@ -192,13 +192,13 @@ BOOL CMessageDisPatch::P_ReceiveFromClientReliable(INDEX iClient, CNetworkMessag
 
 // Original function pointers
 void (CSessionState::*pFlushPredictions)(void) = NULL;
-void (CSessionState::*pStartAtServer)(void) = NULL;
 void (CSessionState::*pStartAtClient)(INDEX) = NULL;
 void (CSessionState::*pReadSessionState)(CTStream *) = NULL;
 void (CSessionState::*pWriteSessionState)(CTStream *) = NULL;
 
 void (CNetworkLibrary::*pLoadGame)(const CTFileName &) = NULL;
 void (CNetworkLibrary::*pStopGame)(void) = NULL;
+void (CNetworkLibrary::*pStartPeerToPeer)(const CTString &, const CTFileName &, ULONG, INDEX, BOOL, void *) = NULL;
 void (CNetworkLibrary::*pStartDemoPlay)(const CTFileName &) = NULL;
 
 // Read or write server info after the session state (for saves & demos)
@@ -246,6 +246,9 @@ void CNetworkPatch::P_Save(const CTFileName &fnmGame) {
   // Currently saving
   IProcessPacket::_iHandlingClient = IProcessPacket::CLT_SAVE;
 
+  // [Cecil] Write server info
+  SerializeServerInfoNow serInfo;
+
   // Create the file
   CTFileStream strmFile;
   strmFile.Create_t(fnmGame);
@@ -261,7 +264,10 @@ void CNetworkPatch::P_Save(const CTFileName &fnmGame) {
 
 // Load saved game
 void CNetworkPatch::P_Load(const CTFileName &fnmGame) {
-  // [Cecil] NOTE: This will call IProcessPacket::ResetSessionData(TRUE) via session start
+  // Reset data and read server info
+  IProcessPacket::ResetSessionData(FALSE); // Load game
+  SerializeServerInfoNow serInfo;
+
   // Proceed to the original function
   (this->*pLoadGame)(fnmGame);
 
@@ -278,12 +284,21 @@ void CNetworkPatch::P_StopGame(void) {
   (this->*pStopGame)();
 };
 
+// Start new game session
+void CNetworkPatch::P_StartPeerToPeer(const CTString &strSessionName, const CTFileName &fnmWorld,
+  ULONG ulSpawnFlags, INDEX ctMaxPlayers, BOOL bWaitAllPlayers, void *pSesProps)
+{
+  // Reset data before starting
+  IProcessPacket::ResetSessionData(TRUE); // Server start
+
+  // Proceed to the original function
+  (this->*pStartPeerToPeer)(strSessionName, fnmWorld, ulSpawnFlags, ctMaxPlayers, bWaitAllPlayers, pSesProps);
+};
+
 // Start playing a demo
 void CNetworkPatch::P_StartDemoPlay(const CTFileName &fnDemo) {
-  // Reset data before starting
-  IProcessPacket::ResetSessionData(FALSE);
-
-  // Read server info
+  // Reset data and read server info
+  IProcessPacket::ResetSessionData(FALSE); // Play demo
   SerializeServerInfoNow serInfo;
 
   // Proceed to the original function
@@ -560,15 +575,6 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
   }
 };
 
-// Start session as a server
-void CSessionStatePatch::P_Start_AtServer(void) {
-  // Reset data before starting
-  IProcessPacket::ResetSessionData(TRUE);
-
-  // Proceed to the original function
-  (this->*pStartAtServer)();
-};
-
 // Start session as a client
 void CSessionStatePatch::P_Start_AtClient(INDEX ctLocalPlayers) {
   // Get passwords
@@ -585,7 +591,7 @@ void CSessionStatePatch::P_Start_AtClient(INDEX ctLocalPlayers) {
   }
 
   // Reset data before starting
-  IProcessPacket::ResetSessionData(FALSE);
+  IProcessPacket::ResetSessionData(FALSE); // Client start
 
   // Proceed to the original function
   (this->*pStartAtClient)(ctLocalPlayers);

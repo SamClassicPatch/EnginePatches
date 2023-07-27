@@ -69,6 +69,10 @@ class CNetworkPatch : public CNetworkLibrary {
     // Stop current game
     void P_StopGame(void);
 
+    // Start new game session
+    void P_StartPeerToPeer(const CTString &strSessionName, const CTFileName &fnmWorld,
+      ULONG ulSpawnFlags, INDEX ctMaxPlayers, BOOL bWaitAllPlayers, void *pSesProps);
+
     // Start playing a demo
     void P_StartDemoPlay(const CTFileName &fnDemo);
 
@@ -85,9 +89,6 @@ class CSessionStatePatch : public CSessionState {
 
     // Client processes received packet from the server
     void P_ProcessGameStreamBlock(CNetworkMessage &nmMessage);
-
-    // Start session as a server
-    void P_Start_AtServer(void);
 
     // Start session as a client
     void P_Start_AtClient(INDEX ctLocalPlayers);

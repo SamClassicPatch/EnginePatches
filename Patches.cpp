@@ -116,6 +116,10 @@ void CPatches::Network(void) {
   pStopGame = &CNetworkLibrary::StopGame;
   NewPatch(pStopGame, &CNetworkPatch::P_StopGame, "CNetworkLibrary::StopGame()");
 
+  extern void (CNetworkLibrary::*pStartPeerToPeer)(const CTString &, const CTFileName &, ULONG, INDEX, BOOL, void *);
+  pStartPeerToPeer = &CNetworkLibrary::StartPeerToPeer_t;
+  NewPatch(pStartPeerToPeer, &CNetworkPatch::P_StartPeerToPeer, "CNetworkLibrary::StartPeerToPeer_t(...)");
+
   extern void (CNetworkLibrary::*pStartDemoPlay)(const CTFileName &);
   pStartDemoPlay = &CNetworkLibrary::StartDemoPlay_t;
   NewPatch(pStartDemoPlay, &CNetworkPatch::P_StartDemoPlay, "CNetworkLibrary::StartDemoPlay_t(...)");
@@ -130,10 +134,6 @@ void CPatches::Network(void) {
   extern void (CSessionState::*pFlushPredictions)(void);
   pFlushPredictions = &CSessionState::FlushProcessedPredictions;
   NewPatch(pFlushPredictions, &CSessionStatePatch::P_FlushProcessedPredictions, "CSessionState::FlushProcessedPredictions()");
-
-  extern void (CSessionState::*pStartAtServer)(void);
-  pStartAtServer = &CSessionState::Start_AtServer_t;
-  NewPatch(pStartAtServer, &CSessionStatePatch::P_Start_AtServer, "CSessionState::Start_AtServer_t()");
 
   extern void (CSessionState::*pStartAtClient)(INDEX);
   pStartAtClient = &CSessionState::Start_AtClient_t;
