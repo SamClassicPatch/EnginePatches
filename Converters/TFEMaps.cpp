@@ -19,6 +19,24 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <CoreLib/Objects/PropertyPtr.h>
 
+// Classes that need to be converted
+#include <EntitiesV/StdH/StdH.h>
+#include <EntitiesV/AmmoPack.h>
+#include <EntitiesV/Camera.h>
+#include <EntitiesV/Devil.h>
+#include <EntitiesV/DoorController.h>
+#include <EntitiesV/EnemyBase.h>
+#include <EntitiesV/EnemySpawner.h>
+#include <EntitiesV/KeyItem.h>
+#include <EntitiesV/Lightning.h>
+#include <EntitiesV/MovingBrush.h>
+#include <EntitiesV/PlayerMarker.h>
+#include <EntitiesV/PyramidSpaceShip.h>
+#include <EntitiesV/StormController.h>
+#include <EntitiesV/Trigger.h>
+#include <EntitiesV/Woman.h>
+#include <EntitiesV/WorldSettingsController.h>
+
 #if CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
 
 // Converter instance
@@ -33,7 +51,7 @@ void IConvertTFE::Reset(void) {
 // Handle some unknown property
 void IConvertTFE::HandleProperty(CEntity *pen, const UnknownProp &prop)
 {
-  if (IsOfClass(pen, "WorldSettingsController")) {
+  if (IsOfClassID(pen, CWorldSettingsController_ClassID)) {
     RememberWSC(pen, prop);
   }
 };
@@ -92,15 +110,15 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
   } eEntity;
 
   // Check for the entities that need to be patched and remember their type
-  if (IsOfClass(pen, "DoorController")) {
+  if (IsOfClassID(pen, CDoorController_ClassID)) {
     eEntity = EN_DOOR;
-  } else if (IsOfClass(pen, "KeyItem")) {
+  } else if (IsOfClassID(pen, CKeyItem_ClassID)) {
     eEntity = EN_KEY;
-  } else if (IsOfClass(pen, "Player Marker")) {
+  } else if (IsOfClassID(pen, CPlayerMarker_ClassID)) {
     eEntity = EN_START;
-  } else if (IsOfClass(pen, "Ammo Pack")) {
+  } else if (IsOfClassID(pen, CAmmoPack_ClassID)) {
     eEntity = EN_PACK;
-  } else if (IsOfClass(pen, "Storm controller")) {
+  } else if (IsOfClassID(pen, CStormController_ClassID)) {
     eEntity = EN_STORM;
 
   // Invalid entity
@@ -234,39 +252,39 @@ void IConvertTFE::ConvertWorld(CWorld *pwo) {
     if (ConvertEntity(pen)) continue;
 
     // Remember triggers for future use
-    if (IsOfClass(pen, "Trigger")) {
+    if (IsOfClassID(pen, CTrigger_ClassID)) {
       cenTriggers.Add(pen);
       cEntities.Add(pen);
       continue;
     }
 
     // Reinitialize all spawners
-    if (IsOfClass(pen, "Enemy Spawner")) {
+    if (IsOfClassID(pen, CEnemySpawner_ClassID)) {
       cEntities.Add(pen);
       continue;
     }
 
     // Ignore entities without states
-    if (!IWorld::IsRationalEntity(pen)) continue;
+    if (!IsRationalEntity(pen)) continue;
 
     // Check TFE states of logical entities
     CRationalEntity *penRE = (CRationalEntity *)pen;
 
-    if (CheckEntityState(penRE, 0x00DC000A, "Camera")
-     || CheckEntityState(penRE, 0x00DC000D, "Camera")
-     || CheckEntityState(penRE, 0x01300043, "Enemy Spawner")
-     || CheckEntityState(penRE, 0x025F0009, "Lightning")
-     || CheckEntityState(penRE, 0x00650014, "Moving Brush")
-     || CheckEntityState(penRE, 0x0261002E, "PyramidSpaceShip")
-     || CheckEntityState(penRE, 0x025E000C, "Storm controller")
-     || CheckEntityState(penRE, 0x014C013B, "Devil")
-     || CheckEntityState(penRE, 0x0140001B, "Woman")) {
+    if (CheckEntityState(penRE, 0x00DC000A, CCamera_ClassID)
+     || CheckEntityState(penRE, 0x00DC000D, CCamera_ClassID)
+     || CheckEntityState(penRE, 0x01300043, CEnemySpawner_ClassID)
+     || CheckEntityState(penRE, 0x025F0009, CLightning_ClassID)
+     || CheckEntityState(penRE, 0x00650014, CMovingBrush_ClassID)
+     || CheckEntityState(penRE, 0x0261002E, CPyramidSpaceShip_ClassID)
+     || CheckEntityState(penRE, 0x025E000C, CStormController_ClassID)
+     || CheckEntityState(penRE, 0x014C013B, CDevil_ClassID)
+     || CheckEntityState(penRE, 0x0140001B, CWoman_ClassID)) {
       cEntities.Add(pen);
       continue;
     }
 
     // Other TFE enemies
-    if (IsDerivedFromClass(pen, "Enemy Base")) {
+    if (IsDerivedFromID(pen, CEnemyBase_ClassID)) {
       if (penRE->en_stslStateStack.Count() > 0
        && penRE->en_stslStateStack[0] != 0x01360070) {
         cEntities.Add(pen);

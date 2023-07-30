@@ -83,7 +83,7 @@ class IMapConverter {
     static void HandleUnknownProperty(CEntity *pen, ULONG ulType, ULONG ulID, void *pValue);
 
     // Check if the entity state doesn't match
-    static BOOL CheckEntityState(CRationalEntity *pen, SLONG slState, const char *strClass);
+    static BOOL CheckEntityState(CRationalEntity *pen, SLONG slState, INDEX iClassID);
 
     // Get weapon flag from type
     static __forceinline INDEX WeaponFlag(INDEX iWeapon) {

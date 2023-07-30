@@ -52,8 +52,8 @@ void P_RenderView(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDr
   FLOAT &fNewFOV = ppr.ppr_FOVWidth;
 
   // Identify the viewer
-  BOOL bPlayer = IsDerivedFromClass(&enViewer, "PlayerEntity");
-  BOOL bView = IsOfClass(&enViewer, "Player View");
+  BOOL bPlayer = IsDerivedFromID(&enViewer, CPlayerEntity_ClassID);
+  BOOL bView = IsOfClassID(&enViewer, 403); // CPlayerView_ClassID
 
   // Change FOV for the player view
   if (bPlayer || bView) {

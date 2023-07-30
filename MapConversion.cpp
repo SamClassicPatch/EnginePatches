@@ -44,9 +44,9 @@ void IMapConverter::HandleUnknownProperty(CEntity *pen, ULONG ulType, ULONG ulID
 };
 
 // Check if the entity state doesn't match
-BOOL IMapConverter::CheckEntityState(CRationalEntity *pen, SLONG slState, const char *strClass) {
+BOOL IMapConverter::CheckEntityState(CRationalEntity *pen, SLONG slState, INDEX iClassID) {
   // Wrong entity class
-  if (!IsOfClass(pen, strClass)) return FALSE;
+  if (!IsOfClassID(pen, iClassID)) return FALSE;
 
   // No states at all, doesn't matter
   if (pen->en_stslStateStack.Count() <= 0) return FALSE;
