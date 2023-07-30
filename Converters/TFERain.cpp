@@ -17,8 +17,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "MapConversion.h"
 
-#include <CoreLib/Objects/PropertyPtr.h>
-
 #if CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
 
 // Clear rain variables

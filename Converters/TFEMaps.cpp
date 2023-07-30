@@ -17,8 +17,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "MapConversion.h"
 
-#include <CoreLib/Objects/PropertyPtr.h>
-
 // Classes that need to be converted
 #include <EntitiesV/StdH/StdH.h>
 #include <EntitiesV/AmmoPack.h>
@@ -300,32 +298,8 @@ void IConvertTFE::ConvertWorld(CWorld *pwo) {
     itenReinit->Reinitialize();
   }
 
-  // Create an invisible light to fix shadow issues with brush polygon layers
-  try {
-    static const CTString strLightClass = "Classes\\Light.ecl";
-    CEntity *penLight = IWorld::GetWorld()->CreateEntity_t(IDummy::plCenter, strLightClass);
-
-    // Retrieve light properties
-    static CPropertyPtr pptrType(penLight); // CLight::m_ltType
-    static CPropertyPtr pptrFallOff(penLight); // CLight::m_rFallOffRange
-    static CPropertyPtr pptrColor(penLight); // CLight::m_colColor
-
-    // Set strong ambient type that covers the whole map
-    if (pptrType   .ByVariable("CLight", "m_ltType")
-     && pptrFallOff.ByVariable("CLight", "m_rFallOffRange")
-     && pptrColor  .ByVariable("CLight", "m_colColor"))
-    {
-      ENTITYPROPERTY(penLight, pptrType.Offset(), INDEX) = 2; // LightType::LT_STRONG_AMBIENT
-      ENTITYPROPERTY(penLight, pptrFallOff.Offset(), RANGE) = 10000.0f;
-      ENTITYPROPERTY(penLight, pptrColor.Offset(), COLOR) = 0; // Black
-    }
-
-    penLight->Initialize();
-    penLight->GetLightSource()->FindShadowLayers(FALSE);
-
-  } catch (char *strError) {
-    FatalError(TRANS("Cannot load %s class:\n%s"), "Light", strError);
-  }
+  // Fix shadow issues
+  CreateGlobalLight();
 };
 
 #endif // CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE

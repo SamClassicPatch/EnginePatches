@@ -22,6 +22,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #if CLASSICSPATCH_CONVERT_MAPS
 
+#include <CoreLib/Objects/PropertyPtr.h>
+
 // Common data for converters
 #include <EnginePatches/Converters/Common.h>
 
@@ -89,6 +91,9 @@ class IMapConverter {
     static __forceinline INDEX WeaponFlag(INDEX iWeapon) {
       return (1 << (iWeapon - 1));
     };
+
+    // Create a global light entity to fix shadow issues with brush polygon layers
+    static void CreateGlobalLight(void);
 
   // Converter methods
   public:

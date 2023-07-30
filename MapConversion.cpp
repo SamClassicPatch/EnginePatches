@@ -40,7 +40,10 @@ IMapConverter *IMapConverter::SetConverter(ELevelFormat eFormat)
 void IMapConverter::HandleUnknownProperty(CEntity *pen, ULONG ulType, ULONG ulID, void *pValue)
 {
   UnknownProp prop(ulType, ulID, pValue);
-  _pconvCurrent->HandleProperty(pen, prop);
+
+  if (_pconvCurrent != NULL) {
+    _pconvCurrent->HandleProperty(pen, prop);
+  }
 };
 
 // Check if the entity state doesn't match
@@ -52,6 +55,37 @@ BOOL IMapConverter::CheckEntityState(CRationalEntity *pen, SLONG slState, INDEX 
   if (pen->en_stslStateStack.Count() <= 0) return FALSE;
 
   return pen->en_stslStateStack[0] != slState;
+};
+
+// Create a global light entity to fix shadow issues with brush polygon layers
+void IMapConverter::CreateGlobalLight(void) {
+#if SE1_VER >= SE1_107
+  // Create an invisible light that covers the whole map
+  try {
+    static const CTString strLightClass = "Classes\\Light.ecl";
+    CEntity *penLight = IWorld::GetWorld()->CreateEntity_t(IDummy::plCenter, strLightClass);
+
+    // Retrieve light properties
+    static CPropertyPtr pptrType(penLight); // CLight::m_ltType
+    static CPropertyPtr pptrFallOff(penLight); // CLight::m_rFallOffRange
+    static CPropertyPtr pptrColor(penLight); // CLight::m_colColor
+
+    if (pptrType   .ByVariable("CLight", "m_ltType")
+     && pptrFallOff.ByVariable("CLight", "m_rFallOffRange")
+     && pptrColor  .ByVariable("CLight", "m_colColor"))
+    {
+      ENTITYPROPERTY(penLight, pptrType.Offset(), INDEX) = 2; // LightType::LT_STRONG_AMBIENT
+      ENTITYPROPERTY(penLight, pptrFallOff.Offset(), RANGE) = 10000.0f;
+      ENTITYPROPERTY(penLight, pptrColor.Offset(), COLOR) = 0; // Black
+    }
+
+    penLight->Initialize();
+    penLight->GetLightSource()->FindShadowLayers(FALSE);
+
+  } catch (char *strError) {
+    FatalError(TRANS("Cannot load %s class:\n%s"), "Light", strError);
+  }
+#endif
 };
 
 #endif // CLASSICSPATCH_CONVERT_MAPS
