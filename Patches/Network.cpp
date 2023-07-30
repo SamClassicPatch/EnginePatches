@@ -754,6 +754,32 @@ void CSessionStatePatch::P_Stop(void) {
   ses_apltPlayers.New(NET_MAXGAMEPLAYERS);
 };
 
+// Read session state
+void CSessionStatePatch::P_Read(CTStream *pstr) {
+  // Proceed to the original function
+  (this->*pReadSessionState)(pstr);
+
+  // Read server info, if needed
+  if (_bSerializeServerInfo) {
+    IProcessPacket::ReadServerInfoFromSessionState(*pstr);
+  }
+
+  _bSerializeServerInfo = FALSE;
+};
+
+// Write session state
+void CSessionStatePatch::P_Write(CTStream *pstr) {
+  // Proceed to the original function
+  (this->*pWriteSessionState)(pstr);
+
+  // Write server info, if needed
+  if (_bSerializeServerInfo) {
+    IProcessPacket::WriteServerInfoToSessionState(*pstr);
+  }
+
+  _bSerializeServerInfo = FALSE;
+};
+
 #if CLASSICSPATCH_GUID_MASKING
 
 // Send synchronization packet to the server (as client) or add it to the buffer (as server)
@@ -828,32 +854,6 @@ void CSessionStatePatch::P_MakeSynchronisationCheck(void) {
   nmSyncCheck.Write(&scLocal, sizeof(scLocal));
 
   _pNetwork->SendToServer(nmSyncCheck);
-};
-
-// Read session state
-void CSessionStatePatch::P_Read(CTStream *pstr) {
-  // Proceed to the original function
-  (this->*pReadSessionState)(pstr);
-
-  // Read server info, if needed
-  if (_bSerializeServerInfo) {
-    IProcessPacket::ReadServerInfoFromSessionState(*pstr);
-  }
-
-  _bSerializeServerInfo = FALSE;
-};
-
-// Write session state
-void CSessionStatePatch::P_Write(CTStream *pstr) {
-  // Proceed to the original function
-  (this->*pWriteSessionState)(pstr);
-
-  // Write server info, if needed
-  if (_bSerializeServerInfo) {
-    IProcessPacket::WriteServerInfoToSessionState(*pstr);
-  }
-
-  _bSerializeServerInfo = FALSE;
 };
 
 // Get player buffer from the server associated with a player entity in the world
