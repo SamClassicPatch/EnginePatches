@@ -72,29 +72,29 @@ void IConvertTFE::ConvertWeapon(INDEX &iFlags, INDEX iWeapon) {
 void IConvertTFE::ConvertKeyType(INDEX &eKey) {
   switch (eKey) {
     // Dummy keys
-    case 4: eKey = IMapsTSE::KIT_TABLESDUMMY; break; // Gold ankh
-    case 15: eKey = IMapsTSE::KIT_TABLESDUMMY; break; // Metropolis scarab
+    case IMapsTFE::KIT_ANKHGOLDDUMMY: eKey = IMapsTSE::KIT_TABLESDUMMY; break;
+    case IMapsTFE::KIT_SCARABDUMMY:   eKey = IMapsTSE::KIT_TABLESDUMMY; break;
 
     // Element keys
-    case 5: eKey = IMapsTSE::KIT_CROSSWOODEN; break; // Earth
-    case 6: eKey = IMapsTSE::KIT_CROSSMETAL; break; // Water
-    case 7: eKey = IMapsTSE::KIT_CRYSTALSKULL; break; // Air
-    case 8: eKey = IMapsTSE::KIT_CROSSGOLD; break; // Fire
+    case IMapsTFE::KIT_ELEMENTEARTH: eKey = IMapsTSE::KIT_CROSSWOODEN; break;
+    case IMapsTFE::KIT_ELEMENTWATER: eKey = IMapsTSE::KIT_CROSSMETAL; break;
+    case IMapsTFE::KIT_ELEMENTAIR:   eKey = IMapsTSE::KIT_CRYSTALSKULL; break;
+    case IMapsTFE::KIT_ELEMENTFIRE:  eKey = IMapsTSE::KIT_CROSSGOLD; break;
 
     // Other keys
-    case 0:  eKey = IMapsTSE::KIT_CROSSWOODEN; break;
-    case 1:  eKey = IMapsTSE::KIT_CROSSMETAL; break;
-    case 2:  eKey = IMapsTSE::KIT_CROSSGOLD; break;
-    case 3:  eKey = IMapsTSE::KIT_KINGSTATUE; break;
-    case 9:  eKey = IMapsTSE::KIT_HOLYGRAIL; break;
-    case 10: eKey = IMapsTSE::KIT_BOOKOFWISDOM; break;
-    case 12: eKey = IMapsTSE::KIT_BOOKOFWISDOM; break;
-    case 13: eKey = IMapsTSE::KIT_STATUEHEAD03; break; // Metropolis scarab
-    case 14: eKey = IMapsTSE::KIT_HOLYGRAIL; break;
-    case 16: eKey = IMapsTSE::KIT_STATUEHEAD01; break; // Luxor pair
-    case 17: eKey = IMapsTSE::KIT_STATUEHEAD02; break; // Luxor pair
-    case 18: eKey = IMapsTSE::KIT_WINGEDLION; break; // Sacred Yards sphinx
-    case 19: eKey = IMapsTSE::KIT_ELEPHANTGOLD; break; // Sacred Yards sphinx
+    case IMapsTFE::KIT_ANKHWOOD: eKey = IMapsTSE::KIT_CROSSWOODEN; break;
+    case IMapsTFE::KIT_ANKHROCK: eKey = IMapsTSE::KIT_CROSSMETAL; break;
+    case IMapsTFE::KIT_ANKHGOLD: eKey = IMapsTSE::KIT_CROSSGOLD; break;
+    case IMapsTFE::KIT_AMONGOLD: eKey = IMapsTSE::KIT_KINGSTATUE; break;
+    case IMapsTFE::KIT_RAKEY:    eKey = IMapsTSE::KIT_HOLYGRAIL; break;
+    case IMapsTFE::KIT_MOONKEY:  eKey = IMapsTSE::KIT_BOOKOFWISDOM; break;
+    case IMapsTFE::KIT_EYEOFRA:  eKey = IMapsTSE::KIT_BOOKOFWISDOM; break;
+    case IMapsTFE::KIT_SCARAB:   eKey = IMapsTSE::KIT_STATUEHEAD03; break;
+    case IMapsTFE::KIT_COBRA:    eKey = IMapsTSE::KIT_HOLYGRAIL; break;
+    case IMapsTFE::KIT_HEART:    eKey = IMapsTSE::KIT_STATUEHEAD01; break;
+    case IMapsTFE::KIT_FEATHER:  eKey = IMapsTSE::KIT_STATUEHEAD02; break;
+    case IMapsTFE::KIT_SPHINX1:  eKey = IMapsTSE::KIT_WINGEDLION; break;
+    case IMapsTFE::KIT_SPHINX2:  eKey = IMapsTSE::KIT_ELEPHANTGOLD; break;
 
     // Edge case
     default: eKey = IMapsTSE::KIT_KINGSTATUE; break;
@@ -103,29 +103,8 @@ void IConvertTFE::ConvertKeyType(INDEX &eKey) {
 
 // Convert one specific entity without reinitializing it
 BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
-  enum {
-    EN_DOOR, EN_KEY, EN_START, EN_PACK, EN_STORM,
-  } eEntity;
-
-  // Check for the entities that need to be patched and remember their type
-  if (IsOfClassID(pen, CDoorController_ClassID)) {
-    eEntity = EN_DOOR;
-  } else if (IsOfClassID(pen, CKeyItem_ClassID)) {
-    eEntity = EN_KEY;
-  } else if (IsOfClassID(pen, CPlayerMarker_ClassID)) {
-    eEntity = EN_START;
-  } else if (IsOfClassID(pen, CAmmoPack_ClassID)) {
-    eEntity = EN_PACK;
-  } else if (IsOfClassID(pen, CStormController_ClassID)) {
-    eEntity = EN_STORM;
-
-  // Invalid entity
-  } else {
-    return FALSE;
-  }
-
   // Remove napalm and sniper bullets
-  if (eEntity == EN_PACK) {
+  if (IsOfClassID(pen, CAmmoPack_ClassID)) {
     // Retrieve CAmmoPack::m_iNapalm and CAmmoPack::m_iSniperBullets
     static CPropertyPtr pptrNapalm(pen);
     static CPropertyPtr pptrSniper(pen);
@@ -138,43 +117,43 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
       ENTITYPROPERTY(pen, pptrSniper.Offset(), INDEX) = 0;
     }
 
+    return TRUE;
+
   // Adjust weapon masks
-  } else if (eEntity == EN_START) {
+  } else if (IsOfClassID(pen, CPlayerMarker_ClassID)) {
     // Retrieve CPlayerMarker::m_iGiveWeapons and CPlayerMarker::m_iTakeWeapons
     static CPropertyPtr pptrGive(pen);
     static CPropertyPtr pptrTake(pen);
 
-    // Properties don't exist
-    if (!pptrGive.ByVariable("CPlayerMarker", "m_iGiveWeapons")) {
-      return FALSE;
-    }
+    // Convert weapon flags
+    if (pptrGive.ByVariable("CPlayerMarker", "m_iGiveWeapons")
+     && pptrTake.ByVariable("CPlayerMarker", "m_iTakeWeapons"))
+    {
+      INDEX &iGiveWeapons = ENTITYPROPERTY(pen, pptrGive.Offset(), INDEX);
+      INDEX &iTakeWeapons = ENTITYPROPERTY(pen, pptrTake.Offset(), INDEX);
 
-    if (!pptrTake.ByVariable("CPlayerMarker", "m_iTakeWeapons")) {
-      return FALSE;
-    }
+      INDEX iNewGive = 0x03; // Knife and Colt
+      INDEX iNewTake = 0;
 
-    INDEX &iGiveWeapons = ENTITYPROPERTY(pen, pptrGive.Offset(), INDEX);
-    INDEX &iTakeWeapons = ENTITYPROPERTY(pen, pptrTake.Offset(), INDEX);
+      for (INDEX i = IMapsTFE::WEAPON_NONE + 1; i < IMapsTFE::WEAPON_LAST + 1; i++) {
+        // Replace the weapon if it exists
+        if (iGiveWeapons & WeaponFlag(i)) {
+          ConvertWeapon(iNewGive, i);
+        }
 
-    INDEX iNewGive = 0x03; // Knife and Colt
-    INDEX iNewTake = 0;
-
-    for (INDEX i = 1; i < 18; i++) {
-      // Replace the weapon if it exists
-      if (iGiveWeapons & WeaponFlag(i)) {
-        ConvertWeapon(iNewGive, i);
+        if (iTakeWeapons & WeaponFlag(i)) {
+          ConvertWeapon(iNewTake, i);
+        }
       }
 
-      if (iTakeWeapons & WeaponFlag(i)) {
-        ConvertWeapon(iNewTake, i);
-      }
+      iGiveWeapons = iNewGive;
+      iTakeWeapons = iNewTake;
     }
 
-    iGiveWeapons = iNewGive;
-    iTakeWeapons = iNewTake;
+    return TRUE;
 
   // Adjust keys
-  } else if (eEntity == EN_KEY) {
+  } else if (IsOfClassID(pen, CKeyItem_ClassID)) {
     // Retrieve CKeyItem::m_kitType and CKeyItem::m_iSoundComponent
     static CPropertyPtr pptrType(pen);
     static CPropertyPtr pptrSound(pen);
@@ -189,29 +168,27 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
       ENTITYPROPERTY(pen, pptrSound.Offset(), INDEX) = (0x325 << 8) + 300;
     }
 
+    return TRUE;
+
   // Adjust keys
-  } else if (eEntity == EN_DOOR) {
+  } else if (IsOfClassID(pen, CDoorController_ClassID)) {
     // Retrieve CDoorController::m_dtType and CDoorController::m_kitKey
     static CPropertyPtr pptrType(pen);
     static CPropertyPtr pptrKey(pen);
 
-    // Property doesn't exist
-    if (!pptrType.ByVariable("CDoorController", "m_dtType")) {
-      return FALSE;
+    if (pptrType.ByVariable("CDoorController", "m_dtType")
+     && pptrKey.ByVariable("CDoorController", "m_kitKey"))
+    {
+      // Convert key type only for locked doors (DT_LOCKED)
+      if (ENTITYPROPERTY(pen, pptrType.Offset(), INDEX) == 2) {
+        ConvertKeyType(ENTITYPROPERTY(pen, pptrKey.Offset(), INDEX));
+      }
     }
 
-    // Only for locked doors (DT_LOCKED)
-    if (ENTITYPROPERTY(pen, pptrType.Offset(), INDEX) != 2) {
-      return FALSE;
-    }
-
-    // Convert key type
-    if (pptrKey.ByVariable("CDoorController", "m_kitKey")) {
-      ConvertKeyType(ENTITYPROPERTY(pen, pptrKey.Offset(), INDEX));
-    }
+    return TRUE;
 
   // Adjust storm shade color
-  } else if (eEntity == EN_STORM) {
+  } else if (IsOfClassID(pen, CStormController_ClassID)) {
     // Retrieve CStormController::m_colShadeStart and CStormController::m_colShadeStop
     static CPropertyPtr pptrShadeStart(pen);
     static CPropertyPtr pptrShadeStop(pen);
@@ -236,7 +213,8 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
     return FALSE;
   }
 
-  return TRUE;
+  // Invalid entity
+  return FALSE;
 };
 
 // Convert the entire world with possible entity reinitializations
