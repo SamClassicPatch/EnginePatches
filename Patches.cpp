@@ -108,13 +108,9 @@ void CPatches::Network(void) {
   NewPatch(pRecFromClient, &CMessageDisPatch::P_ReceiveFromClientReliable, "CMessageDispatcher::ReceiveFromClientReliable(...)");
 
   // CNetworkLibrary
-#if CLASSICSPATCH_GUID_MASKING
-
   extern void (CNetworkLibrary::*pChangeLevel)(void);
   pChangeLevel = &CNetworkLibrary::ChangeLevel_internal;
   NewPatch(pChangeLevel, &CNetworkPatch::P_ChangeLevelInternal, "CNetworkLibrary::ChangeLevel_internal()");
-
-#endif // CLASSICSPATCH_GUID_MASKING
 
   void (CNetworkLibrary::*pSaveGame)(const CTFileName &) = &CNetworkLibrary::Save_t;
   NewPatch(pSaveGame, &CNetworkPatch::P_Save, "CNetworkLibrary::Save_t(...)");
@@ -466,8 +462,10 @@ void CPatches::FileSystem(void) {
   void (*pMakeDirList)(CFileList &, const CTFileName &, const CTString &, ULONG) = &MakeDirList;
   NewRawPatch(pMakeDirList, &P_MakeDirList, "::MakeDirList(...)");
 
+#if SE1_GAME != SS_REV
   INDEX (*pExpandFilePath)(EXPAND_PATH_ARGS(ULONG, const CTFileName &, CTFileName &, BOOL)) = &ExpandFilePath;
   NewRawPatch(pExpandFilePath, &P_ExpandFilePath, "::ExpandFilePath(...)");
+#endif
 
 #endif // CLASSICSPATCH_EXTEND_FILESYSTEM
 };

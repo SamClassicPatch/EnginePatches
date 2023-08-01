@@ -217,21 +217,23 @@ struct SerializeServerInfoNow {
   };
 };
 
-#if CLASSICSPATCH_GUID_MASKING
-
 void (CNetworkLibrary::*pChangeLevel)(void) = NULL;
 
+// Go through the level changing process
 void CNetworkPatch::P_ChangeLevelInternal(void) {
   // Proceed to the original function
   (this->*pChangeLevel)();
 
+#if CLASSICSPATCH_GUID_MASKING
   // Clear sync checks for each client on a new level
   if (IsServer()) {
     IProcessPacket::ClearSyncChecks();
   }
-};
-
 #endif // CLASSICSPATCH_GUID_MASKING
+
+  // Change level for Core
+  GetAPI()->OnChangeLevel();
+};
 
 // Save current game
 void CNetworkPatch::P_Save(const CTFileName &fnmGame) {
@@ -732,6 +734,9 @@ void CSessionStatePatch::P_Stop(void) {
   ses_bPause = FALSE;
   ses_bWantPause = FALSE;
   ses_bGameFinished = FALSE;
+#if SE1_GAME == SS_REV
+  ses_ulField4 = 0;
+#endif
   ses_bWaitingForServer = FALSE;
   ses_strDisconnected = "";
   ses_ctMaxPlayers = 1;
