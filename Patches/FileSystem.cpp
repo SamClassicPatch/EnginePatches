@@ -74,7 +74,7 @@ void CEntityClassPatch::P_Read(CTStream *istr) {
 #endif
   // Use original path to the library
   {
-    CTFileName fnmExpand = fnmDLL.FileDir() + CCoreAPI::GetLibFile(strLibName + CCoreAPI::GetVanillaExt(), strLibExt);
+    CTFileName fnmExpand = fnmDLL.FileDir() + CCoreAPI::GetLibFile(strLibName + _strModExt, strLibExt);
     ExpandFilePath(EFP_READ, fnmExpand, fnmDLL);
   }
 
