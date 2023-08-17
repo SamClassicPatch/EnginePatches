@@ -198,7 +198,7 @@ void (CSessionState::*pWriteSessionState)(CTStream *) = NULL;
 
 void (CNetworkLibrary::*pLoadGame)(const CTFileName &) = NULL;
 void (CNetworkLibrary::*pStopGame)(void) = NULL;
-void (CNetworkLibrary::*pStartPeerToPeer)(const CTString &, const CTFileName &, ULONG, INDEX, BOOL, void *) = NULL;
+CNetworkPatch::CStartP2PFunc pStartPeerToPeer = NULL;
 void (CNetworkLibrary::*pStartDemoPlay)(const CTFileName &) = NULL;
 
 // Read or write server info after the session state (for saves & demos)
@@ -288,13 +288,21 @@ void CNetworkPatch::P_StopGame(void) {
 
 // Start new game session
 void CNetworkPatch::P_StartPeerToPeer(const CTString &strSessionName, const CTFileName &fnmWorld,
+#if SE1_GAME != SS_REV
   ULONG ulSpawnFlags, INDEX ctMaxPlayers, BOOL bWaitAllPlayers, void *pSesProps)
+#else
+  ULONG ulSpawnFlags, INDEX ctMaxPlayers, BOOL bWaitAllPlayers, void *pSesProps, const CTString &strGamemode, const CTString &strTags)
+#endif
 {
   // Reset data before starting
   IProcessPacket::ResetSessionData(TRUE); // Server start
 
   // Proceed to the original function
-  (this->*pStartPeerToPeer)(strSessionName, fnmWorld, ulSpawnFlags, ctMaxPlayers, bWaitAllPlayers, pSesProps);
+  #if SE1_GAME != SS_REV
+    (this->*pStartPeerToPeer)(strSessionName, fnmWorld, ulSpawnFlags, ctMaxPlayers, bWaitAllPlayers, pSesProps);
+  #else
+    (this->*pStartPeerToPeer)(strSessionName, fnmWorld, ulSpawnFlags, ctMaxPlayers, bWaitAllPlayers, pSesProps, strGamemode, strTags);
+  #endif
 };
 
 // Start playing a demo

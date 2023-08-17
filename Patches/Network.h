@@ -56,6 +56,16 @@ class CMessageDisPatch : public CMessageDispatcher {
 
 class CNetworkPatch : public CNetworkLibrary {
   public:
+    // Pointer type to CNetworkLibrary::StartPeerToPeer_t()
+    #if SE1_GAME != SS_REV
+      typedef void (CNetworkLibrary::*CStartP2PFunc)
+        (const CTString &, const CTFileName &, ULONG, INDEX, BOOL, void *);
+    #else
+      typedef void (CNetworkLibrary::*CStartP2PFunc)
+        (const CTString &, const CTFileName &, ULONG, INDEX, BOOL, void *, const CTString &, const CTString &);
+    #endif
+
+  public:
     // Go through the level changing process
     void P_ChangeLevelInternal(void);
 
@@ -70,7 +80,11 @@ class CNetworkPatch : public CNetworkLibrary {
 
     // Start new game session
     void P_StartPeerToPeer(const CTString &strSessionName, const CTFileName &fnmWorld,
+    #if SE1_GAME != SS_REV
       ULONG ulSpawnFlags, INDEX ctMaxPlayers, BOOL bWaitAllPlayers, void *pSesProps);
+    #else
+      ULONG ulSpawnFlags, INDEX ctMaxPlayers, BOOL bWaitAllPlayers, void *pSesProps, const CTString &strGamemode, const CTString &strTags);
+    #endif
 
     // Start playing a demo
     void P_StartDemoPlay(const CTFileName &fnDemo);

@@ -123,7 +123,7 @@ void CPatches::Network(void) {
   pStopGame = &CNetworkLibrary::StopGame;
   NewPatch(pStopGame, &CNetworkPatch::P_StopGame, "CNetworkLibrary::StopGame()");
 
-  extern void (CNetworkLibrary::*pStartPeerToPeer)(const CTString &, const CTFileName &, ULONG, INDEX, BOOL, void *);
+  extern CNetworkPatch::CStartP2PFunc pStartPeerToPeer;
   pStartPeerToPeer = &CNetworkLibrary::StartPeerToPeer_t;
   NewPatch(pStartPeerToPeer, &CNetworkPatch::P_StartPeerToPeer, "CNetworkLibrary::StartPeerToPeer_t(...)");
 
