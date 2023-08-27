@@ -74,7 +74,10 @@ void CEntityClassPatch::P_Read(CTStream *istr) {
 #endif
   // Use original path to the library
   {
-    CTFileName fnmExpand = fnmDLL.FileDir() + CCoreAPI::GetLibFile(strLibName + _strModExt, strLibExt);
+    // Mod extension for mods or vanilla extension for entity packs
+    const CTString &strCurrentExt = (_fnmMod != "" ? _strModExt : CCoreAPI::GetVanillaExt());
+
+    CTFileName fnmExpand = fnmDLL.FileDir() + CCoreAPI::GetLibFile(strLibName + strCurrentExt, strLibExt);
     ExpandFilePath(EFP_READ, fnmExpand, fnmDLL);
   }
 
