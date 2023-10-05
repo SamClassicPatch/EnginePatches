@@ -517,33 +517,50 @@ INDEX P_ExpandFilePath(EXPAND_PATH_ARGS(ULONG ulType, const CTFileName &fnmFile,
 
   #if SE1_GAME != SS_REV
     // [Cecil] Try remapping Revolution paths, if can't find a file
-    if (bRevWorld && iRes == EFP_NONE) {
-      CTFileName fnmRemap;
+    if (bRevWorld)
+    {
+      // 1. Try converting spaces
+      if (iRes == EFP_NONE) {
+        CTFileName fnmCopy = fnmFileAbsolute;
+        IData::ReplaceChar(fnmCopy.str_String, ' ', '_');
 
-      #define REMAP_PATH(_Old, _New) if (fnmFileAbsolute.RemovePrefix(_Old)) fnmRemap = _New + fnmFileAbsolute
+        iRes = ExpandPathForReading(ulType, fnmCopy, fnmExpanded);
+      }
 
-      REMAP_PATH("TexturesMP\\", "Textures\\");
-      else
-      REMAP_PATH("SoundsMP\\", "Sounds\\");
-      else
-      REMAP_PATH("MusicMP\\", "Music\\");
-      else
-      REMAP_PATH("ModelsMP\\", "Models\\");
-      else
-      REMAP_PATH("Levels\\LevelsMP\\", "Levels\\");
-      else
-      REMAP_PATH("DataMP\\", "Data\\");
-      else
-      REMAP_PATH("AnimationsMP\\", "Animations\\");
-      else
-      REMAP_PATH("Chaos_Studios\\", "Textures\\Chaos_Studios\\");
-      else
-      REMAP_PATH("NifransTextures\\", "Textures\\NifransTextures\\");
+      // 2. Discard the last result and try searching under remapped directories
+      if (iRes == EFP_NONE) {
+        CTFileName fnmRemap;
 
-      // Try searching under a remapped directory
-      if (fnmRemap != "") {
-        fnmFileAbsolute = fnmRemap;
-        iRes = ExpandPathForReading(ulType, fnmFileAbsolute, fnmExpanded);
+        #define REMAP_PATH(_Old, _New) if (fnmFileAbsolute.RemovePrefix(_Old)) fnmRemap = _New + fnmFileAbsolute
+
+        REMAP_PATH("TexturesMP\\", "Textures\\");
+        else
+        REMAP_PATH("SoundsMP\\", "Sounds\\");
+        else
+        REMAP_PATH("MusicMP\\", "Music\\");
+        else
+        REMAP_PATH("ModelsMP\\", "Models\\");
+        else
+        REMAP_PATH("Levels\\LevelsMP\\", "Levels\\");
+        else
+        REMAP_PATH("DataMP\\", "Data\\");
+        else
+        REMAP_PATH("AnimationsMP\\", "Animations\\");
+        else
+        REMAP_PATH("Chaos_Studios\\", "Textures\\Chaos_Studios\\");
+        else
+        REMAP_PATH("NifransTextures\\", "Textures\\NifransTextures\\");
+
+        if (fnmRemap != "") {
+          fnmFileAbsolute = fnmRemap;
+          iRes = ExpandPathForReading(ulType, fnmFileAbsolute, fnmExpanded);
+
+          // 3. Try converting spaces again under the remapped directory
+          if (iRes == EFP_NONE) {
+            IData::ReplaceChar(fnmFileAbsolute.str_String, ' ', '_');
+            iRes = ExpandPathForReading(ulType, fnmFileAbsolute, fnmExpanded);
+          }
+        }
       }
     }
   #endif
