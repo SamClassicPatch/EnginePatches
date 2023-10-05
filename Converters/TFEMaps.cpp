@@ -17,6 +17,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "MapConversion.h"
 
+#if CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
+
 // Classes that need to be converted
 #include <EntitiesV/StdH/StdH.h>
 #include <EntitiesV/AmmoPack.h>
@@ -34,8 +36,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <EntitiesV/Trigger.h>
 #include <EntitiesV/Woman.h>
 #include <EntitiesV/WorldSettingsController.h>
-
-#if CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
 
 // Converter instance
 IConvertTFE _convTFE;
