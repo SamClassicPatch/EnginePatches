@@ -61,6 +61,45 @@ void CEntityClassPatch::P_Read(CTStream *istr) {
   CTString strClassName;
   strClassName.ReadFromText_t(*istr, "Class: ");
 
+#if SE1_GAME != SS_REV
+  // [Cecil] Replace nonexistent classes from Revolution before loading them
+  if (_EnginePatches._eWorldFormat == E_LF_SSR && fnmDLL == "Bin\\Entities.dll") {
+    #define REPLACE_CLASS(_Old, _New) if (strClassName == _Old) strClassName = _New
+
+    REPLACE_CLASS("CAchievementEntity", "CTrigger");
+    else
+    REPLACE_CLASS("CCatman", "CGrunt");
+    else
+    REPLACE_CLASS("CControlZoneEntity", "CTrigger");
+    else
+    REPLACE_CLASS("CCyborg", "CWalker");
+    else
+    REPLACE_CLASS("CDestroyer", "CDemon");
+    else
+    REPLACE_CLASS("CDragonman", "CWoman");
+    else
+    REPLACE_CLASS("CFishman", "CHeadman");
+    else
+    REPLACE_CLASS("CFlagItem", "CHealthItem");
+    else
+    REPLACE_CLASS("CHuanman", "CGrunt");
+    else
+    REPLACE_CLASS("CMamut", "CWerebull");
+    else
+    REPLACE_CLASS("CMamutman", "CHeadman");
+    else
+    REPLACE_CLASS("CMantaman", "CGrunt");
+    else
+    REPLACE_CLASS("CPostProcessingEffect", "CMarker");
+    else
+    REPLACE_CLASS("CSpectatorCamera", "CMarker");
+    else
+    REPLACE_CLASS("CUghzy", "CGuffy");
+    else
+    REPLACE_CLASS("CWorldInfo", "CMarker");
+  }
+#endif
+
   // [Cecil] Construct full path to the entities library
   const CTString strLibName = fnmDLL.FileName();
   const CTString strLibExt = fnmDLL.FileExt();

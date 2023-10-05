@@ -206,10 +206,50 @@ void CWorldPatch::P_ReadInfo(CTStream *strm, BOOL bMaybeDescription) {
 // Create a new entity of a given class
 CEntity *CWorldPatch::P_CreateEntity(const CPlacement3D &plPlacement, const CTFileName &fnmClass) {
   CEntityClass *pecClass = NULL;
+  CTFileName fnmCopy = fnmClass;
+
+#if SE1_GAME != SS_REV
+  // [Cecil] Replace nonexistent classes from Revolution before loading them
+  if (_EnginePatches._eWorldFormat == E_LF_SSR && !FileExists(fnmCopy)) {
+    #define REPLACE_CLASS(_Old, _New) if (fnmCopy == "Classes\\" _Old ".ecl") fnmCopy = CTString("Classes\\" _New ".ecl")
+
+    REPLACE_CLASS("Achievement", "Trigger");
+    else
+    REPLACE_CLASS("Catman", "Grunt");
+    else
+    REPLACE_CLASS("ControlZone", "Trigger");
+    else
+    REPLACE_CLASS("Cyborg", "Walker");
+    else
+    REPLACE_CLASS("Destroyer", "Demon");
+    else
+    REPLACE_CLASS("Dragonman", "Woman");
+    else
+    REPLACE_CLASS("Fishman", "Headman");
+    else
+    REPLACE_CLASS("FlagItem", "HealthItem");
+    else
+    REPLACE_CLASS("Huanman", "Grunt");
+    else
+    REPLACE_CLASS("Mamut", "Werebull");
+    else
+    REPLACE_CLASS("Mamutman", "Headman");
+    else
+    REPLACE_CLASS("Mantaman", "Grunt");
+    else
+    REPLACE_CLASS("PostProcessingEffect", "Marker");
+    else
+    REPLACE_CLASS("SpectatorCamera", "Marker");
+    else
+    REPLACE_CLASS("Ughzy", "Guffy");
+    else
+    REPLACE_CLASS("WorldInfo", "Marker");
+  }
+#endif
 
   // [Cecil] Try obtaining a new entity class
   try {
-    pecClass = _pEntityClassStock->Obtain_t(fnmClass);
+    pecClass = _pEntityClassStock->Obtain_t(fnmCopy);
 
   // [Cecil] If the current file can't be loaded for any reason
   } catch (char *strError) {
@@ -218,7 +258,7 @@ CEntity *CWorldPatch::P_CreateEntity(const CPlacement3D &plPlacement, const CTFi
     // Try again with an explicit replacement
     CTFileName fnmReplacement;
 
-    if (IRes::ReplaceFile(fnmClass, fnmReplacement, "Entity Class Links (*.ecl)\0*.ecl\0" FILTER_END)) {
+    if (IRes::ReplaceFile(fnmCopy, fnmReplacement, "Entity Class Links (*.ecl)\0*.ecl\0" FILTER_END)) {
       pecClass = _pEntityClassStock->Obtain_t(fnmReplacement);
 
     // Otherwise send the error further up
