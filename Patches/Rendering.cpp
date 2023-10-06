@@ -28,7 +28,7 @@ void (*pRenderView)(CWorld &, CEntity &, CAnyProjection3D &, CDrawPort &) = NULL
 void P_RenderView(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDrawPort &dp)
 {
   // Set wide adjustment based on current aspect ratio
-  if (_EnginePatches._bAdjustForAspectRatio) {
+  if (CoreVarData().bAdjustAR && _EnginePatches._bAdjustForAspectRatio) {
     dp.dp_fWideAdjustment = ((FLOAT)dp.GetHeight() / (FLOAT)dp.GetWidth()) * (4.0f / 3.0f);
   } else {
     dp.dp_fWideAdjustment = 1.0f;
@@ -102,8 +102,8 @@ void P_RenderView(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDr
 
     _EnginePatches._bCheckFOV = FALSE;
 
-  // [Cecil] TEMP: Unpatch FOV when viewing through any other entity
-  } else if (_EnginePatches._bUseVerticalFOV > 1) {
+  // Unpatch FOV when viewing through any other entity
+  } else if (CoreVarData().bAdjustFOV && _EnginePatches._bUseVerticalFOV > 1) {
     fNewFOV = ATan(Tan(fNewFOV * 0.5f) * fOppositeAspectRatio / ppr.pr_AspectRatio) * 2.0f;
   }
 
@@ -197,7 +197,7 @@ void CProjectionPatch::P_Prepare(void) {
     ANGLE aHalfVer;
 
     // Adjust FOV for wider resolutions (preserve vertical FOV instead of horizontal)
-    if (_EnginePatches._bUseVerticalFOV) {
+    if (CoreVarData().bAdjustFOV && _EnginePatches._bUseVerticalFOV) {
       // Calculate VFOV from HFOV on 4:3 resolution (e.g. 90 -> ~73.74)
       aHalfVer = ATan(Tan(ppr_FOVWidth * 0.5f) * 3.0f * pr_AspectRatio / 4.0f);
 
@@ -270,7 +270,7 @@ void CProjectionPatch::P_Prepare(void) {
   pr_fDepthBufferAdd = pr_fDepthBufferNear;
 
   // Fix mip distances
-  if (_EnginePatches._bUseVerticalFOV) {
+  if (CoreVarData().bAdjustFOV && _EnginePatches._bUseVerticalFOV) {
     // Rely on height ratio instead of width ratio
     ppr_fMipRatio = pr_ScreenBBox.Size()(2) / (ppr_PerspectiveRatios(2) * 480.0f);
 
