@@ -165,7 +165,7 @@ BOOL IConvertTFE::ConvertEntity(CEntity *pen) {
 
     // Fix sound component index (301 -> 300)
     if (pptrSound.ByVariable("CKeyItem", "m_iSoundComponent")) {
-      ENTITYPROPERTY(pen, pptrSound.Offset(), INDEX) = (0x325 << 8) + 300;
+      ENTITYPROPERTY(pen, pptrSound.Offset(), INDEX) = (CKeyItem_ClassID << 8) + 300;
     }
 
     return TRUE;
