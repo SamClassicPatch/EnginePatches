@@ -70,6 +70,12 @@ void IConvertTFE::ConvertWeapon(INDEX &iFlags, INDEX iWeapon) {
 
 // Convert invalid key types
 void IConvertTFE::ConvertKeyType(INDEX &eKey) {
+  // Shift TFE keys from 0 to 16
+  if (CCoreAPI::IsCustomModActive()) {
+    eKey += 16;
+    return;
+  }
+
   switch (eKey) {
     // Dummy keys
     case IMapsTFE::KIT_ANKHGOLDDUMMY: eKey = IMapsTSE::KIT_TABLESDUMMY; break;
