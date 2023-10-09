@@ -27,6 +27,11 @@ class CSoundLibPatch : public CSoundLibrary {
     void P_Listen(CSoundListener &sl);
 };
 
+class CSoundObjPatch : public CSoundObject {
+  public:
+    void P_Update3DEffects(void);
+};
+
 #endif // CLASSICSPATCH_ENGINEPATCHES
 
 #endif

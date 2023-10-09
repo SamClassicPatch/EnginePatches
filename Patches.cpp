@@ -273,6 +273,9 @@ void CPatches::Ska(void) {
 void CPatches::SoundLibrary(void) {
   void (CSoundLibrary::*pListen)(CSoundListener &) = &CSoundLibrary::Listen;
   NewPatch(pListen, &CSoundLibPatch::P_Listen, "CSoundLibrary::Listen(...)");
+
+  void (CSoundObject::*pUpdate3DEffects)(void) = &CSoundObject::Update3DEffects;
+  NewPatch(pUpdate3DEffects, &CSoundObjPatch::P_Update3DEffects, "CSoundObject::Update3DEffects()");
 };
 
 #include "Patches/Strings.h"
