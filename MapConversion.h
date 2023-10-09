@@ -122,6 +122,7 @@ class IMapConverter {
 
 // Specific converters
 #include <EnginePatches/Converters/TFEMaps.h>
+#include <EnginePatches/Converters/RevMaps.h>
 
 #endif // CLASSICSPATCH_CONVERT_MAPS
 

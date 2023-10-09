@@ -24,6 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Converters\Common.h" />
+    <ClInclude Include="Converters\RevMaps.h" />
     <ClInclude Include="Converters\TFEMaps.h" />
     <ClInclude Include="DummyMethods.h" />
     <ClInclude Include="MapConversion.h" />
@@ -42,6 +43,7 @@
     <ClInclude Include="StdH.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Converters\RevMaps.cpp" />
     <ClCompile Include="Converters\TFEMaps.cpp" />
     <ClCompile Include="Converters\TFERain.cpp" />
     <ClCompile Include="MapConversion.cpp" />

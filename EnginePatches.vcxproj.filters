@@ -78,6 +78,9 @@
     <ClInclude Include="Patches\LogicTimers.h">
       <Filter>Header Files\Patches headers</Filter>
     </ClInclude>
+    <ClInclude Include="Converters\RevMaps.h">
+      <Filter>Header Files\Converters headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Patches.cpp">
@@ -127,6 +130,9 @@
     </ClCompile>
     <ClCompile Include="Patches\LogicTimers.cpp">
       <Filter>Source Files\Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="Converters\RevMaps.cpp">
+      <Filter>Source Files\Converters</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

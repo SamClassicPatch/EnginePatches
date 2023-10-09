@@ -28,6 +28,7 @@ IMapConverter *IMapConverter::SetConverter(ELevelFormat eFormat)
   switch (eFormat) {
   #if TSE_FUSION_MODE
     case E_LF_TFE: _pconvCurrent = &_convTFE; break;
+    case E_LF_SSR: _pconvCurrent = &_convSSR; break;
   #endif
     default: _pconvCurrent = NULL;
   }
