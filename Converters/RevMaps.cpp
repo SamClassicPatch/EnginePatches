@@ -562,8 +562,12 @@ BOOL IConvertSSR::ConvertEntity(CEntity *pen) {
     }
   }
 
-  // Converted normally
-  return TRUE;
+  // [Cecil] NOTE: This normally isn't required but since some Revolution enemies are being
+  // replaced with TSE ones, all placed enemies need to be reinitialized to reset their models
+  return !IsDerivedFromID(pen, CEnemyBase_ClassID);
+
+  // Converted without having to reinitialize
+  //return TRUE;
 };
 
 // Convert the entire world with possible entity reinitializations
@@ -571,12 +575,6 @@ void IConvertSSR::ConvertWorld(CWorld *pwo) {
   CEntities cEntities;
 
   FOREACHINDYNAMICCONTAINER(pwo->wo_cenEntities, CEntity, iten) {
-    // Reinitialize elementals to become lava ones
-    if (IsOfClassID(iten, CElemental_ClassID)) {
-      cEntities.Add(iten);
-      continue;
-    }
-
     // Convert specific entities
     if (ConvertEntity(iten)) continue;
 

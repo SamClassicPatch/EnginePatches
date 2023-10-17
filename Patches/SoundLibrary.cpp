@@ -77,7 +77,7 @@ void CSoundObjPatch::P_Update3DEffects(void)
     CSoundListener &sli = *itsli;
 
     // [Cecil] Fixed local sounds not being played for predicted listeners
-    if ((so_slFlags & SOF_LOCAL)) {
+    if (so_slFlags & SOF_LOCAL) {
       // Skip if no listener
       if (sli.sli_penEntity == NULL) continue;
 
