@@ -102,8 +102,8 @@ void P_RenderView(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDr
 
     _EnginePatches._bCheckFOV = FALSE;
 
-  // Unpatch FOV when viewing through any other entity
-  } else if (CoreVarData().bAdjustFOV && _EnginePatches._bUseVerticalFOV > 1) {
+  // Unpatch FOV when viewing through any other entity during the game
+  } else if (GetGameAPI()->IsGameOn() && CoreVarData().bAdjustFOV && _EnginePatches._bUseVerticalFOV > 1) {
     fNewFOV = ATan(Tan(fNewFOV * 0.5f) * fOppositeAspectRatio / ppr.pr_AspectRatio) * 2.0f;
   }
 
