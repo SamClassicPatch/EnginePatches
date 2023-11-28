@@ -367,10 +367,11 @@ void P_InitStreams(void) {
   IUnzip::SortEntries();
 
   // Set custom mod extension to utilize Entities & Game libraries from the patch
-  BOOL bSetMod = FALSE;
+  BOOL bChangeExtension = FALSE;
 
   if (CCoreAPI::Props().bCustomMod) {
-    BOOL bChangeExtension = TRUE;
+    // Change by default
+    bChangeExtension = TRUE;
 
     // Check if a mod has its own libraries under the current extension
     if (_fnmMod != "") {
@@ -384,16 +385,24 @@ void P_InitStreams(void) {
       bChangeExtension = (!IFiles::IsReadable(strEntities.str_String) && !IFiles::IsReadable(strGameLib.str_String));
     }
 
-    // Change mod extension for the base game or for mods with no libraries
-    if (bChangeExtension) {
-      _strModExt = "_Custom";
+  // Custom mod is disabled but the mod might still use its libraries (e.g. ClassicsPatchMod)
+  } else if (_fnmMod != "" && _strModExt == CLASSICSPATCH_SUFFIX) {
+    // Make sure the libraries are not located in the mod folder
+    const CTString strEntities = CCoreAPI::FullLibPath("Entities" CLASSICSPATCH_SUFFIX);
+    const CTString strGameLib  = CCoreAPI::FullLibPath("Game" CLASSICSPATCH_SUFFIX);
 
-      // Activate custom mod
-      bSetMod = TRUE;
-    }
+    // Safe to change if no mod libraries
+    bChangeExtension = (!strEntities.HasPrefix(_fnmMod) && !strGameLib.HasPrefix(_fnmMod));
   }
 
-  CCoreAPI::SetCustomMod(bSetMod);
+  // Change mod extension for the base game or for mods with no libraries
+  if (bChangeExtension) {
+    _strModExt = CLASSICSPATCH_SUFFIX;
+    CCoreAPI::SetCustomMod(TRUE);
+
+  } else {
+    CCoreAPI::SetCustomMod(FALSE);
+  }
 };
 
 // Make a list of all files in a directory
