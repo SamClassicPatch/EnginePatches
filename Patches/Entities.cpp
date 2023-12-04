@@ -25,6 +25,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // Original function pointers
 void (CEntity::*pSendEvent)(const CEntityEvent &) = NULL;
 CEntityPatch::CReceiveItem pReceiveItem = NULL;
+CEntityPatch::CGetForce pWorldBase_GetForce = NULL;
+CEntityPatch::CGetForce pMovingBrush_GetForce = NULL;
 
 // Read entity property values
 void CEntityPatch::P_ReadProperties(CTStream &istrm) {
@@ -291,6 +293,39 @@ BOOL CEntityPatch::P_ReceiveItem(const CEntityEvent &ee)
   }
 
   return bResult;
+};
+
+// Multiply gravity acceleration of specific mod-independent brush entities
+void CEntityPatch::P_WorldBase_GetForce(INDEX iForce, const FLOAT3D &vPoint, CForceStrength &fsGravity, CForceStrength &fsField) {
+  // Proceed to the original function
+  (this->*pWorldBase_GetForce)(iForce, vPoint, fsGravity, fsField);
+
+  // Gravity modifiers
+  const FLOAT fAcc = CoreGEX().fGravityAcc;
+
+  if (fAcc != 1.0f) {
+    fsGravity.fs_fAcceleration *= Abs(fAcc);
+
+    if (fAcc < 0.0f) {
+      fsGravity.fs_vDirection = -fsGravity.fs_vDirection;
+    }
+  }
+};
+
+void CEntityPatch::P_MovingBrush_GetForce(INDEX iForce, const FLOAT3D &vPoint, CForceStrength &fsGravity, CForceStrength &fsField) {
+  // Proceed to the original function
+  (this->*pMovingBrush_GetForce)(iForce, vPoint, fsGravity, fsField);
+
+  // Gravity modifiers
+  const FLOAT fAcc = CoreGEX().fGravityAcc;
+
+  if (fAcc != 1.0f) {
+    fsGravity.fs_fAcceleration *= Abs(fAcc);
+
+    if (fAcc < 0.0f) {
+      fsGravity.fs_vDirection = -fsGravity.fs_vDirection;
+    }
+  }
 };
 
 // Call a subautomaton

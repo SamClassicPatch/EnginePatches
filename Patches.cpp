@@ -64,6 +64,49 @@ void CPatches::Entities(void) {
     NewPatch(pReceiveItem, &CEntityPatch::P_ReceiveItem, "CPlayer::ReceiveItem(...)");
   }
 
+  // Mod's brush entities
+  CWorld woTemp;
+
+  try {
+    static const CPlacement3D plDummy(FLOAT3D(0, 0, 0), ANGLE3D(0, 0, 0));
+    CEntity *penWB = woTemp.CreateEntity_t(plDummy, CTFILENAME("Classes\\WorldBase.ecl"));
+    CEntity *penMB = woTemp.CreateEntity_t(plDummy, CTFILENAME("Classes\\MovingBrush.ecl"));
+
+    // Not sure if required but I don't wanna risk it
+    penWB->Initialize();
+    penMB->Initialize();
+
+    // Pointer to the virtual table of CWorldBase
+    size_t *pVFTable = *(size_t **)penWB;
+
+    extern CEntityPatch::CGetForce pWorldBase_GetForce;
+    pWorldBase_GetForce = *(CEntityPatch::CGetForce *)(pVFTable + 31);
+
+    // Don't patch engine function by mistake
+    if (pWorldBase_GetForce != &CEntity::GetForce) {
+      NewPatch(pWorldBase_GetForce, &CEntityPatch::P_WorldBase_GetForce, "CWorldBase::GetForce(...)");
+    }
+
+    // Pointer to the virtual table of CMovingBrush
+    pVFTable = *(size_t **)penMB;
+
+    extern CEntityPatch::CGetForce pMovingBrush_GetForce;
+    pMovingBrush_GetForce = *(CEntityPatch::CGetForce *)(pVFTable + 31);
+
+    // Don't patch engine function by mistake
+    if (pMovingBrush_GetForce != &CEntity::GetForce) {
+      NewPatch(pMovingBrush_GetForce, &CEntityPatch::P_MovingBrush_GetForce, "CMovingBrush::GetForce(...)");
+    }
+
+    // Same as for initialization
+    penWB->Destroy();
+    penMB->Destroy();
+
+  // Ignore errors
+  } catch (char *strError) {
+    (void)strError;
+  }
+
 #endif // CLASSICSPATCH_EXTEND_ENTITIES
 };
 
