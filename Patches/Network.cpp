@@ -764,7 +764,7 @@ void CSessionStatePatch::P_Stop(void) {
   ForgetOldLevels();
 
   ses_apltPlayers.Clear();
-  ses_apltPlayers.New(NET_MAXGAMEPLAYERS);
+  ses_apltPlayers.New(CORE_MAX_GAME_PLAYERS);
 };
 
 // Read session state
