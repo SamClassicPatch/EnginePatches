@@ -76,14 +76,18 @@ void CPatches::Entities(void) {
     penWB->Initialize();
     penMB->Initialize();
 
+    #define GETFORCE_OFFSET CHOOSE_FOR_GAME(27, 27, 31)
+    StructPtr pEntityGetForcePtr = GetPatchAPI()->GetEngineSymbol("?GetForce@CEntity@@UAEXJABV?$Vector@M$02@@AAVCForceStrength@@1@Z");
+    CEntityPatch::CGetForce pEntityGetForce = pEntityGetForcePtr(CEntityPatch::CGetForce());
+
     // Pointer to the virtual table of CWorldBase
     size_t *pVFTable = *(size_t **)penWB;
 
     extern CEntityPatch::CGetForce pWorldBase_GetForce;
-    pWorldBase_GetForce = *(CEntityPatch::CGetForce *)(pVFTable + 31);
+    pWorldBase_GetForce = *(CEntityPatch::CGetForce *)(pVFTable + GETFORCE_OFFSET);
 
     // Don't patch engine function by mistake
-    if (pWorldBase_GetForce != &CEntity::GetForce) {
+    if (pWorldBase_GetForce != pEntityGetForce) {
       NewPatch(pWorldBase_GetForce, &CEntityPatch::P_WorldBase_GetForce, "CWorldBase::GetForce(...)");
     }
 
@@ -91,10 +95,10 @@ void CPatches::Entities(void) {
     pVFTable = *(size_t **)penMB;
 
     extern CEntityPatch::CGetForce pMovingBrush_GetForce;
-    pMovingBrush_GetForce = *(CEntityPatch::CGetForce *)(pVFTable + 31);
+    pMovingBrush_GetForce = *(CEntityPatch::CGetForce *)(pVFTable + GETFORCE_OFFSET);
 
     // Don't patch engine function by mistake
-    if (pMovingBrush_GetForce != &CEntity::GetForce) {
+    if (pMovingBrush_GetForce != pEntityGetForce) {
       NewPatch(pMovingBrush_GetForce, &CEntityPatch::P_MovingBrush_GetForce, "CMovingBrush::GetForce(...)");
     }
 
