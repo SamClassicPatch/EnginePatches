@@ -25,8 +25,9 @@ void CRationalEntityTimerPatch::P_SetTimerAfter(TIME tmDelta) {
 
   // [Cecil] Fix timers as a gameplay extension
   if (CoreGEX().bFixTimers) {
-    // Minus 4/5 of a tick for TIME_EPSILON == 0.0001 (as if TIME_EPSILON became 0.0401)
-    tmDelta -= 0.04f;
+    // [Cecil] NOTE: This can cause unexpected behavior if timers are set to unusual delays, e.g. 0.075s (1.5 ticks)
+    // Minus 2/5 of a tick for TIME_EPSILON == 0.0001 (as if TIME_EPSILON became 0.0201)
+    tmDelta -= 0.02f;
   }
 
 #endif // CLASSICSPATCH_GAMEPLAY_EXT
