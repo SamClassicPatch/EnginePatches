@@ -304,8 +304,9 @@ void P_InitStreams(void) {
   }
 
   // Verify workshop directory and load workshop files
-  IFiles::SetFullDirectory(strWorkshop);
-  {
+  if (strWorkshop != "") {
+    IFiles::SetFullDirectory(strWorkshop);
+
     DWORD dwAttrib = GetFileAttributesA(strWorkshop.str_String);
 
     if (dwAttrib != -1 && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY)) {
