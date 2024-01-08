@@ -21,11 +21,15 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 // Set next timer event to occur after some time
 void CRationalEntityTimerPatch::P_SetTimerAfter(TIME tmDelta) {
+#if CLASSICSPATCH_GAMEPLAY_EXT
+
   // [Cecil] Fix timers as a gameplay extension
   if (CoreGEX().bFixTimers) {
     // Minus 4/5 of a tick for TIME_EPSILON == 0.0001 (as if TIME_EPSILON became 0.0401)
     tmDelta -= 0.04f;
   }
+
+#endif // CLASSICSPATCH_GAMEPLAY_EXT
 
   // Set to execute some time after of the current tick
   SetTimerAt(_pTimer->CurrentTick() + tmDelta);

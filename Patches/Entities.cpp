@@ -300,6 +300,8 @@ void CEntityPatch::P_WorldBase_GetForce(INDEX iForce, const FLOAT3D &vPoint, CFo
   // Proceed to the original function
   (this->*pWorldBase_GetForce)(iForce, vPoint, fsGravity, fsField);
 
+#if CLASSICSPATCH_GAMEPLAY_EXT
+
   // Gravity modifiers
   const FLOAT fAcc = CoreGEX().fGravityAcc;
 
@@ -310,12 +312,16 @@ void CEntityPatch::P_WorldBase_GetForce(INDEX iForce, const FLOAT3D &vPoint, CFo
       fsGravity.fs_vDirection = -fsGravity.fs_vDirection;
     }
   }
+
+#endif // CLASSICSPATCH_GAMEPLAY_EXT
 };
 
 void CEntityPatch::P_MovingBrush_GetForce(INDEX iForce, const FLOAT3D &vPoint, CForceStrength &fsGravity, CForceStrength &fsField) {
   // Proceed to the original function
   (this->*pMovingBrush_GetForce)(iForce, vPoint, fsGravity, fsField);
 
+#if CLASSICSPATCH_GAMEPLAY_EXT
+
   // Gravity modifiers
   const FLOAT fAcc = CoreGEX().fGravityAcc;
 
@@ -326,6 +332,8 @@ void CEntityPatch::P_MovingBrush_GetForce(INDEX iForce, const FLOAT3D &vPoint, C
       fsGravity.fs_vDirection = -fsGravity.fs_vDirection;
     }
   }
+
+#endif // CLASSICSPATCH_GAMEPLAY_EXT
 };
 
 // Call a subautomaton
