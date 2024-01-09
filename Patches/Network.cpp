@@ -35,11 +35,15 @@ void (CCommunicationInterface::*pServerClose)(void) = NULL;
 #if CLASSICSPATCH_NEW_QUERY
 
 void CComIntPatch::P_EndWinsock(void) {
-  // Stop master server enumeration
-  if (ms_bDebugOutput) {
-    CPutString("CCommunicationInterface::EndWinsock() -> IMasterServer::EnumCancel()\n");
+  // New query manager
+  if (!ms_bVanillaQuery) {
+    // Stop master server enumeration
+    if (ms_bDebugOutput) {
+      CPutString("CCommunicationInterface::EndWinsock() -> IMasterServer::EnumCancel()\n");
+    }
+
+    IMasterServer::EnumCancel();
   }
-  IMasterServer::EnumCancel();
 
   // Original function code
   #if SE1_VER >= SE1_107
@@ -65,6 +69,9 @@ void CComIntPatch::P_ServerInit(void) {
 #endif
 
 #if CLASSICSPATCH_NEW_QUERY
+  // Keep using old query manager
+  if (ms_bVanillaQuery) return;
+
   if (ms_bDebugOutput) {
     CPutString("CCommunicationInterface::Server_Init_t()\n");
   }
@@ -87,6 +94,9 @@ void CComIntPatch::P_ServerClose(void) {
 #endif
 
 #if CLASSICSPATCH_NEW_QUERY
+  // Keep using old query manager
+  if (ms_bVanillaQuery) return;
+
   if (ms_bDebugOutput) {
     CPutString("CCommunicationInterface::Server_Close()\n");
   }
@@ -370,6 +380,10 @@ void CSessionStatePatch::P_FlushProcessedPredictions(void) {
   // Proceed to the original function
   (this->*pFlushPredictions)();
 
+#if CLASSICSPATCH_NEW_QUERY
+  // Keep using old query manager
+  if (ms_bVanillaQuery) return;
+
   // Update server for the master server
   static CSymbolPtr symptr("ser_bEnumeration");
 
@@ -379,6 +393,7 @@ void CSessionStatePatch::P_FlushProcessedPredictions(void) {
     }
     IMasterServer::OnServerUpdate();
   }
+#endif // CLASSICSPATCH_NEW_QUERY
 };
 
 // Client processes received packet from the server
