@@ -294,6 +294,10 @@ void CNetworkPatch::P_StopGame(void) {
 
   // Proceed to the original function
   (this->*pStopGame)();
+
+  // Make sure there is enough space for local players
+  ga_aplsPlayers.Clear();
+  ga_aplsPlayers.New(CORE_MAX_LOCAL_PLAYERS);
 };
 
 // Start new game session
