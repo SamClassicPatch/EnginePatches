@@ -104,15 +104,12 @@ void CEntityClassPatch::P_Read(CTStream *istr) {
   const CTString strLibName = fnmDLL.FileName();
   const CTString strLibExt = fnmDLL.FileExt();
 
-#if SE1_VER >= SE1_107
   // Find appropriate default entities library
   if (CCoreAPI::IsCustomModActive() && fnmDLL == "Bin\\Entities.dll") {
     fnmDLL = CCoreAPI::AppPath() + CCoreAPI::FullLibPath(strLibName + _strModExt, strLibExt);
 
-  } else
-#endif
   // Use original path to the library
-  {
+  } else {
     // Mod extension for mods or vanilla extension for entity packs
     const CTString &strCurrentExt = (_fnmMod != "" ? _strModExt : CCoreAPI::GetVanillaExt());
 

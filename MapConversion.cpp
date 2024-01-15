@@ -33,7 +33,7 @@ IMapConverter *IMapConverter::SetConverter(ELevelFormat eFormat)
     default: _pconvCurrent = NULL;
   }
 
-  ASSERTMSG(_pconvCurrent != NULL, "No converter available for the desired level format!");
+  //ASSERTMSG(_pconvCurrent != NULL, "No converter available for the desired level format!");
   return _pconvCurrent;
 };
 
