@@ -217,17 +217,12 @@ void CPatches::Network(void) {
 
   // CPlayerEntity
 
-  // Pointer to the virtual table of CPlayerEntity
-  size_t *pVFTable = (size_t *)GetPatchAPI()->GetEngineSymbol("??_7CPlayerEntity@@6B@");
-
   // Pointer to CPlayerEntity::Write_t()
-  typedef void (CPlayerEntity::*CWriteFunc)(CTStream *);
-  CWriteFunc pPlayerWrite = *(CWriteFunc *)(pVFTable + 4);
+  void *pPlayerWrite = GetPatchAPI()->GetEngineSymbol("?Write_t@CPlayerEntity@@UAEXPAVCTStream@@@Z");
   NewPatch(pPlayerWrite, &CPlayerEntityPatch::P_Write, "CPlayerEntity::Write_t(...)");
 
   // Pointer to CPlayerEntity::ChecksumForSync()
-  typedef void (CPlayerEntity::*CChecksumFunc)(ULONG &, INDEX);
-  CChecksumFunc pChecksumForSync = *(CChecksumFunc *)(pVFTable + 6);
+  void *pChecksumForSync = GetPatchAPI()->GetEngineSymbol("?ChecksumForSync@CPlayerEntity@@UAEXAAKJ@Z");
   NewPatch(pChecksumForSync, &CPlayerEntityPatch::P_ChecksumForSync, "CPlayerEntity::ChecksumForSync(...)");
 
   // Custom symbols
@@ -248,8 +243,7 @@ void CPatches::Rendering(void) {
   NewPatch(pRenderView, &P_RenderView, "::RenderView(...)");
 
   // Pointer to CPerspectiveProjection3D::Prepare()
-  void *pPreparePtr = GetPatchAPI()->GetEngineSymbol("?Prepare@CPerspectiveProjection3D@@UAEXXZ");
-  void (*pPrepare)(void) = (void (*)(void))pPreparePtr;
+  void *pPrepare = GetPatchAPI()->GetEngineSymbol("?Prepare@CPerspectiveProjection3D@@UAEXXZ");
   NewPatch(pPrepare, &CProjectionPatch::P_Prepare, "CPerspectiveProjection3D::Prepare()");
 
   // Custom symbols
@@ -348,8 +342,7 @@ void CPatches::Textures(void) {
   NewPatch(pCreateTex, &CTexDataPatch::P_Create, "CTextureData::Create_t(...)");
 
   // Pointer to CTextureData::Write_t()
-  void *pWriteTexPtr = GetPatchAPI()->GetEngineSymbol("?Write_t@CTextureData@@UAEXPAVCTStream@@@Z");
-  void (*pWriteTex)(void) = (void (*)(void))pWriteTexPtr;
+  void *pWriteTex = GetPatchAPI()->GetEngineSymbol("?Write_t@CTextureData@@UAEXPAVCTStream@@@Z");
   NewPatch(pWriteTex, &CTexDataPatch::P_Write, "CTextureData::Write_t(...)");
 
   void (*pProcessScript)(const CTFileName &) = &ProcessScript_t;
@@ -481,24 +474,21 @@ void CPatches::FileSystem(void) {
   void (CEntityClass::*pObtainComponents)(void) = &CEntityClass::ObtainComponents_t;
   NewRawPatch(pObtainComponents, &CEntityClassPatch::P_ObtainComponents, "CEntityClass::ObtainComponents_t()");
 
-  void *pReadClassPtr = CPatchAPI::GetEngineSymbolPortable("?Read_t@CEntityClass@@UAEXPAVCTStream@@@Z");
-  void (*pReadClass)(CTStream *) = (void (*)(CTStream *))pReadClassPtr;
+  void *pReadClass = CPatchAPI::GetEngineSymbolPortable("?Read_t@CEntityClass@@UAEXPAVCTStream@@@Z");
   NewRawPatch(pReadClass, &CEntityClassPatch::P_Read, "CEntityClass::Read_t(...)");
 
 #if SE1_VER >= SE1_107
   // CShader
-  void *pReadShaderPtr = CPatchAPI::GetEngineSymbolPortable("?Read_t@CShader@@UAEXPAVCTStream@@@Z");
-  void (*pReadShader)(CTStream *) = (void (*)(CTStream *))pReadShaderPtr;
+  void *pReadShader = CPatchAPI::GetEngineSymbolPortable("?Read_t@CShader@@UAEXPAVCTStream@@@Z");
   NewRawPatch(pReadShader, &CShaderPatch::P_Read, "CShader::Read_t(...)");
 #endif
 
   // CTStream
   #if SE1_GAME != SS_REV
-    void *pGetLinePtr = CPatchAPI::GetEngineSymbolPortable("?GetLine_t@CTStream@@QAEXPADJD@Z");
+    void *pGetLine = CPatchAPI::GetEngineSymbolPortable("?GetLine_t@CTStream@@QAEXPADJD@Z");
   #else
-    void *pGetLinePtr = CPatchAPI::GetEngineSymbolPortable("?GetLine_t@CTStream@@UAEXPADJD@Z");
+    void *pGetLine = CPatchAPI::GetEngineSymbolPortable("?GetLine_t@CTStream@@UAEXPADJD@Z");
   #endif
-  void (*pGetLine)(char *, SLONG, char) = (void (*)(char *, SLONG, char))pGetLinePtr;
   NewRawPatch(pGetLine, &CStreamPatch::P_GetLine, "CTStream::GetLine_t(...)");
 
   void (CTStream::*pReadDictionary)(SLONG) = &CTStream::ReadDictionary_intenal_t;
