@@ -287,37 +287,43 @@ static BOOL SetupGameDir(CTString &strGameDir, CTString &strDirProperty, const C
 void P_InitStreams(void) {
   BOOL bRev = FALSE;
 
-  #if TSE_FUSION_MODE
-    // Setup other game directories
+#if TSE_FUSION_MODE
+  // Setup other game directories
+  if (CCoreAPI::Props().bMountTFE) {
     SetupGameDir(GAME_DIR_TFE, CCoreAPI::Props().strTFEDir, CONFIG_DEFAULT_DIR_TFE);
-    bRev = SetupGameDir(GAME_DIR_SSR, CCoreAPI::Props().strSSRDir, CONFIG_DEFAULT_DIR_SSR);
-  #endif
-
-  // Specify path to Revolution workshop relative to the Steam game
-  CTString strWorkshop = CCoreAPI::Props().strSSRWorkshop;
-
-  if (bRev && strWorkshop == "") {
-    strWorkshop = GAME_DIR_SSR + CONFIG_DEFAULT_DIR_WORKSHOP;
   }
+  if (CCoreAPI::Props().bMountSSR) {
+    bRev = SetupGameDir(GAME_DIR_SSR, CCoreAPI::Props().strSSRDir, CONFIG_DEFAULT_DIR_SSR);
+  }
+#endif
 
-  // Verify workshop directory and load workshop files
-  if (strWorkshop != "") {
-    IFiles::SetFullDirectory(strWorkshop);
+  if (CCoreAPI::Props().bMountSSRWorkshop) {
+    // Specify path to Revolution workshop relative to the Steam game
+    CTString strWorkshop = CCoreAPI::Props().strSSRWorkshop;
 
-    DWORD dwAttrib = GetFileAttributesA(strWorkshop.str_String);
+    if (bRev && strWorkshop == "") {
+      strWorkshop = GAME_DIR_SSR + CONFIG_DEFAULT_DIR_WORKSHOP;
+    }
 
-    if (dwAttrib != -1 && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY)) {
-      CFileList aWorkshop;
-      IFiles::ListInDir(strWorkshop, aWorkshop, "", "*.gro", TRUE, NULL, NULL);
-      IFiles::ListInDir(strWorkshop, aWorkshop, "", "*_legacy.bin", TRUE, NULL, NULL); // Legacy archives
+    // Verify workshop directory and load workshop files
+    if (strWorkshop != "") {
+      IFiles::SetFullDirectory(strWorkshop);
 
-      // Add directories with GRO packages from workshop
-      const INDEX ctDirs = aWorkshop.Count();
+      DWORD dwAttrib = GetFileAttributesA(strWorkshop.str_String);
 
-      for (INDEX iDir = 0; iDir < ctDirs; iDir++) {
-        // Add path to the workshop directory
-        CTFileName fnmDir = strWorkshop + aWorkshop[iDir].FileDir();
-        _aContentDirs.Push() = fnmDir;
+      if (dwAttrib != -1 && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY)) {
+        CFileList aWorkshop;
+        IFiles::ListInDir(strWorkshop, aWorkshop, "", "*.gro", TRUE, NULL, NULL);
+        IFiles::ListInDir(strWorkshop, aWorkshop, "", "*_legacy.bin", TRUE, NULL, NULL); // Legacy archives
+
+        // Add directories with GRO packages from workshop
+        const INDEX ctDirs = aWorkshop.Count();
+
+        for (INDEX iDir = 0; iDir < ctDirs; iDir++) {
+          // Add path to the workshop directory
+          CTFileName fnmDir = strWorkshop + aWorkshop[iDir].FileDir();
+          _aContentDirs.Push() = fnmDir;
+        }
       }
     }
   }
