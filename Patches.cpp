@@ -25,7 +25,7 @@ CPatches _EnginePatches;
 // Constructor
 CPatches::CPatches() {
   _bAdjustForAspectRatio = TRUE;
-  _bUseVerticalFOV = 1;
+  _bUseVerticalFOV = 2; // Only player FOV
   _fCustomFOV = -1.0f;
   _fThirdPersonFOV = -1.0f;
   _bCheckFOV = FALSE;
