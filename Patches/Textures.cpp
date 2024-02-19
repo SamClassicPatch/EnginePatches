@@ -337,35 +337,35 @@ void P_ProcessTextureScript(const CTFileName &fnInput)
     _strupr(strLine.str_String);
 
     // Specified texture width
-    if (strLine == "TEXTURE_WIDTH") {
+    if (strLine.HasPrefix("TEXTURE_WIDTH")) {
       strLine.ScanF("TEXTURE_WIDTH %g", &fTextureWidthMeters);
       ctFoundData++;
 
     // Amount of texture mipmaps
-    } else if (strLine == "TEXTURE_MIPMAPS") {
+    } else if (strLine.HasPrefix("TEXTURE_MIPMAPS")) {
       strLine.ScanF("TEXTURE_MIPMAPS %d", &ctTexMipmaps);
 
     // Force 32-bit quality on the texture
-    } else if (strLine == "TEXTURE_32BIT") {
+    } else if (strLine.HasPrefix("TEXTURE_32BIT")) {
       ulFlags |= TEX_32BIT;
 
 #if SE1_VER >= SE1_150
     // Compress the entire texture
-    } else if (strLine == "TEXTURE_COMPRESSED") {
+    } else if (strLine.HasPrefix("TEXTURE_COMPRESSED")) {
       ulFlags |= TEX_COMPRESS;
 
     // Compress the alpha channel
-    } else if (strLine == "TEXTURE_COMPRESSALPHA") {
+    } else if (strLine.HasPrefix("TEXTURE_COMPRESSALPHA")) {
       ulFlags |= TEX_COMPRESSALPHA;
 #endif
 
     // Load animations from the script
-    } else if (strLine == "ANIM_START") {
+    } else if (strLine.HasPrefix("ANIM_START")) {
       td.LoadFromScript_t(&strmScript, &lhFrameNames);
       ctFoundData++;
 
     // End script loading
-    } else if (strLine == "END") {
+    } else if (strLine.HasPrefix("END")) {
       break;
 
     // Unrecognized keyword
