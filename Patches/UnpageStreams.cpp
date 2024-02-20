@@ -21,9 +21,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "FileSystem.h"
 
 #include <Engine/Base/Unzip.h>
-#include <CoreLib/Networking/CommInterface.h>
 
 #include <CoreLib/Base/Unzip.h>
+#include <CoreLib/Interfaces/ResourceFunctions.h>
 
 #if CLASSICSPATCH_FIX_STREAMPAGING
 
@@ -97,8 +97,28 @@ void CFileStreamPatch::P_Open(const CTFileName &fnFileName, CTStream::OpenMode o
   ASSERT(fnFileName.Length() > 0);
   ASSERT(fstrm_pFile == NULL && fstrm_iZipHandle == -1);
 
+  const ULONG ulOpenFlags = (om == OM_READ) ? EFP_READ : EFP_WRITE;
   CTFileName fnmFullFileName;
-  INDEX iFile = ExpandFilePath((om == OM_READ) ? EFP_READ : EFP_WRITE, fnFileName, fnmFullFileName);
+  INDEX iFile = ExpandFilePath(ulOpenFlags, fnFileName, fnmFullFileName);
+
+  // [Cecil] Substitute missing resources with placeholders
+  INDEX iPlaceholders = _EnginePatches._bUsePlaceholderResources;
+
+  // [Cecil] Replace every resource for fun or only the ones that weren't found
+  if (iPlaceholders >= 2 || (iPlaceholders > 0 && iFile == EFP_NONE)) {
+    CTFileName fnmReplacement = fnFileName;
+    CTString strExt = fnmReplacement.FileExt();
+
+    if (strExt == ".mdl") {
+      fnmReplacement = CTString("ModelsPatch\\Placeholder.mdl");
+    } else if (strExt == ".tex") {
+      fnmReplacement = CTString("TexturesPatch\\Placeholder.tex");
+    } else if (strExt == ".wav" || strExt == ".mp3" || strExt == ".ogg") {
+      fnmReplacement = CTString("Sounds\\Misc\\Silence.wav");
+    }
+
+    iFile = ExpandFilePath(ulOpenFlags, fnmReplacement, fnmFullFileName);
+  }
 
   if (om == OM_READ) {
     fstrm_pFile = NULL;

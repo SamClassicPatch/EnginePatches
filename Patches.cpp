@@ -72,6 +72,11 @@ void CPatches::CorePatches(void) {
     Network();
     Worlds();
   }
+
+  // Custom symbols for pre-engine initialization patches
+#if CLASSICSPATCH_FIX_STREAMPAGING
+  _pShell->DeclareSymbol("user INDEX sam_bUsePlaceholderResources;", &_EnginePatches._bUsePlaceholderResources);
+#endif
 };
 
 #include "Patches/Entities.h"

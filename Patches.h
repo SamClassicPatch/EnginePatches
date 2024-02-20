@@ -42,6 +42,7 @@ class PATCHES_API CPatches {
 
     // Unpage streams
     ULONG _ulMaxWriteMemory; // Enough memory for writing
+    INDEX _bUsePlaceholderResources; // Automatically replace missing resources with placeholders
 
     // Worlds
     ELevelFormat _eWorldFormat; // Format of the last loaded world
