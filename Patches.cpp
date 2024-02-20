@@ -38,6 +38,42 @@ CPatches::CPatches() {
   _bReinitWorld = FALSE;
 };
 
+// Apply core patches (called after Core initialization!)
+void CPatches::CorePatches(void) {
+  const BOOL bGame = GetAPI()->IsGameApp();
+  const BOOL bServer = GetAPI()->IsServerApp();
+  const BOOL bEditor = GetAPI()->IsEditorApp();
+
+  // Patch for everything
+  Strings();
+  Textures();
+
+  // Patch for the game and the editor
+  if (bGame || bEditor) {
+    Entities();
+    LogicTimers();
+    Network();
+    Rendering();
+    Worlds();
+
+    #if SE1_VER >= SE1_107
+      Ska();
+    #endif
+
+    if (bGame) {
+      SoundLibrary();
+    }
+  }
+
+  // Patch for the server
+  if (bServer) {
+    Entities();
+    LogicTimers();
+    Network();
+    Worlds();
+  }
+};
+
 #include "Patches/Entities.h"
 
 void CPatches::Entities(void) {

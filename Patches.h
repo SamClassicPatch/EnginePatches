@@ -52,40 +52,7 @@ class PATCHES_API CPatches {
     CPatches();
 
     // Apply core patches (called after Core initialization!)
-    void CorePatches(void) {
-      const BOOL bGame = GetAPI()->IsGameApp();
-      const BOOL bServer = GetAPI()->IsServerApp();
-      const BOOL bEditor = GetAPI()->IsEditorApp();
-
-      // Patch for everything
-      Strings();
-      Textures();
-
-      // Patch for the game and the editor
-      if (bGame || bEditor) {
-        Entities();
-        LogicTimers();
-        Network();
-        Rendering();
-        Worlds();
-
-        #if SE1_VER >= SE1_107
-          Ska();
-        #endif
-
-        if (bGame) {
-          SoundLibrary();
-        }
-      }
-
-      // Patch for the server
-      if (bServer) {
-        Entities();
-        LogicTimers();
-        Network();
-        Worlds();
-      }
-    };
+    void CorePatches(void);
 
   // Patches after Serious Engine and Core initializations
   public:
