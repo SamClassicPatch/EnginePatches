@@ -404,6 +404,9 @@ void CPatches::Worlds(void) {
   void (CWorld::*pWorldLoad)(const CTFileName &) = &CWorld::Load_t;
   NewPatch(pWorldLoad, &CWorldPatch::P_Load, "CWorld::Load_t(...)");
 
+  pWorldLoad = &CWorld::LoadBrushes_t;
+  NewPatch(pWorldLoad, &CWorldPatch::P_LoadBrushes, "CWorld::LoadBrushes_t(...)");
+
   void (CWorld::*pReadInfo)(CTStream *, BOOL) = &CWorld::ReadInfo_t;
   NewPatch(pReadInfo, &CWorldPatch::P_ReadInfo, "CWorld::ReadInfo_t(...)");
 

@@ -23,25 +23,20 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <Engine/Templates/Stock_CEntityClass.h>
 #include <CoreLib/Interfaces/ResourceFunctions.h>
 
-void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
-  // Open the file
-  wo_fnmFileName = fnmWorld;
-
-  // [Cecil] Loading from the current game directory
+// [Cecil] Determine world format before loading the world itself
+void CWorldPatch::DetermineWorldFormat(const CTFileName &fnmWorld, CTFileStream &strmFile) {
+  // Loading from the current game directory
   ELevelFormat &eWorld = _EnginePatches._eWorldFormat;
   eWorld = E_LF_CURRENT;
 
-  // [Cecil] Check if the level is being loaded from TFE
+  // Check if the level is being loaded from TFE
   #if TSE_FUSION_MODE
     if (IsFileFromDir(GAME_DIR_TFE, fnmWorld)) {
       eWorld = E_LF_TFE;
     }
   #endif
 
-  CTFileStream strmFile;
-  strmFile.Open_t(fnmWorld);
-
-  // [Cecil] Determine world format before loading anything else
+  // Determine world format from world info
   {
     strmFile.ExpectID_t("BUIV");
 
@@ -61,6 +56,18 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
     // Reset the stream
     strmFile.SetPos_t(0);
   }
+};
+
+void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
+  // Open the file
+  wo_fnmFileName = fnmWorld;
+
+  CTFileStream strmFile;
+  strmFile.Open_t(fnmWorld);
+
+  // [Cecil] Determine world format
+  ELevelFormat &eWorld = _EnginePatches._eWorldFormat;
+  DetermineWorldFormat(fnmWorld, strmFile);
 
   // [Cecil] Set converter for the world format and reset it
   #if CLASSICSPATCH_CONVERT_MAPS
@@ -129,6 +136,27 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
 
   // [Cecil] Call API method after loading the world
   GetAPI()->OnWorldLoad(this, fnmWorld);
+};
+
+void CWorldPatch::P_LoadBrushes(const CTFileName &fnmWorld) {
+  // Open the file
+  wo_fnmFileName = fnmWorld;
+
+  CTFileStream strmFile;
+  strmFile.Open_t(fnmWorld);
+
+  // [Cecil] Determine world format
+  DetermineWorldFormat(fnmWorld, strmFile);
+
+  // Check engine build
+  BOOL bNeedsReinit;
+  _pNetwork->CheckVersion_t(strmFile, FALSE, bNeedsReinit);
+  ASSERT(!bNeedsReinit);
+
+  strmFile.ExpectID_t("WRLD");
+
+  // Read world brushes from the file
+  ReadBrushes_t(&strmFile);
 };
 
 // Read world information

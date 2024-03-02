@@ -24,7 +24,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 class CWorldPatch : public CWorld {
   public:
+    // [Cecil] Determine world format before loading the world itself
+    void DetermineWorldFormat(const CTFileName &fnmWorld, CTFileStream &strmFile);
+
     void P_Load(const CTFileName &fnmWorld);
+    void P_LoadBrushes(const CTFileName &fnmWorld);
 
     // Read world information
     void P_ReadInfo(CTStream *strm, BOOL bMaybeDescription);
