@@ -90,3 +90,44 @@ void IMapConverter::CreateGlobalLight(void) {
 };
 
 #endif // CLASSICSPATCH_CONVERT_MAPS
+
+// Load some class from patch's ExtraEntities library instead of vanilla entities, if required
+BOOL LoadClassFromExtras(CTString &strClassName, CTFileName &fnmDLL, const char **aTable) {
+  // ExtraEntities library is part of the custom mod
+  if (!CCoreAPI::IsCustomModActive()) return FALSE;
+
+  INDEX i = 0;
+
+  while (aTable[i] != NULL) {
+    // If found the class in the table
+    if (strClassName == aTable[i]) {
+      // Replace the library and exit
+      fnmDLL = CTString("Bin\\ClassicsExtras.dll");
+      return TRUE;
+    }
+
+    i++;
+  }
+
+  // Class not found
+  return FALSE;
+};
+
+// Load another class in place of the current one, if it's found in the replacement table
+BOOL ReplaceClassFromTable(CTString &strClassName, ClassReplacementPair *aTable) {
+  INDEX i = 0;
+
+  while (aTable[i].strOld != NULL) {
+    // If found the class in the table
+    if (strClassName == aTable[i].strOld) {
+      // Replace it with another one and exit
+      strClassName = aTable[i].strNew;
+      return TRUE;
+    }
+
+    i++;
+  }
+
+  // Class not found
+  return FALSE;
+};

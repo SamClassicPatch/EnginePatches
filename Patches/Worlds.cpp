@@ -238,40 +238,29 @@ CEntity *CWorldPatch::P_CreateEntity(const CPlacement3D &plPlacement, const CTFi
 
 #if SE1_GAME != SS_REV
   // [Cecil] Replace nonexistent classes from Revolution before loading them
-  if (_EnginePatches._eWorldFormat == E_LF_SSR && !FileExists(fnmCopy)) {
-    #define REPLACE_CLASS(_Old, _New) if (fnmCopy == "Classes\\" _Old ".ecl") fnmCopy = CTString("Classes\\" _New ".ecl")
+  if (_EnginePatches._eWorldFormat == E_LF_SSR && !FileExists(fnmCopy))
+  {
+    static ClassReplacementPair aRevReplace[] = {
+      { "Classes\\Achievement.ecl",          "Classes\\Trigger.ecl" },
+      { "Classes\\Catman.ecl",               "Classes\\Grunt.ecl" },
+      { "Classes\\ControlZone.ecl",          "Classes\\Trigger.ecl" },
+      { "Classes\\Cyborg.ecl",               "Classes\\Walker.ecl" },
+      { "Classes\\Destroyer.ecl",            "Classes\\Demon.ecl" },
+      { "Classes\\Dragonman.ecl",            "Classes\\Woman.ecl" },
+      { "Classes\\Fishman.ecl",              "Classes\\Headman.ecl" },
+      { "Classes\\FlagItem.ecl",             "Classes\\HealthItem.ecl" },
+      { "Classes\\Huanman.ecl",              "Classes\\Grunt.ecl" },
+      { "Classes\\Mamut.ecl",                "Classes\\Werebull.ecl" },
+      { "Classes\\Mamutman.ecl",             "Classes\\Headman.ecl" },
+      { "Classes\\Mantaman.ecl",             "Classes\\Grunt.ecl" },
+      { "Classes\\PostProcessingEffect.ecl", "Classes\\Marker.ecl" },
+      { "Classes\\SpectatorCamera.ecl",      "Classes\\Marker.ecl" },
+      { "Classes\\Ughzy.ecl",                "Classes\\Guffy.ecl" },
+      { "Classes\\WorldInfo.ecl",            "Classes\\Marker.ecl" },
+      { NULL, NULL },
+    };
 
-    REPLACE_CLASS("Achievement", "Trigger");
-    else
-    REPLACE_CLASS("Catman", "Grunt");
-    else
-    REPLACE_CLASS("ControlZone", "Trigger");
-    else
-    REPLACE_CLASS("Cyborg", "Walker");
-    else
-    REPLACE_CLASS("Destroyer", "Demon");
-    else
-    REPLACE_CLASS("Dragonman", "Woman");
-    else
-    REPLACE_CLASS("Fishman", "Headman");
-    else
-    REPLACE_CLASS("FlagItem", "HealthItem");
-    else
-    REPLACE_CLASS("Huanman", "Grunt");
-    else
-    REPLACE_CLASS("Mamut", "Werebull");
-    else
-    REPLACE_CLASS("Mamutman", "Headman");
-    else
-    REPLACE_CLASS("Mantaman", "Grunt");
-    else
-    REPLACE_CLASS("PostProcessingEffect", "Marker");
-    else
-    REPLACE_CLASS("SpectatorCamera", "Marker");
-    else
-    REPLACE_CLASS("Ughzy", "Guffy");
-    else
-    REPLACE_CLASS("WorldInfo", "Marker");
+    ReplaceClassFromTable(fnmCopy, aRevReplace);
   }
 #endif
 

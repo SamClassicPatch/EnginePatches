@@ -126,4 +126,16 @@ class IMapConverter {
 
 #endif // CLASSICSPATCH_CONVERT_MAPS
 
+// Pair of class names for a replacement table
+struct ClassReplacementPair {
+  const char *strOld;
+  const char *strNew;
+};
+
+// Load some class from patch's ExtraEntities library instead of vanilla entities, if required
+BOOL LoadClassFromExtras(CTString &strClassName, CTFileName &fnmDLL, const char **aTable);
+
+// Load another class in place of the current one, if it's found in the replacement table
+BOOL ReplaceClassFromTable(CTString &strClassName, ClassReplacementPair *aTable);
+
 #endif

@@ -18,6 +18,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #if CLASSICSPATCH_ENGINEPATCHES
 
 #include "FileSystem.h"
+#include "../MapConversion.h"
 
 #include <STLIncludesBegin.h>
 #include <fstream>
@@ -64,55 +65,45 @@ void CEntityClassPatch::P_Read(CTStream *istr) {
   // [Cecil] One-time check for vanilla entities
   const BOOL bVanillaEntities = (fnmDLL == "Bin\\Entities.dll");
 
-  // [Cecil] Replace nonexistent classes
+  // [Cecil] Replace nonexistent vanilla classes
   if (bVanillaEntities) {
-    // Replace one class with another
-    #define REPLACE_CLASS(_Old, _New) if (strClassName == _Old) strClassName = _New
-
-    // Load the same class from extra entities library
-    #define REPLACE_EXTRA(_Class) if (strClassName == _Class) fnmDLL = CTString("Bin\\ClassicsExtras.dll")
-
   #if SE1_GAME != SS_REV
-    // Classes from Alpha
-    REPLACE_EXTRA("CAirWave");
-    else
-    REPLACE_EXTRA("CCatman");
-    else
-    REPLACE_EXTRA("CCyborg");
-    else
-    REPLACE_EXTRA("CDragonman");
-    else
-    REPLACE_EXTRA("CFishman");
-    else
-    REPLACE_EXTRA("CHuanman");
-    else
-    REPLACE_EXTRA("CMamut");
-    else
-    REPLACE_EXTRA("CMamutman");
-    else
-    REPLACE_EXTRA("CMantaman");
-    else
-    REPLACE_EXTRA("CRobotDriving");
-    else
-    REPLACE_EXTRA("CRobotFlying");
+    // Classes available in ExtraEntities library
+    static const char *aExtras[] = {
+      "CAirWave",
+      "CCatman",
+      "CCyborg",
+      "CDragonman",
+      "CFishman",
+      "CHuanman",
+      "CMamut",
+      "CMamutman",
+      "CMantaman",
+      "CRobotDriving",
+      "CRobotFlying",
+      NULL,
+    };
 
-    // Classes from Revolution
-    else if (_EnginePatches._eWorldFormat == E_LF_SSR) {
-      REPLACE_CLASS("CAchievementEntity", "CTrigger");
-      else
-      REPLACE_CLASS("CControlZoneEntity", "CTrigger");
-      else
-      REPLACE_CLASS("CDestroyer", "CDemon");
-      else
-      REPLACE_CLASS("CFlagItem", "CHealthItem");
-      else
-      REPLACE_CLASS("CPostProcessingEffect", "CMarker");
-      else
-      REPLACE_CLASS("CSpectatorCamera", "CMarker");
-      else
-      REPLACE_CLASS("CUghzy", "CGuffy");
-      else
-      REPLACE_CLASS("CWorldInfo", "CMarker");
+    // If couldn't replace class with something from ExtraEntities
+    if (!LoadClassFromExtras(strClassName, fnmDLL, aExtras))
+    {
+      // Try replacing classes from Revolution
+      if (_EnginePatches._eWorldFormat == E_LF_SSR)
+      {
+        static ClassReplacementPair aRevReplace[] = {
+          { "CAchievementEntity",    "CTrigger" },
+          { "CControlZoneEntity",    "CTrigger" },
+          { "CDestroyer",            "CDemon" },
+          { "CFlagItem",             "CHealthItem" },
+          { "CPostProcessingEffect", "CMarker" },
+          { "CSpectatorCamera",      "CMarker" },
+          { "CUghzy",                "CGuffy" },
+          { "CWorldInfo",            "CMarker" },
+          { NULL, NULL },
+        };
+
+        ReplaceClassFromTable(strClassName, aRevReplace);
+      }
     }
   #endif
   }
