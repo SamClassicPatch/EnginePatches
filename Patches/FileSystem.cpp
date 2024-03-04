@@ -61,51 +61,68 @@ void CEntityClassPatch::P_Read(CTStream *istr) {
   CTString strClassName;
   strClassName.ReadFromText_t(*istr, "Class: ");
 
-#if SE1_GAME != SS_REV
-  // [Cecil] Replace nonexistent classes from Revolution before loading them
-  if (_EnginePatches._eWorldFormat == E_LF_SSR && fnmDLL == "Bin\\Entities.dll") {
+  // [Cecil] One-time check for vanilla entities
+  const BOOL bVanillaEntities = (fnmDLL == "Bin\\Entities.dll");
+
+  // [Cecil] Replace nonexistent classes
+  if (bVanillaEntities) {
+    // Replace one class with another
     #define REPLACE_CLASS(_Old, _New) if (strClassName == _Old) strClassName = _New
 
-    REPLACE_CLASS("CAchievementEntity", "CTrigger");
+    // Load the same class from extra entities library
+    #define REPLACE_EXTRA(_Class) if (strClassName == _Class) fnmDLL = CTString("Bin\\ClassicsExtras.dll")
+
+  #if SE1_GAME != SS_REV
+    // Classes from Alpha
+    REPLACE_EXTRA("CAirWave");
     else
-    REPLACE_CLASS("CCatman", "CGrunt");
+    REPLACE_EXTRA("CCatman");
     else
-    REPLACE_CLASS("CControlZoneEntity", "CTrigger");
+    REPLACE_EXTRA("CCyborg");
     else
-    REPLACE_CLASS("CCyborg", "CWalker");
+    REPLACE_EXTRA("CDragonman");
     else
-    REPLACE_CLASS("CDestroyer", "CDemon");
+    REPLACE_EXTRA("CFishman");
     else
-    REPLACE_CLASS("CDragonman", "CWoman");
+    REPLACE_EXTRA("CHuanman");
     else
-    REPLACE_CLASS("CFishman", "CHeadman");
+    REPLACE_EXTRA("CMamut");
     else
-    REPLACE_CLASS("CFlagItem", "CHealthItem");
+    REPLACE_EXTRA("CMamutman");
     else
-    REPLACE_CLASS("CHuanman", "CGrunt");
+    REPLACE_EXTRA("CMantaman");
     else
-    REPLACE_CLASS("CMamut", "CWerebull");
+    REPLACE_EXTRA("CRobotDriving");
     else
-    REPLACE_CLASS("CMamutman", "CHeadman");
-    else
-    REPLACE_CLASS("CMantaman", "CGrunt");
-    else
-    REPLACE_CLASS("CPostProcessingEffect", "CMarker");
-    else
-    REPLACE_CLASS("CSpectatorCamera", "CMarker");
-    else
-    REPLACE_CLASS("CUghzy", "CGuffy");
-    else
-    REPLACE_CLASS("CWorldInfo", "CMarker");
+    REPLACE_EXTRA("CRobotFlying");
+
+    // Classes from Revolution
+    else if (_EnginePatches._eWorldFormat == E_LF_SSR) {
+      REPLACE_CLASS("CAchievementEntity", "CTrigger");
+      else
+      REPLACE_CLASS("CControlZoneEntity", "CTrigger");
+      else
+      REPLACE_CLASS("CDestroyer", "CDemon");
+      else
+      REPLACE_CLASS("CFlagItem", "CHealthItem");
+      else
+      REPLACE_CLASS("CPostProcessingEffect", "CMarker");
+      else
+      REPLACE_CLASS("CSpectatorCamera", "CMarker");
+      else
+      REPLACE_CLASS("CUghzy", "CGuffy");
+      else
+      REPLACE_CLASS("CWorldInfo", "CMarker");
+    }
+  #endif
   }
-#endif
 
   // [Cecil] Construct full path to the entities library
   const CTString strLibName = fnmDLL.FileName();
   const CTString strLibExt = fnmDLL.FileExt();
 
   // Find appropriate default entities library
-  if (CCoreAPI::IsCustomModActive() && fnmDLL == "Bin\\Entities.dll") {
+  if (CCoreAPI::IsCustomModActive() && bVanillaEntities) {
     fnmDLL = CCoreAPI::AppPath() + CCoreAPI::FullLibPath(strLibName + _strModExt, strLibExt);
 
   // Use original path to the library
