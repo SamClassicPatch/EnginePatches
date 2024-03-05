@@ -445,8 +445,8 @@ BOOL IConvertSSR::ConvertEntity(CEntity *pen) {
       INDEX &iType = ENTITYPROPERTY(pen, pptrType.Offset(), INDEX);
 
       switch (iType) {
-        case 2: iType = WLC_SOLDIER; break; // Spawner
-        case 3: iType = WLC_SERGEANT; break; // Artillery
+        case 2: iType = WLC_SERGEANT; break; // Artillery
+        case 3: iType = WLC_SOLDIER; break; // Spawner
       }
     }
 
