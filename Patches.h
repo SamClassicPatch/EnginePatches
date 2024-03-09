@@ -72,7 +72,7 @@ class PATCHES_API CPatches {
 
     #if SE1_VER >= SE1_107
       // Fix SKA models
-      void Ska(void);
+      void Ska(BOOL bRawPatches);
     #endif
 
     // Enhance sound library usage
@@ -92,11 +92,6 @@ class PATCHES_API CPatches {
 
     // Customize core file handling in the engine
     void FileSystem(void);
-
-    #if SE1_VER >= SE1_107
-      // Apply patches upon loading the shaders library
-      void ShadersPatches(void);
-    #endif
 
     // Don't use memory paging in streams
     void UnpageStreams(void);

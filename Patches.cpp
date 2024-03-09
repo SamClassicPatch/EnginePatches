@@ -57,7 +57,7 @@ void CPatches::CorePatches(void) {
     Worlds();
 
     #if SE1_VER >= SE1_107
-      Ska();
+      Ska(FALSE);
     #endif
 
     if (bGame) {
@@ -301,49 +301,33 @@ void CPatches::Rendering(void) {
 
 #include "Patches/Ska.h"
 
-// SKA models have been patched
-static BOOL _bSkaPatched = FALSE;
-
-void CPatches::ShadersPatches(void) {
+void CPatches::Ska(BOOL bRawPatches) {
 #if CLASSICSPATCH_FIX_SKA
 
-  // Already patched
-  if (_bSkaPatched) return;
+  // SKA models have been patched
+  static BOOL _bSkaPatched = FALSE;
 
+  if (_bSkaPatched) return;
   _bSkaPatched = TRUE;
+
+  void (*pFogHazeFunc)(BOOL) = &RM_DoFogAndHaze;
+  void (*pFogPassFunc)(void) = &shaDoFogPass;
+  void (*pSetWrappingFunc)(GfxWrap, GfxWrap) = &shaSetTextureWrapping;
 
   // Create raw patches in memory
-  void (*pDoFogHazeFunc)(BOOL) = &RM_DoFogAndHaze;
-  NewRawPatch(pDoFogHazeFunc, &P_DoFogAndHaze, "RM_DoFogAndHaze(...)");
-
-  void (*pDoFogPassFunc)(void) = &shaDoFogPass;
-  CPatch::ForceRewrite(7); // Rewrite complex instruction
-  NewRawPatch(pDoFogPassFunc, &P_shaDoFogPass, "shaDoFogPass(...)");
-
-  void (*pSetWrappingFunc)(GfxWrap, GfxWrap) = &shaSetTextureWrapping;
-  NewRawPatch(pSetWrappingFunc, &P_shaSetTextureWrapping, "shaSetTextureWrapping(...)");
-
-#endif // CLASSICSPATCH_FIX_SKA
-};
-
-void CPatches::Ska(void) {
-#if CLASSICSPATCH_FIX_SKA
-
-  // Already patched
-  if (_bSkaPatched) return;
-
-  _bSkaPatched = TRUE;
+  if (bRawPatches) {
+    NewRawPatch(pFogHazeFunc, &P_DoFogAndHaze, "RM_DoFogAndHaze(...)");
+    CPatch::ForceRewrite(7); // Rewrite complex instruction
+    NewRawPatch(pFogPassFunc, &P_shaDoFogPass, "shaDoFogPass(...)");
+    NewRawPatch(pSetWrappingFunc, &P_shaSetTextureWrapping, "shaSetTextureWrapping(...)");
 
   // Create patches in the registry
-  void (*pFogHazeFunc)(BOOL) = &RM_DoFogAndHaze;
-  NewPatch(pFogHazeFunc, &P_DoFogAndHaze, "RM_DoFogAndHaze(...)");
-
-  void (*pFogPassFunc)(void) = &shaDoFogPass;
-  CPatch::ForceRewrite(7); // Rewrite complex instruction
-  NewPatch(pFogPassFunc, &P_shaDoFogPass, "shaDoFogPass(...)");
-
-  void (*pSetWrappingFunc)(GfxWrap, GfxWrap) = &shaSetTextureWrapping;
-  NewPatch(pSetWrappingFunc, &P_shaSetTextureWrapping, "shaSetTextureWrapping(...)");
+  } else {
+    NewPatch(pFogHazeFunc, &P_DoFogAndHaze, "RM_DoFogAndHaze(...)");
+    CPatch::ForceRewrite(7); // Rewrite complex instruction
+    NewPatch(pFogPassFunc, &P_shaDoFogPass, "shaDoFogPass(...)");
+    NewPatch(pSetWrappingFunc, &P_shaSetTextureWrapping, "shaSetTextureWrapping(...)");
+  }
 
 #endif // CLASSICSPATCH_FIX_SKA
 };
