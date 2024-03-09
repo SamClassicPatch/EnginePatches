@@ -70,9 +70,11 @@ void CEntityClassPatch::P_Read(CTStream *istr) {
   #if SE1_GAME != SS_REV
     // Classes available in ExtraEntities library
     static const char *aExtras[] = {
+      // Alpha enemies
       "CAirWave",
       "CCatman",
       "CCyborg",
+      "CCyborgBike",
       "CDragonman",
       "CFishman",
       "CHuanman",
@@ -80,7 +82,21 @@ void CEntityClassPatch::P_Read(CTStream *istr) {
       "CMamutman",
       "CMantaman",
       "CRobotDriving",
+      "CRobotFixed",
       "CRobotFlying",
+      "CTerrainEntity",
+
+      // Revolution entities (commented ones aren't finished)
+      "CAchievementEntity",
+      "CControlZoneEntity",
+      "CDestroyer",
+      "CFlagItem",
+      //"CModelHolder2Movable",
+      //"CPostProcessingEffect",
+      "CSpectatorCamera",
+      "CUghzy",
+      //"CVehicle",
+      "CWorldInfoEntity",
       NULL,
     };
 
@@ -91,6 +107,17 @@ void CEntityClassPatch::P_Read(CTStream *istr) {
       if (_EnginePatches._eWorldFormat == E_LF_SSR)
       {
         static ClassReplacementPair aRevReplace[] = {
+          // Alpha enemies
+          { "CCatman",               "CGrunt.ecl" },
+          { "CCyborg",               "CWalker" },
+          { "CDragonman",            "CWoman" },
+          { "CFishman",              "CHeadman" },
+          { "CHuanman",              "CGrunt" },
+          { "CMamut",                "CWerebull" },
+          { "CMamutman",             "CHeadman" },
+          { "CMantaman",             "CGrunt" },
+
+          // Revolution entities
           { "CAchievementEntity",    "CTrigger" },
           { "CControlZoneEntity",    "CTrigger" },
           { "CDestroyer",            "CDemon" },
@@ -98,7 +125,7 @@ void CEntityClassPatch::P_Read(CTStream *istr) {
           { "CPostProcessingEffect", "CMarker" },
           { "CSpectatorCamera",      "CMarker" },
           { "CUghzy",                "CGuffy" },
-          { "CWorldInfo",            "CMarker" },
+          { "CWorldInfoEntity",      "CMarker" },
           { NULL, NULL },
         };
 
