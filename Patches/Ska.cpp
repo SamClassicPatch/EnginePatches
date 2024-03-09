@@ -26,6 +26,19 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 CSkaPatch _SkaPatch;
 
+// Original function pointers
+void (CModelInstance::*pModelInstanceCopyFunc)(CModelInstance &) = NULL;
+
+void CModelInstancePatch::P_Copy(CModelInstance &miOther) {
+  // Proceed to the original function
+  (this->*pModelInstanceCopyFunc)(miOther);
+
+  // Copy collision box for all frames
+  mi_cbAllFramesBBox.Min() = miOther.mi_cbAllFramesBBox.Min();
+  mi_cbAllFramesBBox.Max() = miOther.mi_cbAllFramesBBox.Max();
+  mi_cbAllFramesBBox.SetName(miOther.mi_cbAllFramesBBox.GetName());
+};
+
 // Update model for fog and haze
 void P_DoFogAndHaze(BOOL bOpaqueSurface) {
   // Get current surface vertex array

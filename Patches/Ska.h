@@ -65,6 +65,11 @@ class CSkaPatch {
 
 PATCHES_API extern CSkaPatch _SkaPatch;
 
+class CModelInstancePatch : public CModelInstance {
+  public:
+    void P_Copy(CModelInstance &miOther);
+};
+
 // Check vertex against fog
 __forceinline void GetFogMapInVertex(GFXVertex4 &vtx, GFXTexCoord &tex) {
   const FLOAT3D &vDirView = _SkaPatch.vDirView;

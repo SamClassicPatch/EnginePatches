@@ -314,6 +314,9 @@ void CPatches::Ska(BOOL bRawPatches) {
   void (*pFogPassFunc)(void) = &shaDoFogPass;
   void (*pSetWrappingFunc)(GfxWrap, GfxWrap) = &shaSetTextureWrapping;
 
+  extern void (CModelInstance::*pModelInstanceCopyFunc)(CModelInstance &);
+  pModelInstanceCopyFunc = &CModelInstance::Copy;
+
   // Create raw patches in memory
   if (bRawPatches) {
     NewRawPatch(pFogHazeFunc, &P_DoFogAndHaze, "RM_DoFogAndHaze(...)");
@@ -321,12 +324,16 @@ void CPatches::Ska(BOOL bRawPatches) {
     NewRawPatch(pFogPassFunc, &P_shaDoFogPass, "shaDoFogPass(...)");
     NewRawPatch(pSetWrappingFunc, &P_shaSetTextureWrapping, "shaSetTextureWrapping(...)");
 
+    NewRawPatch(pModelInstanceCopyFunc, &CModelInstancePatch::P_Copy, "CModelInstance::Copy(...)");
+
   // Create patches in the registry
   } else {
     NewPatch(pFogHazeFunc, &P_DoFogAndHaze, "RM_DoFogAndHaze(...)");
     CPatch::ForceRewrite(7); // Rewrite complex instruction
     NewPatch(pFogPassFunc, &P_shaDoFogPass, "shaDoFogPass(...)");
     NewPatch(pSetWrappingFunc, &P_shaSetTextureWrapping, "shaSetTextureWrapping(...)");
+
+    NewPatch(pModelInstanceCopyFunc, &CModelInstancePatch::P_Copy, "CModelInstance::Copy(...)");
   }
 
 #endif // CLASSICSPATCH_FIX_SKA
