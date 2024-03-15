@@ -419,6 +419,11 @@ BOOL IConvertSSR::ConvertEntity(CEntity *pen) {
       }
     }
 
+  // Replace new elemental types
+  } else if (IsOfClassID(pen, CElemental_ClassID)) {
+    // Reinitialize
+    return FALSE;
+
   // Replace new headman types
   } else if (IsOfClassID(pen, CHeadman_ClassID)) {
     // Retrieve CHeadman::m_hdtType
@@ -564,10 +569,12 @@ BOOL IConvertSSR::ConvertEntity(CEntity *pen) {
 
   // [Cecil] NOTE: This normally isn't required but since some Revolution enemies are being
   // replaced with TSE ones, all placed enemies need to be reinitialized to reset their models
-  return !IsDerivedFromID(pen, CEnemyBase_ClassID);
+  if (!CCoreAPI::IsCustomModActive()) {
+    return !IsDerivedFromID(pen, CEnemyBase_ClassID);
+  }
 
   // Converted without having to reinitialize
-  //return TRUE;
+  return TRUE;
 };
 
 // Convert the entire world with possible entity reinitializations
