@@ -97,6 +97,16 @@ static inline void ReplaceMissingClasses(CTString &strClassName, CTFileName &fnm
   // Not a Revolution map
   if (_EnginePatches._eWorldFormat != E_LF_SSR) return;
 
+  // Replace some vanilla enemies with those from ExtraEntities library
+  static const char *aRevEnemies[] = {
+    "CElemental",
+    "CHeadman",
+    "CWalker",
+    NULL,
+  };
+
+  if (LoadClassFromExtras(strClassName, fnmDLL, aRevEnemies)) return;
+
   // Replace classes from Revolution
   static ClassReplacementPair aRevReplace[] = {
     // Alpha enemies
@@ -107,7 +117,7 @@ static inline void ReplaceMissingClasses(CTString &strClassName, CTFileName &fnm
     { "CHuanman",              "CGrunt" },
     { "CMamut",                "CWerebull" },
     { "CMamutman",             "CHeadman" },
-    { "CMantaman",             "CGrunt" },
+    { "CMantaman",             "CFish" },
     { "CRobotDriving",         "CGrunt" },
     { "CRobotFlying",          "CWoman" },
 
