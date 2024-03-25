@@ -217,6 +217,58 @@ static INDEX ConvertBlendMode(INDEX iMode, INDEX iFirstNew, INDEX iFirstConverte
   return iMode;
 };
 
+// Convert brush entity
+static void ConvertBrushEntity(CEntity *penBrush) {
+  // Go through each polygon in each brush mip
+  FOREACHINLIST(CBrushMip, bm_lnInBrush, penBrush->GetBrush()->br_lhBrushMips, itbm) {
+    FOREACHINDYNAMICARRAY(itbm->bm_abscSectors, CBrushSector, itbsc) {
+      FOREACHINSTATICARRAY(itbsc->bsc_abpoPolygons, CBrushPolygon, itbpo) {
+        // Convert surface type
+        UBYTE &ubSurface = itbpo->bpo_bppProperties.bpp_ubSurfaceType;
+
+        switch (ubSurface) {
+          case 22: // Sliding weeee slope
+            ubSurface = 5; // Ice sliding slope
+            break;
+
+          case 23: // Gravel
+            ubSurface = 0; // Standard
+            break;
+
+          case 24: // Gravel no impact
+            ubSurface = 11; // Standard - no impact
+            break;
+
+          case 25: // Sand no impact
+            ubSurface = SURFACE_SAND; // Sand
+            break;
+
+          case 26: // Red sand no impact
+            ubSurface = SURFACE_RED_SAND; // Red sand
+            break;
+
+          case 27: // Wood no impact
+            ubSurface = SURFACE_WOOD; // Wood
+            break;
+
+          case 28: // Snow no impact
+            ubSurface = SURFACE_SNOW; // Snow
+            break;
+        }
+
+        // Convert blend modes
+        UBYTE &ub1 = itbpo->bpo_abptTextures[0].s.bpt_ubBlend;
+        UBYTE &ub2 = itbpo->bpo_abptTextures[1].s.bpt_ubBlend;
+        UBYTE &ub3 = itbpo->bpo_abptTextures[2].s.bpt_ubBlend;
+
+        ub1 = ConvertBlendMode(ub1, 16, 11);
+        ub2 = ConvertBlendMode(ub2, 16, 11);
+        ub3 = ConvertBlendMode(ub3, 16, 11);
+      }
+    }
+  }
+};
+
 // Convert one specific entity without reinitializing it
 BOOL IConvertSSR::ConvertEntity(CEntity *pen) {
   // Replace plasma packs and mine packs
@@ -254,21 +306,6 @@ BOOL IConvertSSR::ConvertEntity(CEntity *pen) {
         // Minelayer
         case 15: iType = WIT_GRENADELAUNCHER; break;
       }
-    }
-
-    // Reinitialize
-    return FALSE;
-
-  // Replace new powerups
-  } else if (!CCoreAPI::IsCustomModActive() && IsOfClassID(pen, CPowerUpItem_ClassID)) {
-    // Retrieve CPowerUpItem::m_puitType
-    static CPropertyPtr pptrType(pen);
-
-    if (pptrType.ByVariable("CPowerUpItem", "m_puitType")) {
-      INDEX &iType = ENTITYPROPERTY(pen, pptrType.Offset(), INDEX);
-
-      // Serious Jump
-      if (iType == 5) iType = PUIT_SPEED;
     }
 
     // Reinitialize
@@ -419,45 +456,6 @@ BOOL IConvertSSR::ConvertEntity(CEntity *pen) {
       }
     }
 
-  // Replace new elemental types
-  } else if (IsOfClassID(pen, CElemental_ClassID)) {
-    // Reinitialize
-    return FALSE;
-
-  // Replace new headman types
-  } else if (IsOfClassID(pen, CHeadman_ClassID)) {
-    // Retrieve CHeadman::m_hdtType
-    static CPropertyPtr pptrType(pen);
-
-    if (pptrType.ByVariable("CHeadman", "m_hdtType")) {
-      INDEX &iType = ENTITYPROPERTY(pen, pptrType.Offset(), INDEX);
-
-      switch (iType) {
-        case 4: iType = HDT_BOMBERMAN; break; // Commando
-        case 5: iType = HDT_FIRECRACKER; break; // Vaporwave
-      }
-    }
-
-    // Reinitialize
-    return FALSE;
-
-  // Replace new walker types
-  } else if (IsOfClassID(pen, CWalker_ClassID)) {
-    // Retrieve CWalker::m_EwcChar
-    static CPropertyPtr pptrType(pen);
-
-    if (pptrType.ByVariable("CWalker", "m_EwcChar")) {
-      INDEX &iType = ENTITYPROPERTY(pen, pptrType.Offset(), INDEX);
-
-      switch (iType) {
-        case 2: iType = WLC_SERGEANT; break; // Artillery
-        case 3: iType = WLC_SOLDIER; break; // Spawner
-      }
-    }
-
-    // Reinitialize
-    return FALSE;
-
   // Make soundless sound holders silent
   } else if (IsOfClassID(pen, CSoundHolder_ClassID)) {
     // Retrieve CSoundHolder::m_fnSound and CSoundHolder::m_fVolume
@@ -504,66 +502,77 @@ BOOL IConvertSSR::ConvertEntity(CEntity *pen) {
       }
     }
 
-  // Adjust blend modes
-  } else if (!CCoreAPI::IsCustomModActive() && IsOfClassID(pen, CBlendController_ClassID)) {
-    // Retrieve CBlendController::m_bctType
-    static CPropertyPtr pptrType(pen);
+  // [Cecil] TODO: Move this under '!CCoreAPI::IsCustomModActive()' block once new types are remade
+  // Replace new elemental types
+  } else if (IsOfClassID(pen, CElemental_ClassID)) {
+    // Reinitialize
+    return FALSE;
 
-    // Convert blend type
-    if (pptrType.ByVariable("CBlendController", "m_bctType")) {
-      INDEX &iType = ENTITYPROPERTY(pen, pptrType.Offset(), INDEX);
-      iType = ConvertBlendMode(iType, 7, BCT_ACTIVATE_PLATE_1);
-    }
+  // [Cecil] NOTE: Extra conversions for when custom mod is disabled
+  } else if (!CCoreAPI::IsCustomModActive()) {
+    // Adjust blend modes
+    if (IsOfClassID(pen, CBlendController_ClassID)) {
+      // Retrieve CBlendController::m_bctType
+      static CPropertyPtr pptrType(pen);
 
-  // Adjust brushes
-  } else if (!CCoreAPI::IsCustomModActive() && IsOfClassID(pen, CWorldBase_ClassID)) {
-    // Go through each polygon in each brush mip
-    FOREACHINLIST(CBrushMip, bm_lnInBrush, pen->GetBrush()->br_lhBrushMips, itbm) {
-      FOREACHINDYNAMICARRAY(itbm->bm_abscSectors, CBrushSector, itbsc) {
-        FOREACHINSTATICARRAY(itbsc->bsc_abpoPolygons, CBrushPolygon, itbpo) {
-          // Convert surface type
-          UBYTE &ubSurface = itbpo->bpo_bppProperties.bpp_ubSurfaceType;
+      // Convert blend type
+      if (pptrType.ByVariable("CBlendController", "m_bctType")) {
+        INDEX &iType = ENTITYPROPERTY(pen, pptrType.Offset(), INDEX);
+        iType = ConvertBlendMode(iType, 7, BCT_ACTIVATE_PLATE_1);
+      }
 
-          switch (ubSurface) {
-            case 22: // Sliding weeee slope
-              ubSurface = 5; // Ice sliding slope
-              break;
+    // Replace new headman types
+    } else if (IsOfClassID(pen, CHeadman_ClassID)) {
+      // Retrieve CHeadman::m_hdtType
+      static CPropertyPtr pptrType(pen);
 
-            case 23: // Gravel
-              ubSurface = 0; // Standard
-              break;
+      if (pptrType.ByVariable("CHeadman", "m_hdtType")) {
+        INDEX &iType = ENTITYPROPERTY(pen, pptrType.Offset(), INDEX);
 
-            case 24: // Gravel no impact
-              ubSurface = 11; // Standard - no impact
-              break;
-
-            case 25: // Sand no impact
-              ubSurface = SURFACE_SAND; // Sand
-              break;
-
-            case 26: // Red sand no impact
-              ubSurface = SURFACE_RED_SAND; // Red sand
-              break;
-
-            case 27: // Wood no impact
-              ubSurface = SURFACE_WOOD; // Wood
-              break;
-
-            case 28: // Snow no impact
-              ubSurface = SURFACE_SNOW; // Snow
-              break;
-          }
-
-          // Convert blend modes
-          UBYTE &ub1 = itbpo->bpo_abptTextures[0].s.bpt_ubBlend;
-          UBYTE &ub2 = itbpo->bpo_abptTextures[1].s.bpt_ubBlend;
-          UBYTE &ub3 = itbpo->bpo_abptTextures[2].s.bpt_ubBlend;
-
-          ub1 = ConvertBlendMode(ub1, 16, 11);
-          ub2 = ConvertBlendMode(ub2, 16, 11);
-          ub3 = ConvertBlendMode(ub3, 16, 11);
+        switch (iType) {
+          case 4: iType = HDT_BOMBERMAN; break; // Commando
+          case 5: iType = HDT_FIRECRACKER; break; // Vaporwave
         }
       }
+
+      // Reinitialize
+      return FALSE;
+
+    // Replace new powerups
+    } else if (IsOfClassID(pen, CPowerUpItem_ClassID)) {
+      // Retrieve CPowerUpItem::m_puitType
+      static CPropertyPtr pptrType(pen);
+
+      if (pptrType.ByVariable("CPowerUpItem", "m_puitType")) {
+        INDEX &iType = ENTITYPROPERTY(pen, pptrType.Offset(), INDEX);
+
+        // Serious Jump
+        if (iType == 5) iType = PUIT_SPEED;
+      }
+
+      // Reinitialize
+      return FALSE;
+
+    // Replace new walker types
+    } else if (IsOfClassID(pen, CWalker_ClassID)) {
+      // Retrieve CWalker::m_EwcChar
+      static CPropertyPtr pptrType(pen);
+
+      if (pptrType.ByVariable("CWalker", "m_EwcChar")) {
+        INDEX &iType = ENTITYPROPERTY(pen, pptrType.Offset(), INDEX);
+
+        switch (iType) {
+          case 2: iType = WLC_SERGEANT; break; // Artillery
+          case 3: iType = WLC_SOLDIER; break; // Spawner
+        }
+      }
+
+      // Reinitialize
+      return FALSE;
+
+    // Adjust brushes
+    } else if (IsOfClassID(pen, CWorldBase_ClassID)) {
+      ConvertBrushEntity(pen);
     }
   }
 
