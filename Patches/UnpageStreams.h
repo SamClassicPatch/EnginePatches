@@ -32,6 +32,10 @@ class CStreamPatch : public CTStream {
 
     // Free memory normally
     void P_FreeBuffer(void);
+
+    void P_GetLine(char *strBuffer, SLONG slBufferSize, char cDelimiter) {
+      IData::GetLineFromStream_t(*this, strBuffer, slBufferSize, cDelimiter);
+    };
 };
 
 // CTFileStream patches
