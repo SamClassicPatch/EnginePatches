@@ -109,6 +109,8 @@ void CPatches::Entities(void) {
   CWorld woTemp;
 
   try {
+    CSetFPUPrecision FPUPrecision(FPT_24BIT);
+
     static const CPlacement3D plDummy(FLOAT3D(0, 0, 0), ANGLE3D(0, 0, 0));
     CEntity *penWB = woTemp.CreateEntity_t(plDummy, CTFILENAME("Classes\\WorldBase.ecl"));
     CEntity *penMB = woTemp.CreateEntity_t(plDummy, CTFILENAME("Classes\\MovingBrush.ecl"));
