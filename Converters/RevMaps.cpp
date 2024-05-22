@@ -417,45 +417,6 @@ BOOL IConvertSSR::ConvertEntity(CEntity *pen) {
       }
     }
 
-  // Replace new projectile types
-  } else if (IsOfClassID(pen, CEruptor_ClassID)) {
-    // Retrieve CEruptor::m_ptType
-    static CPropertyPtr pptrType(pen);
-
-    if (pptrType.ByVariable("CEruptor", "m_ptType")) {
-      INDEX &iType = ENTITYPROPERTY(pen, pptrType.Offset(), INDEX);
-
-      switch (iType) {
-        case 78: // Plasma
-          iType = PRT_CYBORG_LASER;
-          break;
-
-        case 79: // Railbolt
-        case 80: // Railbolt spray
-          iType = PRT_ROCKET;
-          break;
-
-        case 30: // Waterman (old)
-        case 33: // Waterman small
-        case 83: // Airman small
-        case 92: // Earthman small
-          iType = PRT_LAVAMAN_STONE;
-          break;
-
-        case 31: // Waterman big
-        case 82: // Airman big
-        case 91: // Earthman big
-          iType = PRT_LAVAMAN_BOMB;
-          break;
-
-        case 32: // Waterman large
-        case 81: // Airman large
-        case 90: // Earthman big bomb
-          iType = PRT_LAVAMAN_BIG_BOMB;
-          break;
-      }
-    }
-
   // Make soundless sound holders silent
   } else if (IsOfClassID(pen, CSoundHolder_ClassID)) {
     // Retrieve CSoundHolder::m_fnSound and CSoundHolder::m_fVolume
@@ -502,12 +463,6 @@ BOOL IConvertSSR::ConvertEntity(CEntity *pen) {
       }
     }
 
-  // [Cecil] TODO: Move this under '!CCoreAPI::IsCustomModActive()' block once new types are remade
-  // Replace new elemental types
-  } else if (IsOfClassID(pen, CElemental_ClassID)) {
-    // Reinitialize
-    return FALSE;
-
   // [Cecil] NOTE: Extra conversions for when custom mod is disabled
   } else if (!CCoreAPI::IsCustomModActive()) {
     // Adjust blend modes
@@ -519,6 +474,50 @@ BOOL IConvertSSR::ConvertEntity(CEntity *pen) {
       if (pptrType.ByVariable("CBlendController", "m_bctType")) {
         INDEX &iType = ENTITYPROPERTY(pen, pptrType.Offset(), INDEX);
         iType = ConvertBlendMode(iType, 7, BCT_ACTIVATE_PLATE_1);
+      }
+
+    // Replace new elemental types
+    } else if (IsOfClassID(pen, CElemental_ClassID)) {
+      // Reinitialize
+      return FALSE;
+
+    // Replace new projectile types
+    } else if (IsOfClassID(pen, CEruptor_ClassID)) {
+      // Retrieve CEruptor::m_ptType
+      static CPropertyPtr pptrType(pen);
+
+      if (pptrType.ByVariable("CEruptor", "m_ptType")) {
+        INDEX &iType = ENTITYPROPERTY(pen, pptrType.Offset(), INDEX);
+
+        switch (iType) {
+          case 78: // Plasma
+            iType = PRT_CYBORG_LASER;
+            break;
+
+          case 79: // Railbolt
+          case 80: // Railbolt spray
+            iType = PRT_ROCKET;
+            break;
+
+          case 30: // Waterman (old)
+          case 33: // Waterman small
+          case 83: // Airman small
+          case 92: // Earthman small
+            iType = PRT_LAVAMAN_STONE;
+            break;
+
+          case 31: // Waterman big
+          case 82: // Airman big
+          case 91: // Earthman big
+            iType = PRT_LAVAMAN_BOMB;
+            break;
+
+          case 32: // Waterman large
+          case 81: // Airman large
+          case 90: // Earthman big bomb
+            iType = PRT_LAVAMAN_BIG_BOMB;
+            break;
+        }
       }
 
     // Replace new headman types
