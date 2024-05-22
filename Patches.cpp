@@ -35,7 +35,7 @@ CPatches::CPatches() {
   _ulMaxWriteMemory = (1 << 20) * 128; // 128 MB
 
   _eWorldFormat = E_LF_CURRENT;
-  _bReinitWorld = FALSE;
+  _iWorldConverter = -1;
 };
 
 // Apply core patches (called after Core initialization!)
@@ -407,7 +407,7 @@ void CPatches::Worlds(void) {
   NewPatch(pCreateEntity, &CWorldPatch::P_CreateEntity, "CWorld::CreateEntity_t(...)");
 
   // Custom symbols
-  _pShell->DeclareSymbol("user INDEX sam_bReinitWorld;", &_EnginePatches._bReinitWorld);
+  _pShell->DeclareSymbol("user INDEX sam_iWorldConverter;", &_EnginePatches._iWorldConverter);
 };
 
 #include "Patches/UnpageStreams.h"

@@ -56,6 +56,9 @@ void CWorldPatch::DetermineWorldFormat(const CTFileName &fnmWorld, CTFileStream 
     // Reset the stream
     strmFile.SetPos_t(0);
   }
+
+  // Force TFE converter
+  if (_EnginePatches._iWorldConverter == 1) eWorld = E_LF_TFE;
 };
 
 void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
@@ -88,7 +91,8 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
   strmFile.Close();
 
   // [Cecil] Determine forced reinitialization and forcefully convert other world types
-  BOOL bForceReinit = _EnginePatches._bReinitWorld;
+  const BOOL bReinitEverything = (_EnginePatches._iWorldConverter == 0);
+  BOOL bForceReinit = bReinitEverything;
   bForceReinit |= (eWorld != E_LF_CURRENT);
 
   // [Cecil] Convert the world some specific way while in game
@@ -108,7 +112,7 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
     #endif
 
     // Reset every entity
-    if (_EnginePatches._bReinitWorld) {
+    if (bReinitEverything) {
       FOREACHINDYNAMICCONTAINER(wo_cenEntities, CEntity, iten) {
         CallProgressHook_t((FLOAT)iten.GetIndex() / (FLOAT)wo_cenEntities.Count());
 

@@ -46,7 +46,12 @@ class PATCHES_API CPatches {
 
     // Worlds
     ELevelFormat _eWorldFormat; // Format of the last loaded world
-    INDEX _bReinitWorld; // Force entity reinitialization
+
+    // Which world converter to use:
+    // -1 - disabled
+    //  0 - reinit every entity
+    //  1 - force TFE converter
+    INDEX _iWorldConverter;
 
   public:
     // Constructor
