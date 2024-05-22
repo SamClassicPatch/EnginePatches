@@ -92,15 +92,18 @@ void IMapConverter::CreateGlobalLight(void) {
 #endif // CLASSICSPATCH_CONVERT_MAPS
 
 // Load some class from patch's ExtraEntities library instead of vanilla entities, if required
-BOOL LoadClassFromExtras(CTString &strClassName, CTFileName &fnmDLL, const char **aTable) {
+BOOL LoadClassFromExtras(CTString &strClassName, CTFileName &fnmDLL, ClassReplacementPair *aTable) {
   // ExtraEntities library is part of the custom mod
   if (!CCoreAPI::IsCustomModActive()) return FALSE;
 
   INDEX i = 0;
 
-  while (aTable[i] != NULL) {
+  while (aTable[i].strOld != NULL) {
     // If found the class in the table
-    if (strClassName == aTable[i]) {
+    if (strClassName == aTable[i].strOld) {
+      // Optionally replace it with another one
+      if (aTable[i].strNew != NULL) strClassName = aTable[i].strNew;
+
       // Replace the library and exit
       fnmDLL = CTString("Bin\\ClassicsExtras.dll");
       return TRUE;

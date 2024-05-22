@@ -133,7 +133,7 @@ struct ClassReplacementPair {
 };
 
 // Load some class from patch's ExtraEntities library instead of vanilla entities, if required
-BOOL LoadClassFromExtras(CTString &strClassName, CTFileName &fnmDLL, const char **aTable);
+BOOL LoadClassFromExtras(CTString &strClassName, CTFileName &fnmDLL, ClassReplacementPair *aTable);
 
 // Load another class in place of the current one, if it's found in the replacement table
 BOOL ReplaceClassFromTable(CTString &strClassName, ClassReplacementPair *aTable);

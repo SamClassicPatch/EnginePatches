@@ -56,35 +56,35 @@ void CEntityClassPatch::P_ObtainComponents(void)
 // Replace nonexistent vanilla classes
 static inline void ReplaceMissingClasses(CTString &strClassName, CTFileName &fnmDLL) {
   // Classes available in ExtraEntities library
-  static const char *aExtras[] = {
+  static ClassReplacementPair aExtras[] = {
     // Alpha enemies
-    "CAirWave",
-    "CCatman",
-    "CCyborg",
-    "CCyborgBike",
-    "CDragonman",
-    "CFishman",
-    "CHuanman",
-    "CMamut",
-    "CMamutman",
-    "CMantaman",
-    "CRobotDriving",
-    "CRobotFixed",
-    "CRobotFlying",
-    "CTerrainEntity",
+    { "CAirWave",       NULL },
+    { "CCatman",        NULL },
+    { "CCyborg",        NULL },
+    { "CCyborgBike",    NULL },
+    { "CDragonman",     NULL },
+    { "CFishman",       NULL },
+    { "CHuanman",       NULL },
+    { "CMamut",         NULL },
+    { "CMamutman",      NULL },
+    { "CMantaman",      NULL },
+    { "CRobotDriving",  NULL },
+    { "CRobotFixed",    NULL },
+    { "CRobotFlying",   NULL },
+    { "CTerrainEntity", NULL },
 
     // Revolution entities (commented ones aren't finished)
-    "CAchievementEntity",
-    "CControlZoneEntity",
-    "CDestroyer",
-    "CFlagItem",
-    //"CModelHolder2Movable",
-    //"CPostProcessingEffect",
-    "CSpectatorCamera",
-    "CUghzy",
-    //"CVehicle",
-    "CWorldInfoEntity",
-    NULL,
+    { "CAchievementEntity",    NULL },
+    { "CControlZoneEntity",    NULL },
+    { "CDestroyer",            NULL },
+    { "CFlagItem",             NULL },
+    //{ "CModelHolder2Movable",  NULL },
+    //{ "CPostProcessingEffect", NULL },
+    { "CSpectatorCamera",      NULL },
+    { "CUghzy",                NULL },
+    //{ "CVehicle",              NULL },
+    { "CWorldInfoEntity",      NULL },
+    { NULL, NULL }
   };
 
   // Replace classes with something from ExtraEntities
@@ -97,15 +97,17 @@ static inline void ReplaceMissingClasses(CTString &strClassName, CTFileName &fnm
   // Not a Revolution map
   if (_EnginePatches._eWorldFormat != E_LF_SSR) return;
 
-  // Replace some vanilla enemies with those from ExtraEntities library
-  static const char *aRevEnemies[] = {
-    "CElemental",
-    "CHeadman",
-    "CWalker",
-    NULL,
+  // Replace some vanilla entities with those from ExtraEntities library
+  static ClassReplacementPair aRevEntities[] = {
+    { "CDamager",     NULL },
+    { "CElemental",   NULL },
+    { "CHeadman",     NULL },
+    { "CSoundHolder", "CSoundHolderRev" },
+    { "CWalker",      NULL },
+    { NULL, NULL },
   };
 
-  if (LoadClassFromExtras(strClassName, fnmDLL, aRevEnemies)) return;
+  if (LoadClassFromExtras(strClassName, fnmDLL, aRevEntities)) return;
 
   // Replace classes from Revolution
   static ClassReplacementPair aRevReplace[] = {
