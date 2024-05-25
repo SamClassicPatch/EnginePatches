@@ -27,6 +27,9 @@ class CEntityPatch : public CEntity {
     // ReceiveItem() pointer
     typedef BOOL (CEntity::*CReceiveItem)(const CEntityEvent &);
 
+    // RenderGameView() pointer
+    typedef void (CEntity::*CRenderGameView)(CDrawPort *, void *);
+
     // GetForce() pointer
     typedef void (CEntity::*CGetForce)(INDEX, const FLOAT3D &, CForceStrength &, CForceStrength &);
 
@@ -39,6 +42,9 @@ class CEntityPatch : public CEntity {
 
     // Receive item by a player entity
     BOOL P_ReceiveItem(const CEntityEvent &ee);
+
+    // Render game view from the player's perspective
+    void P_RenderGameView(CDrawPort *pdp, void *pvUserData);
 
     // Multiply gravity acceleration of specific mod-independent brush entities
     void P_WorldBase_GetForce(INDEX iForce, const FLOAT3D &vPoint, CForceStrength &fsGravity, CForceStrength &fsField);

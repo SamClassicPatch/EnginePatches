@@ -25,6 +25,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 // Original function pointers
 void (CEntity::*pSendEvent)(const CEntityEvent &) = NULL;
 CEntityPatch::CReceiveItem pReceiveItem = NULL;
+CEntityPatch::CRenderGameView pRenderGameView = NULL;
 CEntityPatch::CGetForce pWorldBase_GetForce = NULL;
 CEntityPatch::CGetForce pMovingBrush_GetForce = NULL;
 
@@ -293,6 +294,15 @@ BOOL CEntityPatch::P_ReceiveItem(const CEntityEvent &ee)
   }
 
   return bResult;
+};
+
+// Render game view from the player's perspective
+void CEntityPatch::P_RenderGameView(CDrawPort *pdp, void *pvUserData) {
+  // Prioritize camera, unless it can't be used at the moment
+  if (GetGameAPI()->GetCamera().Update(this, pdp)) return;
+
+  // Proceed to the original function
+  (this->*pRenderGameView)(pdp, pvUserData);
 };
 
 // Multiply gravity acceleration of specific mod-independent brush entities

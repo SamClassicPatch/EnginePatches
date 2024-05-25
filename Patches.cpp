@@ -105,6 +105,14 @@ void CPatches::Entities(void) {
     NewPatch(pReceiveItem, &CEntityPatch::P_ReceiveItem, "CPlayer::ReceiveItem(...)");
   }
 
+  extern CEntityPatch::CRenderGameView pRenderGameView;
+  StructPtr pRenderGameViewPtr(GetPatchAPI()->GetEntitiesSymbol("?RenderGameView@CPlayer@@UAEXPAVCDrawPort@@PAX@Z"));
+
+  if (pRenderGameViewPtr.iAddress != NULL) {
+    pRenderGameView = pRenderGameViewPtr(CEntityPatch::CRenderGameView());
+    NewPatch(pRenderGameView, &CEntityPatch::P_RenderGameView, "CPlayer::RenderGameView(...)");
+  }
+
   // Mod's brush entities
   CWorld woTemp;
 
