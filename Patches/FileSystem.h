@@ -26,8 +26,6 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #include <Engine/Graphics/Shader.h>
 #endif
 
-#include <CoreLib/Interfaces/FileFunctions.h>
-
 #if CLASSICSPATCH_ENGINEPATCHES && CLASSICSPATCH_EXTEND_FILESYSTEM
 
 class CEntityClassPatch : public CEntityClass {

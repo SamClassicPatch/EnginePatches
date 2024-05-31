@@ -22,10 +22,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #if CLASSICSPATCH_CONVERT_MAPS
 
-#include <CoreLib/Objects/PropertyPtr.h>
-
 // Common data for converters
-#include <EnginePatches/Converters/Common.h>
+#include <Extras/XGizmo/Vanilla/EnumTypes.h>
 
 // Abstract base for different map converters
 class IMapConverter {

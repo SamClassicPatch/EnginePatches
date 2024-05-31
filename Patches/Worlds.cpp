@@ -117,7 +117,7 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
         CallProgressHook_t((FLOAT)iten.GetIndex() / (FLOAT)wo_cenEntities.Count());
 
         // Reinitialize only rational entities
-        if (IsRationalEntity(iten)) {
+        if (IsRationalEntity(&*iten)) {
           iten->Reinitialize();
         }
       }

@@ -20,6 +20,8 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include "FileSystem.h"
 #include "../MapConversion.h"
 
+#include <CoreLib/Base/Unzip.h>
+
 #include <STLIncludesBegin.h>
 #include <fstream>
 #include <sstream>
@@ -163,19 +165,19 @@ void CEntityClassPatch::P_Read(CTStream *istr) {
 
   // Find appropriate default entities library
   if (CCoreAPI::IsCustomModActive() && bVanillaEntities) {
-    fnmDLL = CCoreAPI::AppPath() + CCoreAPI::FullLibPath(strLibName + _strModExt, strLibExt);
+    fnmDLL = IDir::AppPath() + IDir::FullLibPath(strLibName + _strModExt, strLibExt);
 
   // Use original path to the library
   } else {
     // Mod extension for mods or vanilla extension for entity packs
     const CTString &strCurrentExt = (_fnmMod != "" ? _strModExt : CCoreAPI::GetVanillaExt());
 
-    CTFileName fnmExpand = fnmDLL.FileDir() + CCoreAPI::GetLibFile(strLibName + strCurrentExt, strLibExt);
+    CTFileName fnmExpand = fnmDLL.FileDir() + IDir::GetLibFile(strLibName + strCurrentExt, strLibExt);
     ExpandFilePath(EFP_READ, fnmExpand, fnmDLL);
   }
 
   // Load class library
-  ec_hiClassDLL = CCoreAPI::LoadLib(fnmDLL.str_String);
+  ec_hiClassDLL = ILib::LoadLib(fnmDLL.str_String);
   ec_fnmClassDLL = fnmDLL;
 
   // Get pointer to the library class structure
@@ -218,12 +220,12 @@ void CShaderPatch::P_Read(CTStream *istrFile) {
   strShaderInfo.ReadFromText_t(*istrFile, "Info: ");
 
   // [Cecil] Construct full path to the shaders library
-  fnmDLL = CCoreAPI::AppPath() + CCoreAPI::FullLibPath(fnmDLL.FileName(), fnmDLL.FileExt());
+  fnmDLL = IDir::AppPath() + IDir::FullLibPath(fnmDLL.FileName(), fnmDLL.FileExt());
 
   // Load shader library
   const UINT iOldErrorMode = SetErrorMode(SEM_NOOPENFILEERRORBOX | SEM_FAILCRITICALERRORS);
 
-  hLibrary = CCoreAPI::LoadLib(fnmDLL.str_String);
+  hLibrary = ILib::LoadLib(fnmDLL.str_String);
 
   SetErrorMode(iOldErrorMode);
 
@@ -323,7 +325,7 @@ static BOOL SetupGameDir(CTString &strGameDir, CTString &strDirProperty, const C
   if (strGameDir == "") return FALSE;
 
   // Make it into a full path
-  IFiles::SetFullDirectory(strGameDir);
+  IDir::SetFullDirectory(strGameDir);
 
   // Reset if the directory doesn't exist
   DWORD dwAttrib = GetFileAttributesA(strGameDir.str_String);
@@ -364,14 +366,14 @@ void P_InitStreams(void) {
 
     // Verify workshop directory and load workshop files
     if (strWorkshop != "") {
-      IFiles::SetFullDirectory(strWorkshop);
+      IDir::SetFullDirectory(strWorkshop);
 
       DWORD dwAttrib = GetFileAttributesA(strWorkshop.str_String);
 
       if (dwAttrib != -1 && (dwAttrib & FILE_ATTRIBUTE_DIRECTORY)) {
         CFileList aWorkshop;
-        IFiles::ListInDir(strWorkshop, aWorkshop, "", "*.gro", TRUE, NULL, NULL);
-        IFiles::ListInDir(strWorkshop, aWorkshop, "", "*_legacy.bin", TRUE, NULL, NULL); // Legacy archives
+        ListInDir(strWorkshop, aWorkshop, "", "*.gro", TRUE, NULL, NULL);
+        ListInDir(strWorkshop, aWorkshop, "", "*_legacy.bin", TRUE, NULL, NULL); // Legacy archives
 
         // Add directories with GRO packages from workshop
         const INDEX ctDirs = aWorkshop.Count();
@@ -386,7 +388,7 @@ void P_InitStreams(void) {
   }
 
   // Read list of content directories without engine's streams
-  const CTFileName fnmDirList = CCoreAPI::AppPath() + "Data\\ContentDir.lst";
+  const CTFileName fnmDirList = IDir::AppPath() + "Data\\ContentDir.lst";
 
   if (IFiles::IsReadable(fnmDirList.str_String)) {
     std::ifstream inDirList(fnmDirList.str_String);
@@ -408,7 +410,7 @@ void P_InitStreams(void) {
   for (INDEX iDir = 0; iDir < ctDirs; iDir++) {
     // Make directory into a full path
     CTFileName fnmDir = _aContentDirs[iDir];
-    IFiles::SetFullDirectory(fnmDir);
+    IDir::SetFullDirectory(fnmDir);
 
     // Skip if the directory doesn't exist
     DWORD dwAttrib = GetFileAttributesA(fnmDir.str_String);
@@ -436,11 +438,11 @@ void P_InitStreams(void) {
 
     // Check if a mod has its own libraries under the current extension
     if (_fnmMod != "") {
-      const CTString strModBin = CCoreAPI::AppPath() + _fnmMod + "Bin\\";
+      const CTString strModBin = IDir::AppPath() + _fnmMod + "Bin\\";
 
       // Search specifically under "Bin" because that's how all classic mods are structured
-      const CTString strEntities = strModBin + CCoreAPI::GetLibFile("Entities" + _strModExt);
-      const CTString strGameLib  = strModBin + CCoreAPI::GetLibFile("Game" + _strModExt);
+      const CTString strEntities = strModBin + IDir::GetLibFile("Entities" + _strModExt);
+      const CTString strGameLib  = strModBin + IDir::GetLibFile("Game" + _strModExt);
 
       // Safe to change if no mod libraries
       bChangeExtension = (!IFiles::IsReadable(strEntities.str_String) && !IFiles::IsReadable(strGameLib.str_String));
@@ -449,8 +451,8 @@ void P_InitStreams(void) {
   // Custom mod is disabled but the mod might still use its libraries (e.g. ClassicsPatchMod)
   } else if (_fnmMod != "" && _strModExt == CLASSICSPATCH_SUFFIX) {
     // Make sure the libraries are not located in the mod folder
-    const CTString strEntities = CCoreAPI::FullLibPath("Entities" CLASSICSPATCH_SUFFIX);
-    const CTString strGameLib  = CCoreAPI::FullLibPath("Game" CLASSICSPATCH_SUFFIX);
+    const CTString strEntities = IDir::FullLibPath("Entities" CLASSICSPATCH_SUFFIX);
+    const CTString strGameLib  = IDir::FullLibPath("Game" CLASSICSPATCH_SUFFIX);
 
     // Safe to change if no mod libraries
     bChangeExtension = (!strEntities.HasPrefix(_fnmMod) && !strGameLib.HasPrefix(_fnmMod));
@@ -469,7 +471,7 @@ void P_InitStreams(void) {
 // Make a list of all files in a directory
 void P_MakeDirList(CFileList &afnmDir, const CTFileName &fnmDir, const CTString &strPattern, ULONG ulFlags) {
   // Include two first original flags and search the mod directory
-  IFiles::ListGameFiles(afnmDir, fnmDir, strPattern, (ulFlags & 3) | IFiles::FLF_SEARCHMOD);
+  ListGameFiles(afnmDir, fnmDir, strPattern, (ulFlags & 3) | FLF_SEARCHMOD);
 };
 
 // Check for file extensions that can be substituted
@@ -517,7 +519,7 @@ static INDEX ExpandPathForReading(ULONG ulType, const CTFileName &fnmFile, CTFil
   if (_fnmMod != "") {
     // Try mod directory before archives
     if (!bPreferZips) {
-      RETURN_FILE_AT(CCoreAPI::AppPath() + _fnmMod);
+      RETURN_FILE_AT(IDir::AppPath() + _fnmMod);
     }
 
     // If allowing archives
@@ -531,13 +533,13 @@ static INDEX ExpandPathForReading(ULONG ulType, const CTFileName &fnmFile, CTFil
 
     // Try mod directory after archives
     if (bPreferZips) {
-      RETURN_FILE_AT(CCoreAPI::AppPath() + _fnmMod);
+      RETURN_FILE_AT(IDir::AppPath() + _fnmMod);
     }
   }
 
   // Try game root directory before archives
   if (!bPreferZips) {
-    RETURN_FILE_AT(CCoreAPI::AppPath());
+    RETURN_FILE_AT(IDir::AppPath());
   }
 
   // If allowing archives
@@ -551,7 +553,7 @@ static INDEX ExpandPathForReading(ULONG ulType, const CTFileName &fnmFile, CTFil
 
   // Try game root directory after archives
   if (bPreferZips) {
-    RETURN_FILE_AT(CCoreAPI::AppPath());
+    RETURN_FILE_AT(IDir::AppPath());
   }
 
   // [Cecil] Try searching other game directories after the main one
@@ -605,16 +607,16 @@ INDEX P_ExpandFilePath(EXPAND_PATH_ARGS(ULONG ulType, const CTFileName &fnmFile,
   // If writing
   if (ulType & EFP_WRITE) {
     // If should write into the mod directory
-    if (_fnmMod != "" && (IFiles::MatchesList(IFiles::aBaseWriteInc, fnmFileAbsolute) == -1
-                       || IFiles::MatchesList(IFiles::aBaseWriteExc, fnmFileAbsolute) != -1))
+    if (_fnmMod != "" && (IFiles::MatchesList(_aBaseWriteInc, fnmFileAbsolute) == -1
+                       || IFiles::MatchesList(_aBaseWriteExc, fnmFileAbsolute) != -1))
     {
-      fnmExpanded = CCoreAPI::AppPath() + _fnmMod + fnmFileAbsolute;
+      fnmExpanded = IDir::AppPath() + _fnmMod + fnmFileAbsolute;
       IFiles::SetAbsolutePath(fnmExpanded);
       return EFP_FILE;
 
     // Otherwise write into the root directory
     } else {
-      fnmExpanded = CCoreAPI::AppPath() + fnmFileAbsolute;
+      fnmExpanded = IDir::AppPath() + fnmFileAbsolute;
       IFiles::SetAbsolutePath(fnmExpanded);
       return EFP_FILE;
     }
@@ -692,12 +694,12 @@ INDEX P_ExpandFilePath(EXPAND_PATH_ARGS(ULONG ulType, const CTFileName &fnmFile,
   // If unknown
   } else {
     ASSERT(FALSE);
-    fnmExpanded = CCoreAPI::AppPath() + fnmFileAbsolute;
+    fnmExpanded = IDir::AppPath() + fnmFileAbsolute;
     IFiles::SetAbsolutePath(fnmExpanded);
     return EFP_FILE;
   }
 
-  fnmExpanded = CCoreAPI::AppPath() + fnmFileAbsolute;
+  fnmExpanded = IDir::AppPath() + fnmFileAbsolute;
   IFiles::SetAbsolutePath(fnmExpanded);
   return EFP_NONE;
 };

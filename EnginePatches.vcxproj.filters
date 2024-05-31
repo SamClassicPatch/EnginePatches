@@ -72,9 +72,6 @@
     <ClInclude Include="Converters\TFEMaps.h">
       <Filter>Header Files\Converters headers</Filter>
     </ClInclude>
-    <ClInclude Include="Converters\Common.h">
-      <Filter>Header Files\Converters headers</Filter>
-    </ClInclude>
     <ClInclude Include="Patches\LogicTimers.h">
       <Filter>Header Files\Patches headers</Filter>
     </ClInclude>
