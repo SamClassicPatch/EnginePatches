@@ -15,7 +15,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdH.h"
 
-#if CLASSICSPATCH_ENGINEPATCHES
+#if _PATCHCONFIG_ENGINEPATCHES
 
 #include "Network.h"
 
@@ -26,13 +26,13 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <CoreLib/Definitions/PlayerCharacterDefs.inl>
 #include <CoreLib/Definitions/PlayerTargetDefs.inl>
 
-#if CLASSICSPATCH_EXTEND_NETWORK
+#if _PATCHCONFIG_EXTEND_NETWORK
 
 // Original function pointers
 void (CCommunicationInterface::*pServerInit)(void) = NULL;
 void (CCommunicationInterface::*pServerClose)(void) = NULL;
 
-#if CLASSICSPATCH_NEW_QUERY
+#if _PATCHCONFIG_NEW_QUERY
 
 void CComIntPatch::P_EndWinsock(void) {
   // New query manager
@@ -58,17 +58,17 @@ void CComIntPatch::P_EndWinsock(void) {
   #endif
 };
 
-#endif // CLASSICSPATCH_NEW_QUERY
+#endif // _PATCHCONFIG_NEW_QUERY
 
 void CComIntPatch::P_ServerInit(void) {
   // Proceed to the original function
   (this->*pServerInit)();
 
-#if CLASSICSPATCH_GUID_MASKING
+#if _PATCHCONFIG_GUID_MASKING
   IProcessPacket::ClearSyncChecks();
 #endif
 
-#if CLASSICSPATCH_NEW_QUERY
+#if _PATCHCONFIG_NEW_QUERY
   // Keep using old query manager
   if (ms_bVanillaQuery) return;
 
@@ -82,18 +82,18 @@ void CComIntPatch::P_ServerInit(void) {
   if (symptr.GetIndex() && GetComm().IsNetworkEnabled()) {
     IMasterServer::OnServerStart();
   }
-#endif // CLASSICSPATCH_NEW_QUERY
+#endif // _PATCHCONFIG_NEW_QUERY
 };
 
 void CComIntPatch::P_ServerClose(void) {
   // Proceed to the original function
   (this->*pServerClose)();
 
-#if CLASSICSPATCH_GUID_MASKING
+#if _PATCHCONFIG_GUID_MASKING
   IProcessPacket::ClearSyncChecks();
 #endif
 
-#if CLASSICSPATCH_NEW_QUERY
+#if _PATCHCONFIG_NEW_QUERY
   // Keep using old query manager
   if (ms_bVanillaQuery) return;
 
@@ -107,7 +107,7 @@ void CComIntPatch::P_ServerClose(void) {
   if (symptr.GetIndex()) {
     IMasterServer::OnServerEnd();
   }
-#endif // CLASSICSPATCH_NEW_QUERY
+#endif // _PATCHCONFIG_NEW_QUERY
 };
 
 // Send a reliable packet to the server
@@ -118,7 +118,7 @@ void CMessageDisPatch::P_SendToServerReliable(const CNetworkMessage &nmMessage) 
 
     // Patch identification tag and the release version
     nmWriteable.Write(_aSessionStatePatchTag, sizeof(_aSessionStatePatchTag));
-    nmWriteable << (ULONG)CCoreAPI::ulCoreVersion;
+    nmWriteable << (ULONG)ClassicsCore_GetVersion();
   }
 
   GetComm().Client_Send_Reliable((void *)nmMessage.nm_pubMessage, nmMessage.nm_slSize);
@@ -234,15 +234,15 @@ void CNetworkPatch::P_ChangeLevelInternal(void) {
   // Proceed to the original function
   (this->*pChangeLevel)();
 
-#if CLASSICSPATCH_GUID_MASKING
+#if _PATCHCONFIG_GUID_MASKING
   // Clear sync checks for each client on a new level
   if (IsServer()) {
     IProcessPacket::ClearSyncChecks();
   }
-#endif // CLASSICSPATCH_GUID_MASKING
+#endif // _PATCHCONFIG_GUID_MASKING
 
   // Change level for Core
-  GetAPI()->OnChangeLevel();
+  IHooks::OnChangeLevel();
 };
 
 // Save current game
@@ -271,7 +271,7 @@ void CNetworkPatch::P_Save(const CTFileName &fnmGame) {
   strmFile.WriteID_t("GEND"); // Game end
 
   // [Cecil] Save game for Core
-  GetAPI()->OnGameSave(fnmGame);
+  IHooks::OnGameSave(fnmGame);
 };
 
 // Load saved game
@@ -284,20 +284,20 @@ void CNetworkPatch::P_Load(const CTFileName &fnmGame) {
   (this->*pLoadGame)(fnmGame);
 
   // Load game for Core
-  GetAPI()->OnGameLoad(fnmGame);
+  IHooks::OnGameLoad(fnmGame);
 };
 
 // Stop current game
 void CNetworkPatch::P_StopGame(void) {
   // Stop game for Core
-  GetAPI()->OnGameStop();
+  IHooks::OnGameStop();
 
   // Proceed to the original function
   (this->*pStopGame)();
 
   // Make sure there is enough space for local players
   ga_aplsPlayers.Clear();
-  ga_aplsPlayers.New(CORE_MAX_LOCAL_PLAYERS);
+  ga_aplsPlayers.New(ICore::MAX_LOCAL_PLAYERS);
 };
 
 // Start new game session
@@ -329,7 +329,7 @@ void CNetworkPatch::P_StartDemoPlay(const CTFileName &fnDemo) {
   (this->*pStartDemoPlay)(fnDemo);
 
   // Play demo for Core
-  GetAPI()->OnDemoPlay(fnDemo);
+  IHooks::OnDemoPlay(fnDemo);
 };
 
 // Start recording a demo
@@ -358,7 +358,7 @@ void CNetworkPatch::P_StartDemoRec(const CTFileName &fnDemo) {
   ga_bDemoRec = TRUE;
 
   // [Cecil] Start demo recording for Core
-  GetAPI()->OnDemoStart(fnDemo);
+  IHooks::OnDemoStart(fnDemo);
 };
 
 // Stop recording a demo
@@ -377,14 +377,14 @@ void CNetworkPatch::P_StopDemoRec(void) {
   ga_bDemoRec = FALSE;
 
   // [Cecil] Stop demo recording for Core
-  GetAPI()->OnDemoStop();
+  IHooks::OnDemoStop();
 };
 
 void CSessionStatePatch::P_FlushProcessedPredictions(void) {
   // Proceed to the original function
   (this->*pFlushPredictions)();
 
-#if CLASSICSPATCH_NEW_QUERY
+#if _PATCHCONFIG_NEW_QUERY
   // Keep using old query manager
   if (ms_bVanillaQuery) return;
 
@@ -397,7 +397,7 @@ void CSessionStatePatch::P_FlushProcessedPredictions(void) {
     }
     IMasterServer::OnServerUpdate();
   }
-#endif // CLASSICSPATCH_NEW_QUERY
+#endif // _PATCHCONFIG_NEW_QUERY
 };
 
 // Client processes received packet from the server
@@ -406,7 +406,7 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
   _pTimer->SetCurrentTick(ses_tmLastProcessedTick);
 
   // Call API every simulation tick
-  GetAPI()->OnTick();
+  IHooks::OnTick();
 
   // Quit if don't need to process standard packets
   if (!INetwork::ClientHandle(this, nmMessage)) {
@@ -476,7 +476,7 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
       }
 
       // [Cecil] Call player addition for Core
-      GetAPI()->OnAddPlayer(plt, _pNetwork->IsPlayerLocal(penNewPlayer));
+      IHooks::OnAddPlayer(plt, _pNetwork->IsPlayerLocal(penNewPlayer));
     } break;
 
     // Removing a player
@@ -495,7 +495,7 @@ void CSessionStatePatch::P_ProcessGameStreamBlock(CNetworkMessage &nmMessage) {
       _pNetwork->ga_World.DeletePredictors();
 
       // [Cecil] Call player removal for Core
-      GetAPI()->OnRemovePlayer(plt, _pNetwork->IsPlayerLocal(penRemPlayer));
+      IHooks::OnRemovePlayer(plt, _pNetwork->IsPlayerLocal(penRemPlayer));
 
       // Inform entity of disconnnection
       CPrintF(LOCALIZE("%s left\n"), penRemPlayer->GetPlayerName());
@@ -783,7 +783,7 @@ void CSessionStatePatch::P_Stop(void) {
   ForgetOldLevels();
 
   ses_apltPlayers.Clear();
-  ses_apltPlayers.New(CORE_MAX_GAME_PLAYERS);
+  ses_apltPlayers.New(ICore::MAX_GAME_PLAYERS);
 };
 
 // Read session state
@@ -812,7 +812,7 @@ void CSessionStatePatch::P_Write(CTStream *pstr) {
   _bSerializeServerInfo = FALSE;
 };
 
-#if CLASSICSPATCH_GUID_MASKING
+#if _PATCHCONFIG_GUID_MASKING
 
 // Send synchronization packet to the server (as client) or add it to the buffer (as server)
 void CSessionStatePatch::P_MakeSynchronisationCheck(void) {
@@ -973,8 +973,8 @@ void CPlayerEntityPatch::P_ChecksumForSync(ULONG &ulCRC, INDEX iExtensiveSyncChe
   CRC_AddBlock(ulCRC, en_pcCharacter.pc_aubAppearance, sizeof(en_pcCharacter.pc_aubAppearance));
 };
 
-#endif // CLASSICSPATCH_GUID_MASKING
+#endif // _PATCHCONFIG_GUID_MASKING
 
-#endif // CLASSICSPATCH_EXTEND_NETWORK
+#endif // _PATCHCONFIG_EXTEND_NETWORK
 
-#endif // CLASSICSPATCH_ENGINEPATCHES
+#endif // _PATCHCONFIG_ENGINEPATCHES

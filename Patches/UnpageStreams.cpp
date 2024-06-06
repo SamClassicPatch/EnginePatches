@@ -15,7 +15,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdH.h"
 
-#if CLASSICSPATCH_ENGINEPATCHES
+#if _PATCHCONFIG_ENGINEPATCHES
 
 #include "UnpageStreams.h"
 #include "FileSystem.h"
@@ -25,7 +25,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <CoreLib/Base/Unzip.h>
 #include <CoreLib/Interfaces/ResourceFunctions.h>
 
-#if CLASSICSPATCH_FIX_STREAMPAGING
+#if _PATCHCONFIG_FIX_STREAMPAGING
 
 // Define CNameTable_CTFileName
 #define TYPE CTFileName
@@ -288,6 +288,6 @@ void CRemLevelPatch::P_ForgetOldLevels(void)
   }
 };
 
-#endif // CLASSICSPATCH_FIX_STREAMPAGING
+#endif // _PATCHCONFIG_FIX_STREAMPAGING
 
-#endif // CLASSICSPATCH_ENGINEPATCHES
+#endif // _PATCHCONFIG_ENGINEPATCHES

@@ -15,25 +15,25 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdH.h"
 
-#if CLASSICSPATCH_FIX_LOGICTIMERS && CLASSICSPATCH_ENGINEPATCHES
+#if _PATCHCONFIG_FIX_LOGICTIMERS && _PATCHCONFIG_ENGINEPATCHES
 
 #include "LogicTimers.h"
 
 // Set next timer event to occur after some time
 void CRationalEntityTimerPatch::P_SetTimerAfter(TIME tmDelta) {
-#if CLASSICSPATCH_GAMEPLAY_EXT
+#if _PATCHCONFIG_GAMEPLAY_EXT
 
   // [Cecil] Fix timers as a gameplay extension
-  if (CoreGEX().bFixTimers) {
+  if (IConfig::gex[k_EGameplayExt_FixTimers]) {
     // [Cecil] NOTE: This can cause unexpected behavior if timers are set to unusual delays, e.g. 0.075s (1.5 ticks)
     // Minus 2/5 of a tick for TIME_EPSILON == 0.0001 (as if TIME_EPSILON became 0.0201)
     tmDelta -= 0.02f;
   }
 
-#endif // CLASSICSPATCH_GAMEPLAY_EXT
+#endif // _PATCHCONFIG_GAMEPLAY_EXT
 
   // Set to execute some time after of the current tick
   SetTimerAt(_pTimer->CurrentTick() + tmDelta);
 };
 
-#endif // CLASSICSPATCH_FIX_LOGICTIMERS
+#endif // _PATCHCONFIG_FIX_LOGICTIMERS

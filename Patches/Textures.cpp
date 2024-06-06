@@ -15,7 +15,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdH.h"
 
-#if CLASSICSPATCH_ENGINEPATCHES
+#if _PATCHCONFIG_ENGINEPATCHES
 
 #include "Textures.h"
 
@@ -25,7 +25,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <CoreLib/Definitions/GraphicsDefs.inl>
 #include <CoreLib/Definitions/TextureEffectsDefs.inl>
 
-#if CLASSICSPATCH_EXTEND_TEXTURES
+#if _PATCHCONFIG_EXTEND_TEXTURES
 
 // Calculate size of one effect buffer
 static ULONG GetEffectBufferSize(CTextureData *ptd)
@@ -452,6 +452,6 @@ void P_CreateTexture(const CTFileName &fnInput, MEX mexInput, INDEX ctMipmaps, i
   P_CreateTextureOut(fnInput, fnOutput, mexInput, ctMipmaps, ulFlags);
 };
 
-#endif // CLASSICSPATCH_EXTEND_TEXTURES
+#endif // _PATCHCONFIG_EXTEND_TEXTURES
 
-#endif // CLASSICSPATCH_ENGINEPATCHES
+#endif // _PATCHCONFIG_ENGINEPATCHES

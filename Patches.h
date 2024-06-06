@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA. */
 
-#if CLASSICSPATCH_ENGINEPATCHES
+#if _PATCHCONFIG_ENGINEPATCHES
 
 // Import library for use
 #ifndef ENGINEPATCHES_EXPORTS
@@ -105,4 +105,4 @@ class PATCHES_API CPatches {
 // Singleton for patching
 PATCHES_API extern CPatches _EnginePatches;
 
-#endif // CLASSICSPATCH_ENGINEPATCHES
+#endif // _PATCHCONFIG_ENGINEPATCHES

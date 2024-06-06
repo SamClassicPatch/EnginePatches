@@ -26,7 +26,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #include <Engine/Graphics/Shader.h>
 #endif
 
-#if CLASSICSPATCH_ENGINEPATCHES && CLASSICSPATCH_EXTEND_FILESYSTEM
+#if _PATCHCONFIG_ENGINEPATCHES && _PATCHCONFIG_EXTEND_FILESYSTEM
 
 class CEntityClassPatch : public CEntityClass {
   public:
@@ -73,6 +73,6 @@ void P_MakeDirList(CFileList &afnmDir, const CTFileName &fnmDir, const CTString 
 // Expand a filename to absolute path
 INDEX P_ExpandFilePath(EXPAND_PATH_ARGS(ULONG ulType, const CTFileName &fnmFile, CTFileName &fnmExpanded, BOOL bUseRPH = 0));
 
-#endif // CLASSICSPATCH_EXTEND_FILESYSTEM
+#endif // _PATCHCONFIG_EXTEND_FILESYSTEM
 
 #endif

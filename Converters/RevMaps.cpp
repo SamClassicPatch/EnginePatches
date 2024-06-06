@@ -17,7 +17,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "MapConversion.h"
 
-#if CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
+#if _PATCHCONFIG_CONVERT_MAPS && TSE_FUSION_MODE
 
 // Classes that need to be converted
 #include <EntitiesV/StdH/StdH.h>
@@ -146,7 +146,7 @@ void IConvertSSR::ConvertKeyType(INDEX &eKey) {
   }
 
   // TFE keys
-  if (CCoreAPI::IsCustomModActive()) {
+  if (ClassicsCore_IsCustomModActive()) {
     // Shift some keys by 16
     if (eKey < IMapsSSR::KIT_EYEOFRA) {
       eKey += 16;
@@ -462,7 +462,7 @@ BOOL IConvertSSR::ConvertEntity(CEntity *pen) {
     }
 
   // [Cecil] NOTE: Extra conversions for when custom mod is disabled
-  } else if (!CCoreAPI::IsCustomModActive()) {
+  } else if (!ClassicsCore_IsCustomModActive()) {
     // Adjust blend modes
     if (IsOfClassID(pen, CBlendController_ClassID)) {
       // Retrieve CBlendController::m_bctType
@@ -575,7 +575,7 @@ BOOL IConvertSSR::ConvertEntity(CEntity *pen) {
 
   // [Cecil] NOTE: This normally isn't required but since some Revolution enemies are being
   // replaced with TSE ones, all placed enemies need to be reinitialized to reset their models
-  if (!CCoreAPI::IsCustomModActive()) {
+  if (!ClassicsCore_IsCustomModActive()) {
     return !IsDerivedFromID(pen, CEnemyBase_ClassID);
   }
 
@@ -609,4 +609,4 @@ void IConvertSSR::ConvertWorld(CWorld *pwo) {
   CreateGlobalLight();
 };
 
-#endif // CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
+#endif // _PATCHCONFIG_CONVERT_MAPS && TSE_FUSION_MODE

@@ -17,7 +17,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "MapConversion.h"
 
-#if CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
+#if _PATCHCONFIG_CONVERT_MAPS && TSE_FUSION_MODE
 
 // Clear rain variables
 void IConvertTFE::ClearRainVariables(void) {
@@ -205,4 +205,4 @@ void IConvertTFE::ApplyRainProperties(void) {
   ClearRainVariables();
 };
 
-#endif // CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
+#endif // _PATCHCONFIG_CONVERT_MAPS && TSE_FUSION_MODE

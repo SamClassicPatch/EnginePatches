@@ -17,7 +17,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "MapConversion.h"
 
-#if CLASSICSPATCH_CONVERT_MAPS
+#if _PATCHCONFIG_CONVERT_MAPS
 
 // Currently used converter
 static IMapConverter *_pconvCurrent = NULL;
@@ -89,12 +89,12 @@ void IMapConverter::CreateGlobalLight(void) {
 #endif
 };
 
-#endif // CLASSICSPATCH_CONVERT_MAPS
+#endif // _PATCHCONFIG_CONVERT_MAPS
 
 // Load some class from patch's ExtraEntities library instead of vanilla entities, if required
 BOOL LoadClassFromExtras(CTString &strClassName, CTFileName &fnmDLL, ClassReplacementPair *aTable) {
   // ExtraEntities library is part of the custom mod
-  if (!CCoreAPI::IsCustomModActive()) return FALSE;
+  if (!ClassicsCore_IsCustomModActive()) return FALSE;
 
   INDEX i = 0;
 

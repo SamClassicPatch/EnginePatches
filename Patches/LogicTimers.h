@@ -20,7 +20,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #pragma once
 #endif
 
-#if CLASSICSPATCH_FIX_LOGICTIMERS && CLASSICSPATCH_ENGINEPATCHES
+#if _PATCHCONFIG_FIX_LOGICTIMERS && _PATCHCONFIG_ENGINEPATCHES
 
 class CRationalEntityTimerPatch : public CRationalEntity {
   public:
@@ -28,6 +28,6 @@ class CRationalEntityTimerPatch : public CRationalEntity {
     void P_SetTimerAfter(TIME tmDelta);
 };
 
-#endif // CLASSICSPATCH_FIX_LOGICTIMERS
+#endif // _PATCHCONFIG_FIX_LOGICTIMERS
 
 #endif

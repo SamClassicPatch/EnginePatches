@@ -22,7 +22,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <CoreLib/Interfaces/GfxFunctions.h>
 
-#if CLASSICSPATCH_ENGINEPATCHES && CLASSICSPATCH_FIX_SKA
+#if _PATCHCONFIG_ENGINEPATCHES && _PATCHCONFIG_FIX_SKA
 
 // SKA models are only usable since 1.07
 #if SE1_VER >= SE1_107
@@ -117,6 +117,6 @@ PATCHES_API void P_shaSetTextureWrapping(GfxWrap eWrapU, GfxWrap eWrapV);
 
 #endif
 
-#endif // CLASSICSPATCH_FIX_SKA
+#endif // _PATCHCONFIG_FIX_SKA
 
 #endif

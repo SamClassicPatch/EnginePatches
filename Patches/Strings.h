@@ -20,7 +20,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #pragma once
 #endif
 
-#if CLASSICSPATCH_ENGINEPATCHES && CLASSICSPATCH_FIX_STRINGS
+#if _PATCHCONFIG_ENGINEPATCHES && _PATCHCONFIG_FIX_STRINGS
 
 class CStringPatch : public CTString {
   public:
@@ -29,6 +29,6 @@ class CStringPatch : public CTString {
     CTString P_Undecorated(void) const;
 };
 
-#endif // CLASSICSPATCH_FIX_STRINGS
+#endif // _PATCHCONFIG_FIX_STRINGS
 
 #endif

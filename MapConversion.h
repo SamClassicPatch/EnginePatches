@@ -20,7 +20,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #pragma once
 #endif
 
-#if CLASSICSPATCH_CONVERT_MAPS
+#if _PATCHCONFIG_CONVERT_MAPS
 
 // Common data for converters
 #include <Extras/XGizmo/Vanilla/EnumTypes.h>
@@ -122,7 +122,7 @@ class IMapConverter {
 #include <EnginePatches/Converters/TFEMaps.h>
 #include <EnginePatches/Converters/RevMaps.h>
 
-#endif // CLASSICSPATCH_CONVERT_MAPS
+#endif // _PATCHCONFIG_CONVERT_MAPS
 
 // Pair of class names for a replacement table
 struct ClassReplacementPair {

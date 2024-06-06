@@ -15,11 +15,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdH.h"
 
-#if CLASSICSPATCH_ENGINEPATCHES
+#if _PATCHCONFIG_ENGINEPATCHES
 
 #include "Strings.h"
 
-#if CLASSICSPATCH_FIX_STRINGS
+#if _PATCHCONFIG_FIX_STRINGS
 
 INDEX CStringPatch::P_VPrintF(const char *strFormat, va_list arg)
 {
@@ -89,6 +89,6 @@ CTString CStringPatch::P_Undecorated(void) const {
   return strResult;
 };
 
-#endif // CLASSICSPATCH_FIX_STRINGS
+#endif // _PATCHCONFIG_FIX_STRINGS
 
-#endif // CLASSICSPATCH_ENGINEPATCHES
+#endif // _PATCHCONFIG_ENGINEPATCHES

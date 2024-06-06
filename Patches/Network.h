@@ -23,11 +23,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <CoreLib/Networking/CommInterface.h>
 #include <CoreLib/Networking/MessageProcessing.h>
 
-#if CLASSICSPATCH_ENGINEPATCHES && CLASSICSPATCH_EXTEND_NETWORK
+#if _PATCHCONFIG_ENGINEPATCHES && _PATCHCONFIG_EXTEND_NETWORK
 
 class CComIntPatch : public CCommunicationInterface {
   public:
-  #if CLASSICSPATCH_NEW_QUERY
+  #if _PATCHCONFIG_NEW_QUERY
     void P_EndWinsock(void);
   #endif
 
@@ -117,13 +117,13 @@ class CSessionStatePatch : public CSessionState {
     // Write session state
     void P_Write(CTStream *pstr);
 
-  #if CLASSICSPATCH_GUID_MASKING
+  #if _PATCHCONFIG_GUID_MASKING
     // Send synchronization packet to the server (as client) or add it to the buffer (as server)
     void P_MakeSynchronisationCheck(void);
   #endif
 };
 
-#if CLASSICSPATCH_GUID_MASKING
+#if _PATCHCONFIG_GUID_MASKING
 
 class CPlayerEntityPatch : public CPlayerEntity {
   public:
@@ -132,8 +132,8 @@ class CPlayerEntityPatch : public CPlayerEntity {
     void P_ChecksumForSync(ULONG &ulCRC, INDEX iExtensiveSyncCheck);
 };
 
-#endif // CLASSICSPATCH_GUID_MASKING
+#endif // _PATCHCONFIG_GUID_MASKING
 
-#endif // CLASSICSPATCH_EXTEND_NETWORK
+#endif // _PATCHCONFIG_EXTEND_NETWORK
 
 #endif

@@ -20,7 +20,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #pragma once
 #endif
 
-#if CLASSICSPATCH_ENGINEPATCHES
+#if _PATCHCONFIG_ENGINEPATCHES
 
 class CWorldPatch : public CWorld {
   public:
@@ -37,6 +37,6 @@ class CWorldPatch : public CWorld {
     CEntity *P_CreateEntity(const CPlacement3D &plPlacement, const CTFileName &fnmClass);
 };
 
-#endif // CLASSICSPATCH_ENGINEPATCHES
+#endif // _PATCHCONFIG_ENGINEPATCHES
 
 #endif

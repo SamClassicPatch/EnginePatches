@@ -20,7 +20,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #pragma once
 #endif
 
-#if CLASSICSPATCH_EXTEND_ENTITIES && CLASSICSPATCH_ENGINEPATCHES
+#if _PATCHCONFIG_EXTEND_ENTITIES && _PATCHCONFIG_ENGINEPATCHES
 
 class CEntityPatch : public CEntity {
   public:
@@ -57,6 +57,6 @@ class CRationalEntityPatch : public CRationalEntity {
     void P_Call(SLONG slThisState, SLONG slTargetState, BOOL bOverride, const CEntityEvent &eeInput);
 };
 
-#endif // CLASSICSPATCH_EXTEND_ENTITIES
+#endif // _PATCHCONFIG_EXTEND_ENTITIES
 
 #endif

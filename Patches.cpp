@@ -17,7 +17,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <CoreLib/Base/Unzip.h>
 
-#if CLASSICSPATCH_ENGINEPATCHES
+#if _PATCHCONFIG_ENGINEPATCHES
 
 // Singleton for patching
 CPatches _EnginePatches;
@@ -40,9 +40,9 @@ CPatches::CPatches() {
 
 // Apply core patches (called after Core initialization!)
 void CPatches::CorePatches(void) {
-  const BOOL bGame = GetAPI()->IsGameApp();
-  const BOOL bServer = GetAPI()->IsServerApp();
-  const BOOL bEditor = GetAPI()->IsEditorApp();
+  const bool bGame = ClassicsCore_IsGameApp();
+  const bool bServer = ClassicsCore_IsServerApp();
+  const bool bEditor = ClassicsCore_IsEditorApp();
 
   // Patch for everything
   Strings();
@@ -74,7 +74,7 @@ void CPatches::CorePatches(void) {
   }
 
   // Custom symbols for pre-engine initialization patches
-#if CLASSICSPATCH_FIX_STREAMPAGING
+#if _PATCHCONFIG_FIX_STREAMPAGING
   _pShell->DeclareSymbol("user INDEX sam_bUsePlaceholderResources;", &_EnginePatches._bUsePlaceholderResources);
 #endif
 };
@@ -82,35 +82,35 @@ void CPatches::CorePatches(void) {
 #include "Patches/Entities.h"
 
 void CPatches::Entities(void) {
-#if CLASSICSPATCH_EXTEND_ENTITIES
+#if _PATCHCONFIG_EXTEND_ENTITIES
 
   // CEntity
   void (CEntity::*pReadProps)(CTStream &) = &CEntity::ReadProperties_t;
-  NewPatch(pReadProps, &CEntityPatch::P_ReadProperties, "CEntity::ReadProperties_t(...)");
+  CreatePatch(pReadProps, &CEntityPatch::P_ReadProperties, "CEntity::ReadProperties_t(...)");
 
   extern void (CEntity::*pSendEvent)(const CEntityEvent &);
   pSendEvent = &CEntity::SendEvent;
-  NewPatch(pSendEvent, &CEntityPatch::P_SendEvent, "CEntity::SendEvent(...)");
+  CreatePatch(pSendEvent, &CEntityPatch::P_SendEvent, "CEntity::SendEvent(...)");
 
   // CRationalEntity
   void (CRationalEntity::*pCall)(SLONG, SLONG, BOOL, const CEntityEvent &) = &CRationalEntity::Call;
-  NewPatch(pCall, &CRationalEntityPatch::P_Call, "CRationalEntity::Call(...)");
+  CreatePatch(pCall, &CRationalEntityPatch::P_Call, "CRationalEntity::Call(...)");
 
   // CPlayer
   extern CEntityPatch::CReceiveItem pReceiveItem;
-  StructPtr pReceiveItemPtr(GetPatchAPI()->GetEntitiesSymbol("?ReceiveItem@CPlayer@@UAEHABVCEntityEvent@@@Z"));
+  StructPtr pReceiveItemPtr(ClassicsCore_GetEntitiesSymbol("?ReceiveItem@CPlayer@@UAEHABVCEntityEvent@@@Z"));
 
   if (pReceiveItemPtr.iAddress != NULL) {
     pReceiveItem = pReceiveItemPtr(CEntityPatch::CReceiveItem());
-    NewPatch(pReceiveItem, &CEntityPatch::P_ReceiveItem, "CPlayer::ReceiveItem(...)");
+    CreatePatch(pReceiveItem, &CEntityPatch::P_ReceiveItem, "CPlayer::ReceiveItem(...)");
   }
 
   extern CEntityPatch::CRenderGameView pRenderGameView;
-  StructPtr pRenderGameViewPtr(GetPatchAPI()->GetEntitiesSymbol("?RenderGameView@CPlayer@@UAEXPAVCDrawPort@@PAX@Z"));
+  StructPtr pRenderGameViewPtr(ClassicsCore_GetEntitiesSymbol("?RenderGameView@CPlayer@@UAEXPAVCDrawPort@@PAX@Z"));
 
   if (pRenderGameViewPtr.iAddress != NULL) {
     pRenderGameView = pRenderGameViewPtr(CEntityPatch::CRenderGameView());
-    NewPatch(pRenderGameView, &CEntityPatch::P_RenderGameView, "CPlayer::RenderGameView(...)");
+    CreatePatch(pRenderGameView, &CEntityPatch::P_RenderGameView, "CPlayer::RenderGameView(...)");
   }
 
   // Mod's brush entities
@@ -128,7 +128,7 @@ void CPatches::Entities(void) {
     penMB->Initialize();
 
     #define GETFORCE_OFFSET CHOOSE_FOR_GAME(27, 27, 31)
-    StructPtr pEntityGetForcePtr = GetPatchAPI()->GetEngineSymbol("?GetForce@CEntity@@UAEXJABV?$Vector@M$02@@AAVCForceStrength@@1@Z");
+    StructPtr pEntityGetForcePtr = ClassicsCore_GetEngineSymbol("?GetForce@CEntity@@UAEXJABV?$Vector@M$02@@AAVCForceStrength@@1@Z");
     CEntityPatch::CGetForce pEntityGetForce = pEntityGetForcePtr(CEntityPatch::CGetForce());
 
     // Pointer to the virtual table of CWorldBase
@@ -139,7 +139,7 @@ void CPatches::Entities(void) {
 
     // Don't patch engine function by mistake
     if (pWorldBase_GetForce != pEntityGetForce) {
-      NewPatch(pWorldBase_GetForce, &CEntityPatch::P_WorldBase_GetForce, "CWorldBase::GetForce(...)");
+      CreatePatch(pWorldBase_GetForce, &CEntityPatch::P_WorldBase_GetForce, "CWorldBase::GetForce(...)");
     }
 
     // Pointer to the virtual table of CMovingBrush
@@ -150,7 +150,7 @@ void CPatches::Entities(void) {
 
     // Don't patch engine function by mistake
     if (pMovingBrush_GetForce != pEntityGetForce) {
-      NewPatch(pMovingBrush_GetForce, &CEntityPatch::P_MovingBrush_GetForce, "CMovingBrush::GetForce(...)");
+      CreatePatch(pMovingBrush_GetForce, &CEntityPatch::P_MovingBrush_GetForce, "CMovingBrush::GetForce(...)");
     }
 
     // Same as for initialization
@@ -162,140 +162,140 @@ void CPatches::Entities(void) {
     (void)strError;
   }
 
-#endif // CLASSICSPATCH_EXTEND_ENTITIES
+#endif // _PATCHCONFIG_EXTEND_ENTITIES
 };
 
 #include "Patches/LogicTimers.h"
 
 void CPatches::LogicTimers(void) {
-#if CLASSICSPATCH_FIX_LOGICTIMERS
+#if _PATCHCONFIG_FIX_LOGICTIMERS
 
   void (CRationalEntity::*pSetTimerAfter)(TIME) = &CRationalEntity::SetTimerAfter;
-  NewPatch(pSetTimerAfter, &CRationalEntityTimerPatch::P_SetTimerAfter, "CRationalEntity::SetTimerAfter(...)");
+  CreatePatch(pSetTimerAfter, &CRationalEntityTimerPatch::P_SetTimerAfter, "CRationalEntity::SetTimerAfter(...)");
 
-#endif // CLASSICSPATCH_FIX_LOGICTIMERS
+#endif // _PATCHCONFIG_FIX_LOGICTIMERS
 };
 
 #include "Patches/Network.h"
 
 void CPatches::Network(void) {
-#if CLASSICSPATCH_EXTEND_NETWORK
+#if _PATCHCONFIG_EXTEND_NETWORK
 
   // CCommunicationInterface
-#if CLASSICSPATCH_NEW_QUERY
+#if _PATCHCONFIG_NEW_QUERY
   void (CCommunicationInterface::*pEndWindock)(void) = &CCommunicationInterface::EndWinsock;
-  NewPatch(pEndWindock, &CComIntPatch::P_EndWinsock, "CCommunicationInterface::EndWinsock()");
+  CreatePatch(pEndWindock, &CComIntPatch::P_EndWinsock, "CCommunicationInterface::EndWinsock()");
 #endif
 
   extern void (CCommunicationInterface::*pServerInit)(void);
   pServerInit = &CCommunicationInterface::Server_Init_t;
-  NewPatch(pServerInit, &CComIntPatch::P_ServerInit, "CCommunicationInterface::Server_Init_t()");
+  CreatePatch(pServerInit, &CComIntPatch::P_ServerInit, "CCommunicationInterface::Server_Init_t()");
 
   extern void (CCommunicationInterface::*pServerClose)(void);
   pServerClose = &CCommunicationInterface::Server_Close;
-  NewPatch(pServerClose, &CComIntPatch::P_ServerClose, "CCommunicationInterface::Server_Close()");
+  CreatePatch(pServerClose, &CComIntPatch::P_ServerClose, "CCommunicationInterface::Server_Close()");
 
   // CMessageDispatcher
   void (CMessageDispatcher::*pSendToServer)(const CNetworkMessage &) = &CMessageDispatcher::SendToServerReliable;
-  NewPatch(pSendToServer, &CMessageDisPatch::P_SendToServerReliable, "CMessageDispatcher::SendToServerReliable(...)");
+  CreatePatch(pSendToServer, &CMessageDisPatch::P_SendToServerReliable, "CMessageDispatcher::SendToServerReliable(...)");
 
   BOOL (CMessageDispatcher::*pRecFromClient)(INDEX, CNetworkMessage &) = &CMessageDispatcher::ReceiveFromClient;
-  NewPatch(pRecFromClient, &CMessageDisPatch::P_ReceiveFromClient, "CMessageDispatcher::ReceiveFromClient(...)");
+  CreatePatch(pRecFromClient, &CMessageDisPatch::P_ReceiveFromClient, "CMessageDispatcher::ReceiveFromClient(...)");
 
   pRecFromClient = &CMessageDispatcher::ReceiveFromClientReliable;
-  NewPatch(pRecFromClient, &CMessageDisPatch::P_ReceiveFromClientReliable, "CMessageDispatcher::ReceiveFromClientReliable(...)");
+  CreatePatch(pRecFromClient, &CMessageDisPatch::P_ReceiveFromClientReliable, "CMessageDispatcher::ReceiveFromClientReliable(...)");
 
   // CNetworkLibrary
   extern void (CNetworkLibrary::*pChangeLevel)(void);
   pChangeLevel = &CNetworkLibrary::ChangeLevel_internal;
-  NewPatch(pChangeLevel, &CNetworkPatch::P_ChangeLevelInternal, "CNetworkLibrary::ChangeLevel_internal()");
+  CreatePatch(pChangeLevel, &CNetworkPatch::P_ChangeLevelInternal, "CNetworkLibrary::ChangeLevel_internal()");
 
   void (CNetworkLibrary::*pSaveGame)(const CTFileName &) = &CNetworkLibrary::Save_t;
-  NewPatch(pSaveGame, &CNetworkPatch::P_Save, "CNetworkLibrary::Save_t(...)");
+  CreatePatch(pSaveGame, &CNetworkPatch::P_Save, "CNetworkLibrary::Save_t(...)");
 
   extern void (CNetworkLibrary::*pLoadGame)(const CTFileName &);
   pLoadGame = &CNetworkLibrary::Load_t;
-  NewPatch(pLoadGame, &CNetworkPatch::P_Load, "CNetworkLibrary::Load_t(...)");
+  CreatePatch(pLoadGame, &CNetworkPatch::P_Load, "CNetworkLibrary::Load_t(...)");
 
   extern void (CNetworkLibrary::*pStopGame)(void);
   pStopGame = &CNetworkLibrary::StopGame;
-  NewPatch(pStopGame, &CNetworkPatch::P_StopGame, "CNetworkLibrary::StopGame()");
+  CreatePatch(pStopGame, &CNetworkPatch::P_StopGame, "CNetworkLibrary::StopGame()");
 
   extern CNetworkPatch::CStartP2PFunc pStartPeerToPeer;
   pStartPeerToPeer = &CNetworkLibrary::StartPeerToPeer_t;
-  NewPatch(pStartPeerToPeer, &CNetworkPatch::P_StartPeerToPeer, "CNetworkLibrary::StartPeerToPeer_t(...)");
+  CreatePatch(pStartPeerToPeer, &CNetworkPatch::P_StartPeerToPeer, "CNetworkLibrary::StartPeerToPeer_t(...)");
 
   extern void (CNetworkLibrary::*pStartDemoPlay)(const CTFileName &);
   pStartDemoPlay = &CNetworkLibrary::StartDemoPlay_t;
-  NewPatch(pStartDemoPlay, &CNetworkPatch::P_StartDemoPlay, "CNetworkLibrary::StartDemoPlay_t(...)");
+  CreatePatch(pStartDemoPlay, &CNetworkPatch::P_StartDemoPlay, "CNetworkLibrary::StartDemoPlay_t(...)");
 
   void (CNetworkLibrary::*pStartDemoRec)(const CTFileName &) = &CNetworkLibrary::StartDemoRec_t;
-  NewPatch(pStartDemoRec, &CNetworkPatch::P_StartDemoRec, "CNetworkLibrary::StartDemoRec_t(...)");
+  CreatePatch(pStartDemoRec, &CNetworkPatch::P_StartDemoRec, "CNetworkLibrary::StartDemoRec_t(...)");
 
   void (CNetworkLibrary::*pStopDemoRec)(void) = &CNetworkLibrary::StopDemoRec;
-  NewPatch(pStopDemoRec, &CNetworkPatch::P_StopDemoRec, "CNetworkLibrary::StopDemoRec()");
+  CreatePatch(pStopDemoRec, &CNetworkPatch::P_StopDemoRec, "CNetworkLibrary::StopDemoRec()");
 
   // CSessionState
   extern void (CSessionState::*pFlushPredictions)(void);
   pFlushPredictions = &CSessionState::FlushProcessedPredictions;
-  NewPatch(pFlushPredictions, &CSessionStatePatch::P_FlushProcessedPredictions, "CSessionState::FlushProcessedPredictions()");
+  CreatePatch(pFlushPredictions, &CSessionStatePatch::P_FlushProcessedPredictions, "CSessionState::FlushProcessedPredictions()");
 
   extern void (CSessionState::*pStartAtClient)(INDEX);
   pStartAtClient = &CSessionState::Start_AtClient_t;
-  NewPatch(pStartAtClient, &CSessionStatePatch::P_Start_AtClient, "CSessionState::Start_AtClient_t(...)");
+  CreatePatch(pStartAtClient, &CSessionStatePatch::P_Start_AtClient, "CSessionState::Start_AtClient_t(...)");
 
   void (CSessionState::*pWaitStream)(CTMemoryStream &, const CTString &, INDEX) = &CSessionState::WaitStream_t;
-  NewPatch(pWaitStream, &CSessionStatePatch::P_WaitStream, "CSessionState::WaitStream_t(...)");
+  CreatePatch(pWaitStream, &CSessionStatePatch::P_WaitStream, "CSessionState::WaitStream_t(...)");
 
   void (CSessionState::*pProcGameStreamBlock)(CNetworkMessage &) = &CSessionState::ProcessGameStreamBlock;
-  NewPatch(pProcGameStreamBlock, &CSessionStatePatch::P_ProcessGameStreamBlock, "CSessionState::ProcessGameStreamBlock(...)");
+  CreatePatch(pProcGameStreamBlock, &CSessionStatePatch::P_ProcessGameStreamBlock, "CSessionState::ProcessGameStreamBlock(...)");
 
   void (CSessionState::*pStopSession)(void) = &CSessionState::Stop;
-  NewPatch(pStopSession, &CSessionStatePatch::P_Stop, "CSessionState::Stop()");
+  CreatePatch(pStopSession, &CSessionStatePatch::P_Stop, "CSessionState::Stop()");
 
   extern void (CSessionState::*pReadSessionState)(CTStream *);
   pReadSessionState = &CSessionState::Read_t;
-  NewPatch(pReadSessionState, &CSessionStatePatch::P_Read, "CSessionState::Read_t(...)");
+  CreatePatch(pReadSessionState, &CSessionStatePatch::P_Read, "CSessionState::Read_t(...)");
 
   extern void (CSessionState::*pWriteSessionState)(CTStream *);
   pWriteSessionState = &CSessionState::Write_t;
-  NewPatch(pWriteSessionState, &CSessionStatePatch::P_Write, "CSessionState::Write_t(...)");
+  CreatePatch(pWriteSessionState, &CSessionStatePatch::P_Write, "CSessionState::Write_t(...)");
 
-#if CLASSICSPATCH_GUID_MASKING
+#if _PATCHCONFIG_GUID_MASKING
 
   void (CSessionState::*pMakeSyncCheck)(void) = &CSessionState::MakeSynchronisationCheck;
-  NewPatch(pMakeSyncCheck, &CSessionStatePatch::P_MakeSynchronisationCheck, "CSessionState::MakeSynchronisationCheck()");
+  CreatePatch(pMakeSyncCheck, &CSessionStatePatch::P_MakeSynchronisationCheck, "CSessionState::MakeSynchronisationCheck()");
 
   // CPlayerEntity
 
   // Pointer to CPlayerEntity::Write_t()
-  void *pPlayerWrite = GetPatchAPI()->GetEngineSymbol("?Write_t@CPlayerEntity@@UAEXPAVCTStream@@@Z");
-  NewPatch(pPlayerWrite, &CPlayerEntityPatch::P_Write, "CPlayerEntity::Write_t(...)");
+  void *pPlayerWrite = ClassicsCore_GetEngineSymbol("?Write_t@CPlayerEntity@@UAEXPAVCTStream@@@Z");
+  CreatePatch(pPlayerWrite, &CPlayerEntityPatch::P_Write, "CPlayerEntity::Write_t(...)");
 
   // Pointer to CPlayerEntity::ChecksumForSync()
-  void *pChecksumForSync = GetPatchAPI()->GetEngineSymbol("?ChecksumForSync@CPlayerEntity@@UAEXAAKJ@Z");
-  NewPatch(pChecksumForSync, &CPlayerEntityPatch::P_ChecksumForSync, "CPlayerEntity::ChecksumForSync(...)");
+  void *pChecksumForSync = ClassicsCore_GetEngineSymbol("?ChecksumForSync@CPlayerEntity@@UAEXAAKJ@Z");
+  CreatePatch(pChecksumForSync, &CPlayerEntityPatch::P_ChecksumForSync, "CPlayerEntity::ChecksumForSync(...)");
 
   // Custom symbols
   _pShell->DeclareSymbol("persistent user INDEX ser_bMaskGUIDs pre:UpdateServerSymbolValue;", &IProcessPacket::_bMaskGUIDs);
 
-#endif // CLASSICSPATCH_GUID_MASKING
+#endif // _PATCHCONFIG_GUID_MASKING
 
-#endif // CLASSICSPATCH_EXTEND_NETWORK
+#endif // _PATCHCONFIG_EXTEND_NETWORK
 };
 
 #include "Patches/Rendering.h"
 
 void CPatches::Rendering(void) {
-#if CLASSICSPATCH_FIX_RENDERING
+#if _PATCHCONFIG_FIX_RENDERING
 
   extern void (*pRenderView)(CWorld &, CEntity &, CAnyProjection3D &, CDrawPort &);
   pRenderView = &RenderView;
-  NewPatch(pRenderView, &P_RenderView, "::RenderView(...)");
+  CreatePatch(pRenderView, &P_RenderView, "::RenderView(...)");
 
   // Pointer to CPerspectiveProjection3D::Prepare()
-  void *pPrepare = GetPatchAPI()->GetEngineSymbol("?Prepare@CPerspectiveProjection3D@@UAEXXZ");
-  NewPatch(pPrepare, &CProjectionPatch::P_Prepare, "CPerspectiveProjection3D::Prepare()");
+  void *pPrepare = ClassicsCore_GetEngineSymbol("?Prepare@CPerspectiveProjection3D@@UAEXXZ");
+  CreatePatch(pPrepare, &CProjectionPatch::P_Prepare, "CPerspectiveProjection3D::Prepare()");
 
   // Custom symbols
   _pShell->DeclareSymbol("persistent user INDEX sam_bAdjustForAspectRatio;", &_EnginePatches._bAdjustForAspectRatio);
@@ -304,7 +304,7 @@ void CPatches::Rendering(void) {
   _pShell->DeclareSymbol("persistent user FLOAT sam_fThirdPersonFOV;", &_EnginePatches._fThirdPersonFOV);
   _pShell->DeclareSymbol("           user INDEX sam_bCheckFOV;",       &_EnginePatches._bCheckFOV);
 
-#endif // CLASSICSPATCH_FIX_RENDERING
+#endif // _PATCHCONFIG_FIX_RENDERING
 };
 
 #if SE1_VER >= SE1_107
@@ -312,7 +312,7 @@ void CPatches::Rendering(void) {
 #include "Patches/Ska.h"
 
 void CPatches::Ska(BOOL bRawPatches) {
-#if CLASSICSPATCH_FIX_SKA
+#if _PATCHCONFIG_FIX_SKA
 
   // SKA models have been patched
   static BOOL _bSkaPatched = FALSE;
@@ -321,32 +321,20 @@ void CPatches::Ska(BOOL bRawPatches) {
   _bSkaPatched = TRUE;
 
   void (*pFogHazeFunc)(BOOL) = &RM_DoFogAndHaze;
+  CreatePatch(pFogHazeFunc, &P_DoFogAndHaze, "RM_DoFogAndHaze(...)");
+
   void (*pFogPassFunc)(void) = &shaDoFogPass;
+  FuncPatch_ForceRewrite(7); // Rewrite complex instruction
+  CreatePatch(pFogPassFunc, &P_shaDoFogPass, "shaDoFogPass(...)");
+
   void (*pSetWrappingFunc)(GfxWrap, GfxWrap) = &shaSetTextureWrapping;
+  CreatePatch(pSetWrappingFunc, &P_shaSetTextureWrapping, "shaSetTextureWrapping(...)");
 
   extern void (CModelInstance::*pModelInstanceCopyFunc)(CModelInstance &);
   pModelInstanceCopyFunc = &CModelInstance::Copy;
+  CreatePatch(pModelInstanceCopyFunc, &CModelInstancePatch::P_Copy, "CModelInstance::Copy(...)");
 
-  // Create raw patches in memory
-  if (bRawPatches) {
-    NewRawPatch(pFogHazeFunc, &P_DoFogAndHaze, "RM_DoFogAndHaze(...)");
-    CPatch::ForceRewrite(7); // Rewrite complex instruction
-    NewRawPatch(pFogPassFunc, &P_shaDoFogPass, "shaDoFogPass(...)");
-    NewRawPatch(pSetWrappingFunc, &P_shaSetTextureWrapping, "shaSetTextureWrapping(...)");
-
-    NewRawPatch(pModelInstanceCopyFunc, &CModelInstancePatch::P_Copy, "CModelInstance::Copy(...)");
-
-  // Create patches in the registry
-  } else {
-    NewPatch(pFogHazeFunc, &P_DoFogAndHaze, "RM_DoFogAndHaze(...)");
-    CPatch::ForceRewrite(7); // Rewrite complex instruction
-    NewPatch(pFogPassFunc, &P_shaDoFogPass, "shaDoFogPass(...)");
-    NewPatch(pSetWrappingFunc, &P_shaSetTextureWrapping, "shaSetTextureWrapping(...)");
-
-    NewPatch(pModelInstanceCopyFunc, &CModelInstancePatch::P_Copy, "CModelInstance::Copy(...)");
-  }
-
-#endif // CLASSICSPATCH_FIX_SKA
+#endif // _PATCHCONFIG_FIX_SKA
 };
 
 #endif
@@ -355,64 +343,64 @@ void CPatches::Ska(BOOL bRawPatches) {
 
 void CPatches::SoundLibrary(void) {
   void (CSoundLibrary::*pListen)(CSoundListener &) = &CSoundLibrary::Listen;
-  NewPatch(pListen, &CSoundLibPatch::P_Listen, "CSoundLibrary::Listen(...)");
+  CreatePatch(pListen, &CSoundLibPatch::P_Listen, "CSoundLibrary::Listen(...)");
 
   void (CSoundObject::*pUpdate3DEffects)(void) = &CSoundObject::Update3DEffects;
-  NewPatch(pUpdate3DEffects, &CSoundObjPatch::P_Update3DEffects, "CSoundObject::Update3DEffects()");
+  CreatePatch(pUpdate3DEffects, &CSoundObjPatch::P_Update3DEffects, "CSoundObject::Update3DEffects()");
 };
 
 #include "Patches/Strings.h"
 
 void CPatches::Strings(void) {
-#if CLASSICSPATCH_FIX_STRINGS
+#if _PATCHCONFIG_FIX_STRINGS
 
   INDEX (CTString::*pVPrintF)(const char *, va_list) = &CTString::VPrintF;
-  NewPatch(pVPrintF, &CStringPatch::P_VPrintF, "CTString::VPrintF(...)");
+  CreatePatch(pVPrintF, &CStringPatch::P_VPrintF, "CTString::VPrintF(...)");
 
   CTString (CTString::*pUndecorated)(void) const = &CTString::Undecorated;
-  NewPatch(pUndecorated, &CStringPatch::P_Undecorated, "CTString::Undecorated()");
+  CreatePatch(pUndecorated, &CStringPatch::P_Undecorated, "CTString::Undecorated()");
 
-#endif // CLASSICSPATCH_FIX_STRINGS
+#endif // _PATCHCONFIG_FIX_STRINGS
 };
 
 #include "Patches/Textures.h"
 
 void CPatches::Textures(void) {
-#if CLASSICSPATCH_EXTEND_TEXTURES
+#if _PATCHCONFIG_EXTEND_TEXTURES
 
   void (CTextureData::*pCreateTex)(const CImageInfo *, MEX, INDEX, int) = &CTextureData::Create_t;
-  NewPatch(pCreateTex, &CTexDataPatch::P_Create, "CTextureData::Create_t(...)");
+  CreatePatch(pCreateTex, &CTexDataPatch::P_Create, "CTextureData::Create_t(...)");
 
   // Pointer to CTextureData::Write_t()
-  void *pWriteTex = GetPatchAPI()->GetEngineSymbol("?Write_t@CTextureData@@UAEXPAVCTStream@@@Z");
-  NewPatch(pWriteTex, &CTexDataPatch::P_Write, "CTextureData::Write_t(...)");
+  void *pWriteTex = ClassicsCore_GetEngineSymbol("?Write_t@CTextureData@@UAEXPAVCTStream@@@Z");
+  CreatePatch(pWriteTex, &CTexDataPatch::P_Write, "CTextureData::Write_t(...)");
 
   void (*pProcessScript)(const CTFileName &) = &ProcessScript_t;
-  NewPatch(pProcessScript, &P_ProcessTextureScript, "ProcessScript_t(...)");
+  CreatePatch(pProcessScript, &P_ProcessTextureScript, "ProcessScript_t(...)");
 
   void (*pCreateTextureOut)(const CTFileName &, const CTFileName &, MEX, INDEX, int) = &CreateTexture_t;
-  NewPatch(pCreateTextureOut, &P_CreateTextureOut, "CreateTexture_t(out)");
+  CreatePatch(pCreateTextureOut, &P_CreateTextureOut, "CreateTexture_t(out)");
 
   void (*pCreateTexture)(const CTFileName &, MEX, INDEX, int) = &CreateTexture_t;
-  NewPatch(pCreateTexture, &P_CreateTexture, "CreateTexture_t(...)");
+  CreatePatch(pCreateTexture, &P_CreateTexture, "CreateTexture_t(...)");
 
-#endif // CLASSICSPATCH_EXTEND_TEXTURES
+#endif // _PATCHCONFIG_EXTEND_TEXTURES
 };
 
 #include "Patches/Worlds.h"
 
 void CPatches::Worlds(void) {
   void (CWorld::*pWorldLoad)(const CTFileName &) = &CWorld::Load_t;
-  NewPatch(pWorldLoad, &CWorldPatch::P_Load, "CWorld::Load_t(...)");
+  CreatePatch(pWorldLoad, &CWorldPatch::P_Load, "CWorld::Load_t(...)");
 
   pWorldLoad = &CWorld::LoadBrushes_t;
-  NewPatch(pWorldLoad, &CWorldPatch::P_LoadBrushes, "CWorld::LoadBrushes_t(...)");
+  CreatePatch(pWorldLoad, &CWorldPatch::P_LoadBrushes, "CWorld::LoadBrushes_t(...)");
 
   void (CWorld::*pReadInfo)(CTStream *, BOOL) = &CWorld::ReadInfo_t;
-  NewPatch(pReadInfo, &CWorldPatch::P_ReadInfo, "CWorld::ReadInfo_t(...)");
+  CreatePatch(pReadInfo, &CWorldPatch::P_ReadInfo, "CWorld::ReadInfo_t(...)");
 
   CEntity *(CWorld::*pCreateEntity)(const CPlacement3D &, const CTFileName &) = &CWorld::CreateEntity_t;
-  NewPatch(pCreateEntity, &CWorldPatch::P_CreateEntity, "CWorld::CreateEntity_t(...)");
+  CreatePatch(pCreateEntity, &CWorldPatch::P_CreateEntity, "CWorld::CreateEntity_t(...)");
 
   // Custom symbols
   _pShell->DeclareSymbol("user INDEX sam_iWorldConverter;", &_EnginePatches._iWorldConverter);
@@ -422,7 +410,7 @@ void CPatches::Worlds(void) {
 
 // Specific stream patching
 static void PatchStreams(void) {
-#if CLASSICSPATCH_FIX_STREAMPAGING
+#if _PATCHCONFIG_FIX_STREAMPAGING
 
   // Streams have been patched
   static BOOL _bStreamsPatched = FALSE;
@@ -432,26 +420,26 @@ static void PatchStreams(void) {
 
   // CTStream
   void (CTStream::*pAllocMemory)(ULONG) = &CTStream::AllocateVirtualMemory;
-  NewRawPatch(pAllocMemory, &CUnpageStreamPatch::P_AllocVirtualMemory, "CTStream::AllocateVirtualMemory(...)");
+  CreatePatch(pAllocMemory, &CUnpageStreamPatch::P_AllocVirtualMemory, "CTStream::AllocateVirtualMemory(...)");
 
   void (CTStream::*pFreeBufferFunc)(void) = &CTStream::FreeBuffer;
-  NewRawPatch(pFreeBufferFunc, &CUnpageStreamPatch::P_FreeBuffer, "CTStream::FreeBuffer()");
+  CreatePatch(pFreeBufferFunc, &CUnpageStreamPatch::P_FreeBuffer, "CTStream::FreeBuffer()");
 
   // CTFileStream
   void (CTFileStream::*pCreateFunc)(const CTFileName &, CTStream::CreateMode) = &CTFileStream::Create_t;
-  NewRawPatch(pCreateFunc, &CFileStreamPatch::P_Create, "CTFileStream::Create_t(...)");
+  CreatePatch(pCreateFunc, &CFileStreamPatch::P_Create, "CTFileStream::Create_t(...)");
 
   void (CTFileStream::*pOpenFunc)(const CTFileName &, CTStream::OpenMode) = &CTFileStream::Open_t;
-  NewRawPatch(pOpenFunc, &CFileStreamPatch::P_Open, "CTFileStream::Open_t(...)");
+  CreatePatch(pOpenFunc, &CFileStreamPatch::P_Open, "CTFileStream::Open_t(...)");
 
   void (CTFileStream::*pCloseFunc)(void) = &CTFileStream::Close;
-  NewRawPatch(pCloseFunc, &CFileStreamPatch::P_Close, "CTFileStream::Close()");
+  CreatePatch(pCloseFunc, &CFileStreamPatch::P_Close, "CTFileStream::Close()");
 
-#endif // CLASSICSPATCH_FIX_STREAMPAGING
+#endif // _PATCHCONFIG_FIX_STREAMPAGING
 };
 
 void CPatches::UnpageStreams(void) {
-#if CLASSICSPATCH_FIX_STREAMPAGING
+#if _PATCHCONFIG_FIX_STREAMPAGING
 
   // Streams have been unpaged
   static BOOL _bStreamsUnpaged = FALSE;
@@ -463,46 +451,46 @@ void CPatches::UnpageStreams(void) {
 
   // Dummy methods
   void (CTFileStream::*pPageFunc)(INDEX) = &CTStream::CommitPage;
-  NewRawPatch(pPageFunc, &IDummy::PageFunc, "CTStream::CommitPage(...)");
+  CreatePatch(pPageFunc, &IDummy::PageFunc, "CTStream::CommitPage(...)");
 
   pPageFunc = &CTStream::DecommitPage;
-  NewRawPatch(pPageFunc, &IDummy::PageFunc, "CTStream::DecommitPage(...)");
+  CreatePatch(pPageFunc, &IDummy::PageFunc, "CTStream::DecommitPage(...)");
 
   pPageFunc = &CTStream::ProtectPageFromWritting;
-  NewRawPatch(pPageFunc, &IDummy::PageFunc, "CTStream::ProtectPageFromWritting(...)");
+  CreatePatch(pPageFunc, &IDummy::PageFunc, "CTStream::ProtectPageFromWritting(...)");
 
   pPageFunc = &CTFileStream::WritePageToFile;
-  NewRawPatch(pPageFunc, &IDummy::PageFunc, "CTFileStream::WritePageToFile(...)");
+  CreatePatch(pPageFunc, &IDummy::PageFunc, "CTFileStream::WritePageToFile(...)");
 
   pPageFunc = &CTFileStream::FileCommitPage;
-  NewRawPatch(pPageFunc, &IDummy::PageFunc, "CTFileStream::FileCommitPage(...)");
+  CreatePatch(pPageFunc, &IDummy::PageFunc, "CTFileStream::FileCommitPage(...)");
 
   pPageFunc = &CTFileStream::FileDecommitPage;
-  NewRawPatch(pPageFunc, &IDummy::PageFunc, "CTFileStream::FileDecommitPage(...)");
+  CreatePatch(pPageFunc, &IDummy::PageFunc, "CTFileStream::FileDecommitPage(...)");
 
   void (CNetworkLibrary::*pFinishCRCFunc)(void) = &CNetworkLibrary::FinishCRCGather;
-  NewRawPatch(pFinishCRCFunc, &IDummy::Void, "CNetworkLibrary::FinishCRCGather()");
+  CreatePatch(pFinishCRCFunc, &IDummy::Void, "CNetworkLibrary::FinishCRCGather()");
 
   // Level remembering methods
   void (CSessionState::*pRemCurLevel)(const CTString &) = &CSessionState::RememberCurrentLevel;
-  NewRawPatch(pRemCurLevel, &CRemLevelPatch::P_RememberCurrentLevel, "CSessionState::RememberCurrentLevel(...)");
+  CreatePatch(pRemCurLevel, &CRemLevelPatch::P_RememberCurrentLevel, "CSessionState::RememberCurrentLevel(...)");
 
   CRememberedLevel *(CSessionState::*pFindRemLevel)(const CTString &) = &CSessionState::FindRememberedLevel;
-  NewRawPatch(pFindRemLevel, &CRemLevelPatch::P_FindRememberedLevel, "CSessionState::FindRememberedLevel(...)");
+  CreatePatch(pFindRemLevel, &CRemLevelPatch::P_FindRememberedLevel, "CSessionState::FindRememberedLevel(...)");
 
   void (CSessionState::*pRestoreOldLevel)(const CTString &) = &CSessionState::RestoreOldLevel;
-  NewRawPatch(pRestoreOldLevel, &CRemLevelPatch::P_RestoreOldLevel, "CSessionState::RestoreOldLevel(...)");
+  CreatePatch(pRestoreOldLevel, &CRemLevelPatch::P_RestoreOldLevel, "CSessionState::RestoreOldLevel(...)");
 
   void (CSessionState::*pForgetOldLevels)(void) = &CSessionState::ForgetOldLevels;
-  NewRawPatch(pForgetOldLevels, &CRemLevelPatch::P_ForgetOldLevels, "CSessionState::ForgetOldLevels()");
+  CreatePatch(pForgetOldLevels, &CRemLevelPatch::P_ForgetOldLevels, "CSessionState::ForgetOldLevels()");
 
-#endif // CLASSICSPATCH_FIX_STREAMPAGING
+#endif // _PATCHCONFIG_FIX_STREAMPAGING
 };
 
 #include "Patches/FileSystem.h"
 
 void CPatches::FileSystem(void) {
-#if CLASSICSPATCH_EXTEND_FILESYSTEM
+#if _PATCHCONFIG_EXTEND_FILESYSTEM
 
   // File system has been extended
   static BOOL _bFileSystemExtended = FALSE;
@@ -511,48 +499,48 @@ void CPatches::FileSystem(void) {
   _bFileSystemExtended = TRUE;
 
   // Don't patch file system
-  if (!CCoreAPI::Props().bExtendedFileSystem) return;
+  if (!IConfig::global[k_EConfigProps_ExtendedFileSystem]) return;
 
   PatchStreams();
 
   // CEntityClass
   void (CEntityClass::*pObtainComponents)(void) = &CEntityClass::ObtainComponents_t;
-  NewRawPatch(pObtainComponents, &CEntityClassPatch::P_ObtainComponents, "CEntityClass::ObtainComponents_t()");
+  CreatePatch(pObtainComponents, &CEntityClassPatch::P_ObtainComponents, "CEntityClass::ObtainComponents_t()");
 
-  void *pReadClass = CPatchAPI::GetEngineSymbolPortable("?Read_t@CEntityClass@@UAEXPAVCTStream@@@Z");
-  NewRawPatch(pReadClass, &CEntityClassPatch::P_Read, "CEntityClass::Read_t(...)");
+  void *pReadClass = ClassicsCore_GetEngineSymbol("?Read_t@CEntityClass@@UAEXPAVCTStream@@@Z");
+  CreatePatch(pReadClass, &CEntityClassPatch::P_Read, "CEntityClass::Read_t(...)");
 
 #if SE1_VER >= SE1_107
   // CShader
-  void *pReadShader = CPatchAPI::GetEngineSymbolPortable("?Read_t@CShader@@UAEXPAVCTStream@@@Z");
-  NewRawPatch(pReadShader, &CShaderPatch::P_Read, "CShader::Read_t(...)");
+  void *pReadShader = ClassicsCore_GetEngineSymbol("?Read_t@CShader@@UAEXPAVCTStream@@@Z");
+  CreatePatch(pReadShader, &CShaderPatch::P_Read, "CShader::Read_t(...)");
 #endif
 
   // CTStream
   #if SE1_GAME != SS_REV
-    void *pGetLine = CPatchAPI::GetEngineSymbolPortable("?GetLine_t@CTStream@@QAEXPADJD@Z");
+    void *pGetLine = ClassicsCore_GetEngineSymbol("?GetLine_t@CTStream@@QAEXPADJD@Z");
   #else
-    void *pGetLine = CPatchAPI::GetEngineSymbolPortable("?GetLine_t@CTStream@@UAEXPADJD@Z");
+    void *pGetLine = ClassicsCore_GetEngineSymbol("?GetLine_t@CTStream@@UAEXPADJD@Z");
   #endif
-  NewRawPatch(pGetLine, &CStreamPatch::P_GetLine, "CTStream::GetLine_t(...)");
+  CreatePatch(pGetLine, &CStreamPatch::P_GetLine, "CTStream::GetLine_t(...)");
 
   void (CTStream::*pReadDictionary)(SLONG) = &CTStream::ReadDictionary_intenal_t;
-  NewRawPatch(pReadDictionary, &CStreamPatch::P_ReadDictionary_intenal, "CTStream::ReadDictionary_intenal_t(...)");
+  CreatePatch(pReadDictionary, &CStreamPatch::P_ReadDictionary_intenal, "CTStream::ReadDictionary_intenal_t(...)");
 
   // Global methods
   extern void (*pInitStreams)(void);
   pInitStreams = StructPtr(ADDR_INITSTREAMS)(&P_InitStreams);
-  NewRawPatch(pInitStreams, &P_InitStreams, "::InitStreams()");
+  CreatePatch(pInitStreams, &P_InitStreams, "::InitStreams()");
 
   void (*pMakeDirList)(CFileList &, const CTFileName &, const CTString &, ULONG) = &MakeDirList;
-  NewRawPatch(pMakeDirList, &P_MakeDirList, "::MakeDirList(...)");
+  CreatePatch(pMakeDirList, &P_MakeDirList, "::MakeDirList(...)");
 
 #if SE1_GAME != SS_REV
   INDEX (*pExpandFilePath)(EXPAND_PATH_ARGS(ULONG, const CTFileName &, CTFileName &, BOOL)) = &ExpandFilePath;
-  NewRawPatch(pExpandFilePath, &P_ExpandFilePath, "::ExpandFilePath(...)");
+  CreatePatch(pExpandFilePath, &P_ExpandFilePath, "::ExpandFilePath(...)");
 #endif
 
-#endif // CLASSICSPATCH_EXTEND_FILESYSTEM
+#endif // _PATCHCONFIG_EXTEND_FILESYSTEM
 };
 
-#endif // CLASSICSPATCH_ENGINEPATCHES
+#endif // _PATCHCONFIG_ENGINEPATCHES

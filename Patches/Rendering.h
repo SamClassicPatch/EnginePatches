@@ -20,7 +20,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #pragma once
 #endif
 
-#if CLASSICSPATCH_ENGINEPATCHES && CLASSICSPATCH_FIX_RENDERING
+#if _PATCHCONFIG_ENGINEPATCHES && _PATCHCONFIG_FIX_RENDERING
 
 // Patched function
 void P_RenderView(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDrawPort &dp);
@@ -31,6 +31,6 @@ class CProjectionPatch : public CPerspectiveProjection3D {
     void P_Prepare(void);
 };
 
-#endif // CLASSICSPATCH_FIX_RENDERING
+#endif // _PATCHCONFIG_FIX_RENDERING
 
 #endif

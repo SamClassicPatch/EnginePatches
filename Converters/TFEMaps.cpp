@@ -17,7 +17,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "MapConversion.h"
 
-#if CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
+#if _PATCHCONFIG_CONVERT_MAPS && TSE_FUSION_MODE
 
 // Classes that need to be converted
 #include <EntitiesV/StdH/StdH.h>
@@ -71,7 +71,7 @@ void IConvertTFE::ConvertWeapon(INDEX &iFlags, INDEX iWeapon) {
 // Convert invalid key types
 void IConvertTFE::ConvertKeyType(INDEX &eKey) {
   // Shift TFE keys from 0 to 16
-  if (CCoreAPI::IsCustomModActive()) {
+  if (ClassicsCore_IsCustomModActive()) {
     eKey += 16;
     return;
   }
@@ -286,4 +286,4 @@ void IConvertTFE::ConvertWorld(CWorld *pwo) {
   CreateGlobalLight();
 };
 
-#endif // CLASSICSPATCH_CONVERT_MAPS && TSE_FUSION_MODE
+#endif // _PATCHCONFIG_CONVERT_MAPS && TSE_FUSION_MODE

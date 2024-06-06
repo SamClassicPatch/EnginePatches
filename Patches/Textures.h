@@ -20,7 +20,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #pragma once
 #endif
 
-#if CLASSICSPATCH_ENGINEPATCHES && CLASSICSPATCH_EXTEND_TEXTURES
+#if _PATCHCONFIG_ENGINEPATCHES && _PATCHCONFIG_EXTEND_TEXTURES
 
 class CTexDataPatch : public CTextureData {
   public:
@@ -59,6 +59,6 @@ __forceinline void P_CreateTexture(const CTFileName &fnInput, MEX mexInput, INDE
   CreateTexture_t(fnInput, mexInput, ctMipmaps, (ulFlags & TEX_32BIT) != 0);
 };
 
-#endif // CLASSICSPATCH_EXTEND_TEXTURES
+#endif // _PATCHCONFIG_EXTEND_TEXTURES
 
 #endif

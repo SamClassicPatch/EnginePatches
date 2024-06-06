@@ -20,7 +20,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
   #pragma once
 #endif
 
-#if CLASSICSPATCH_ENGINEPATCHES
+#if _PATCHCONFIG_ENGINEPATCHES
 
 class CSoundLibPatch : public CSoundLibrary {
   public:
@@ -32,6 +32,6 @@ class CSoundObjPatch : public CSoundObject {
     void P_Update3DEffects(void);
 };
 
-#endif // CLASSICSPATCH_ENGINEPATCHES
+#endif // _PATCHCONFIG_ENGINEPATCHES
 
 #endif

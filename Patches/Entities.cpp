@@ -15,7 +15,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdH.h"
 
-#if CLASSICSPATCH_EXTEND_ENTITIES && CLASSICSPATCH_ENGINEPATCHES
+#if _PATCHCONFIG_EXTEND_ENTITIES && _PATCHCONFIG_ENGINEPATCHES
 
 #include "Entities.h"
 #include "../MapConversion.h"
@@ -310,10 +310,10 @@ void CEntityPatch::P_WorldBase_GetForce(INDEX iForce, const FLOAT3D &vPoint, CFo
   // Proceed to the original function
   (this->*pWorldBase_GetForce)(iForce, vPoint, fsGravity, fsField);
 
-#if CLASSICSPATCH_GAMEPLAY_EXT
+#if _PATCHCONFIG_GAMEPLAY_EXT
 
   // Gravity modifiers
-  const FLOAT fAcc = CoreGEX().fGravityAcc;
+  const FLOAT fAcc = IConfig::gex[k_EGameplayExt_GravityAcc].GetFloat();
 
   if (fAcc != 1.0f) {
     fsGravity.fs_fAcceleration *= Abs(fAcc);
@@ -323,17 +323,17 @@ void CEntityPatch::P_WorldBase_GetForce(INDEX iForce, const FLOAT3D &vPoint, CFo
     }
   }
 
-#endif // CLASSICSPATCH_GAMEPLAY_EXT
+#endif // _PATCHCONFIG_GAMEPLAY_EXT
 };
 
 void CEntityPatch::P_MovingBrush_GetForce(INDEX iForce, const FLOAT3D &vPoint, CForceStrength &fsGravity, CForceStrength &fsField) {
   // Proceed to the original function
   (this->*pMovingBrush_GetForce)(iForce, vPoint, fsGravity, fsField);
 
-#if CLASSICSPATCH_GAMEPLAY_EXT
+#if _PATCHCONFIG_GAMEPLAY_EXT
 
   // Gravity modifiers
-  const FLOAT fAcc = CoreGEX().fGravityAcc;
+  const FLOAT fAcc = IConfig::gex[k_EGameplayExt_GravityAcc].GetFloat();
 
   if (fAcc != 1.0f) {
     fsGravity.fs_fAcceleration *= Abs(fAcc);
@@ -343,7 +343,7 @@ void CEntityPatch::P_MovingBrush_GetForce(INDEX iForce, const FLOAT3D &vPoint, C
     }
   }
 
-#endif // CLASSICSPATCH_GAMEPLAY_EXT
+#endif // _PATCHCONFIG_GAMEPLAY_EXT
 };
 
 // Call a subautomaton
@@ -367,4 +367,4 @@ void CRationalEntityPatch::P_Call(SLONG slThisState, SLONG slTargetState, BOOL b
   HandleEvent(eeInput);
 };
 
-#endif // CLASSICSPATCH_EXTEND_ENTITIES
+#endif // _PATCHCONFIG_EXTEND_ENTITIES

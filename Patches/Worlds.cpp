@@ -15,7 +15,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdH.h"
 
-#if CLASSICSPATCH_ENGINEPATCHES
+#if _PATCHCONFIG_ENGINEPATCHES
 
 #include "Worlds.h"
 #include "../MapConversion.h"
@@ -73,7 +73,7 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
   DetermineWorldFormat(fnmWorld, strmFile);
 
   // [Cecil] Set converter for the world format and reset it
-  #if CLASSICSPATCH_CONVERT_MAPS
+  #if _PATCHCONFIG_CONVERT_MAPS
     IMapConverter *pconv = IMapConverter::SetConverter(eWorld);
 
     if (pconv != NULL) {
@@ -96,7 +96,7 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
   bForceReinit |= (eWorld != E_LF_CURRENT);
 
   // [Cecil] Convert the world some specific way while in game
-  if (!GetAPI()->IsEditorApp() && bForceReinit) {
+  if (!ClassicsCore_IsEditorApp() && bForceReinit) {
     SetProgressDescription(LOCALIZE("converting from old version"));
     CallProgressHook_t(0.0f);
 
@@ -104,7 +104,7 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
     CSetFPUPrecision FPUPrecision(FPT_24BIT);
     CTmpPrecachingNow tpn;
 
-    #if CLASSICSPATCH_CONVERT_MAPS
+    #if _PATCHCONFIG_CONVERT_MAPS
       // Use map converter
       if (pconv != NULL) {
         pconv->ConvertWorld(this);
@@ -139,7 +139,7 @@ void CWorldPatch::P_Load(const CTFileName &fnmWorld) {
   }
 
   // [Cecil] Call API method after loading the world
-  GetAPI()->OnWorldLoad(this, fnmWorld);
+  IHooks::OnWorldLoad(this, fnmWorld);
 };
 
 void CWorldPatch::P_LoadBrushes(const CTFileName &fnmWorld) {
@@ -280,4 +280,4 @@ CEntity *CWorldPatch::P_CreateEntity(const CPlacement3D &plPlacement, const CTFi
   return penNew;
 };
 
-#endif // CLASSICSPATCH_ENGINEPATCHES
+#endif // _PATCHCONFIG_ENGINEPATCHES

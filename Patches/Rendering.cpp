@@ -15,11 +15,11 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdH.h"
 
-#if CLASSICSPATCH_ENGINEPATCHES
+#if _PATCHCONFIG_ENGINEPATCHES
 
 #include "Rendering.h"
 
-#if CLASSICSPATCH_FIX_RENDERING
+#if _PATCHCONFIG_FIX_RENDERING
 
 // Original function pointer
 void (*pRenderView)(CWorld &, CEntity &, CAnyProjection3D &, CDrawPort &) = NULL;
@@ -28,7 +28,7 @@ void (*pRenderView)(CWorld &, CEntity &, CAnyProjection3D &, CDrawPort &) = NULL
 void P_RenderView(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDrawPort &dp)
 {
   // Set wide adjustment based on current aspect ratio
-  if (CoreVarData().bAdjustAR && _EnginePatches._bAdjustForAspectRatio) {
+  if (IConfig::mod[k_EModDataProps_AdjustAR] && _EnginePatches._bAdjustForAspectRatio) {
     dp.dp_fWideAdjustment = ((FLOAT)dp.GetHeight() / (FLOAT)dp.GetWidth()) * (4.0f / 3.0f);
   } else {
     dp.dp_fWideAdjustment = 1.0f;
@@ -40,7 +40,7 @@ void P_RenderView(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDr
     (*pRenderView)(woWorld, enViewer, apr, dp);
 
     // Call API method after rendering the world
-    GetAPI()->OnRenderView(woWorld, &enViewer, apr, &dp);
+    IHooks::OnRenderView(woWorld, &enViewer, apr, &dp);
     return;
   }
 
@@ -103,7 +103,7 @@ void P_RenderView(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDr
     _EnginePatches._bCheckFOV = FALSE;
 
   // Unpatch FOV when viewing through any other entity during the game
-  } else if (GetGameAPI()->IsGameOn() && CoreVarData().bAdjustFOV && _EnginePatches._bUseVerticalFOV > 1) {
+  } else if (GetGameAPI()->IsGameOn() && IConfig::mod[k_EModDataProps_AdjustFOV] && _EnginePatches._bUseVerticalFOV > 1) {
     fNewFOV = ATan(Tan(fNewFOV * 0.5f) * fOppositeAspectRatio / ppr.pr_AspectRatio) * 2.0f;
   }
 
@@ -111,7 +111,7 @@ void P_RenderView(CWorld &woWorld, CEntity &enViewer, CAnyProjection3D &apr, CDr
   (*pRenderView)(woWorld, enViewer, apr, dp);
 
   // Call API method after rendering the world
-  GetAPI()->OnRenderView(woWorld, &enViewer, apr, &dp);
+  IHooks::OnRenderView(woWorld, &enViewer, apr, &dp);
 };
 
 // Prepare the perspective projection
@@ -197,7 +197,7 @@ void CProjectionPatch::P_Prepare(void) {
     ANGLE aHalfVer;
 
     // Adjust FOV for wider resolutions (preserve vertical FOV instead of horizontal)
-    if (CoreVarData().bAdjustFOV && _EnginePatches._bUseVerticalFOV) {
+    if (IConfig::mod[k_EModDataProps_AdjustFOV] && _EnginePatches._bUseVerticalFOV) {
       // Calculate VFOV from HFOV on 4:3 resolution (e.g. 90 -> ~73.74)
       aHalfVer = ATan(Tan(ppr_FOVWidth * 0.5f) * 3.0f * pr_AspectRatio / 4.0f);
 
@@ -270,7 +270,7 @@ void CProjectionPatch::P_Prepare(void) {
   pr_fDepthBufferAdd = pr_fDepthBufferNear;
 
   // Fix mip distances
-  if (CoreVarData().bAdjustFOV && _EnginePatches._bUseVerticalFOV) {
+  if (IConfig::mod[k_EModDataProps_AdjustFOV] && _EnginePatches._bUseVerticalFOV) {
     // Rely on height ratio instead of width ratio
     ppr_fMipRatio = pr_ScreenBBox.Size()(2) / (ppr_PerspectiveRatios(2) * 480.0f);
 
@@ -280,6 +280,6 @@ void CProjectionPatch::P_Prepare(void) {
   }
 };
 
-#endif // CLASSICSPATCH_FIX_RENDERING
+#endif // _PATCHCONFIG_FIX_RENDERING
 
-#endif // CLASSICSPATCH_ENGINEPATCHES
+#endif // _PATCHCONFIG_ENGINEPATCHES

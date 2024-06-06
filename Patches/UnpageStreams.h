@@ -22,7 +22,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include <Engine/Network/LevelChange.h>
 
-#if CLASSICSPATCH_ENGINEPATCHES && CLASSICSPATCH_FIX_STREAMPAGING
+#if _PATCHCONFIG_ENGINEPATCHES && _PATCHCONFIG_FIX_STREAMPAGING
 
 // CTStream patches
 class CUnpageStreamPatch : public CTStream {
@@ -93,6 +93,6 @@ class CRemLevelPatch : public CSessionState {
     void P_ForgetOldLevels(void);
 };
 
-#endif // CLASSICSPATCH_FIX_STREAMPAGING
+#endif // _PATCHCONFIG_FIX_STREAMPAGING
 
 #endif

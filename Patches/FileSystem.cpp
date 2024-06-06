@@ -15,7 +15,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #include "StdH.h"
 
-#if CLASSICSPATCH_ENGINEPATCHES
+#if _PATCHCONFIG_ENGINEPATCHES
 
 #include "FileSystem.h"
 #include "../MapConversion.h"
@@ -27,7 +27,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #include <sstream>
 #include <STLIncludesEnd.h>
 
-#if CLASSICSPATCH_EXTEND_FILESYSTEM
+#if _PATCHCONFIG_EXTEND_FILESYSTEM
 
 // Obtain components of the entity class
 void CEntityClassPatch::P_ObtainComponents(void)
@@ -164,13 +164,13 @@ void CEntityClassPatch::P_Read(CTStream *istr) {
   const CTString strLibExt = fnmDLL.FileExt();
 
   // Find appropriate default entities library
-  if (CCoreAPI::IsCustomModActive() && bVanillaEntities) {
+  if (ClassicsCore_IsCustomModActive() && bVanillaEntities) {
     fnmDLL = IDir::AppPath() + IDir::FullLibPath(strLibName + _strModExt, strLibExt);
 
   // Use original path to the library
   } else {
     // Mod extension for mods or vanilla extension for entity packs
-    const CTString &strCurrentExt = (_fnmMod != "" ? _strModExt : CCoreAPI::GetVanillaExt());
+    const CTString &strCurrentExt = (_fnmMod != "" ? _strModExt : ClassicsCore_GetVanillaExt());
 
     CTFileName fnmExpand = fnmDLL.FileDir() + IDir::GetLibFile(strLibName + strCurrentExt, strLibExt);
     ExpandFilePath(EFP_READ, fnmExpand, fnmDLL);
@@ -348,20 +348,20 @@ void P_InitStreams(void) {
 
 #if TSE_FUSION_MODE
   // Setup other game directories
-  if (CCoreAPI::Props().bMountTFE) {
-    SetupGameDir(GAME_DIR_TFE, CCoreAPI::Props().strTFEDir, CONFIG_DEFAULT_DIR_TFE);
+  if (IConfig::global[k_EConfigProps_TFEMount]) {
+    SetupGameDir(GAME_DIR_TFE, IConfig::global[k_EConfigProps_TFEDir].GetString(), IConfig::strDefaultTFE);
   }
-  if (CCoreAPI::Props().bMountSSR) {
-    bRev = SetupGameDir(GAME_DIR_SSR, CCoreAPI::Props().strSSRDir, CONFIG_DEFAULT_DIR_SSR);
+  if (IConfig::global[k_EConfigProps_SSRMount]) {
+    bRev = SetupGameDir(GAME_DIR_SSR, IConfig::global[k_EConfigProps_SSRDir].GetString(), IConfig::strDefaultSSR);
   }
 #endif
 
-  if (CCoreAPI::Props().bMountSSRWorkshop) {
+  if (IConfig::global[k_EConfigProps_SSRWorkshopMount]) {
     // Specify path to Revolution workshop relative to the Steam game
-    CTString strWorkshop = CCoreAPI::Props().strSSRWorkshop;
+    CTString strWorkshop = IConfig::global[k_EConfigProps_SSRWorkshopDir].GetString();
 
     if (bRev && strWorkshop == "") {
-      strWorkshop = GAME_DIR_SSR + CONFIG_DEFAULT_DIR_WORKSHOP;
+      strWorkshop = GAME_DIR_SSR + IConfig::strDefaultWorkshop;
     }
 
     // Verify workshop directory and load workshop files
@@ -432,7 +432,7 @@ void P_InitStreams(void) {
   // Set custom mod extension to utilize Entities & Game libraries from the patch
   BOOL bChangeExtension = FALSE;
 
-  if (CCoreAPI::Props().bCustomMod) {
+  if (IConfig::global[k_EConfigProps_CustomMod]) {
     // Change by default
     bChangeExtension = TRUE;
 
@@ -461,10 +461,10 @@ void P_InitStreams(void) {
   // Change mod extension for the base game or for mods with no libraries
   if (bChangeExtension) {
     _strModExt = CLASSICSPATCH_SUFFIX;
-    CCoreAPI::SetCustomMod(TRUE);
+    ClassicsCore_SetCustomMod(true);
 
   } else {
-    CCoreAPI::SetCustomMod(FALSE);
+    ClassicsCore_SetCustomMod(false);
   }
 };
 
@@ -704,6 +704,6 @@ INDEX P_ExpandFilePath(EXPAND_PATH_ARGS(ULONG ulType, const CTFileName &fnmFile,
   return EFP_NONE;
 };
 
-#endif // CLASSICSPATCH_EXTEND_FILESYSTEM
+#endif // _PATCHCONFIG_EXTEND_FILESYSTEM
 
-#endif // CLASSICSPATCH_ENGINEPATCHES
+#endif // _PATCHCONFIG_ENGINEPATCHES
