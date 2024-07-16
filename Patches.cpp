@@ -56,7 +56,8 @@ void CPatches::CorePatches(void) {
     Rendering();
     Worlds();
 
-    #if SE1_VER >= SE1_107
+    // [Cecil] TODO: Make SKA patches work in Debug
+    #if SE1_VER >= SE1_107 && defined(NDEBUG)
       Ska(FALSE);
     #endif
 
@@ -307,7 +308,8 @@ void CPatches::Rendering(void) {
 #endif // _PATCHCONFIG_FIX_RENDERING
 };
 
-#if SE1_VER >= SE1_107
+// [Cecil] TODO: Make SKA patches work in Debug
+#if SE1_VER >= SE1_107 && defined(NDEBUG)
 
 #include "Patches/Ska.h"
 

@@ -75,7 +75,8 @@ class PATCHES_API CPatches {
     // Enhance rendering
     void Rendering(void);
 
-    #if SE1_VER >= SE1_107
+    // [Cecil] TODO: Make SKA patches work in Debug
+    #if SE1_VER >= SE1_107 && defined(NDEBUG)
       // Fix SKA models
       void Ska(BOOL bRawPatches);
     #endif

@@ -21,8 +21,9 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 
 #if _PATCHCONFIG_FIX_SKA
 
+// [Cecil] TODO: Make SKA patches work in Debug
 // SKA models are only usable since 1.07
-#if SE1_VER >= SE1_107
+#if SE1_VER >= SE1_107 && defined(NDEBUG)
 
 CSkaPatch _SkaPatch;
 
