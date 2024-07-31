@@ -35,7 +35,12 @@ void CEntityPatch::P_ReadProperties(CTStream &istrm) {
   #define GET_PROP(_Type) ENTITYPROPERTY(this, pepProp->ep_slOffset, _Type)
   #define READ_PROP(_Type) istrm.Read_t(&GET_PROP(_Type), sizeof(_Type))
 
+#if _PATCHCONFIG_CONVERT_MAPS
   #define HANDLE_UNKNOWN(_Field) IMapConverter::HandleUnknownProperty(this, eptType, ulID, &_Field)
+#else
+  #define HANDLE_UNKNOWN(_Field)
+#endif
+
   #define HANDLE_SIMPLE(_Type) { \
     _Type valSkip; \
     istrm.Read_t(&valSkip, sizeof(_Type)); \
