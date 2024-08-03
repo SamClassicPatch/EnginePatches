@@ -114,6 +114,7 @@ void CPatches::Entities(void) {
     CreatePatch(pRenderGameView, &CEntityPatch::P_RenderGameView, "CPlayer::RenderGameView(...)");
   }
 
+#if _PATCHCONFIG_ENTITY_FORCE
   // Mod's brush entities
   CWorld woTemp;
 
@@ -128,7 +129,6 @@ void CPatches::Entities(void) {
     penWB->Initialize();
     penMB->Initialize();
 
-    #define GETFORCE_OFFSET CHOOSE_FOR_GAME(27, 27, 31)
     StructPtr pEntityGetForcePtr = ClassicsCore_GetEngineSymbol("?GetForce@CEntity@@UAEXJABV?$Vector@M$02@@AAVCForceStrength@@1@Z");
     CEntityPatch::CGetForce pEntityGetForce = pEntityGetForcePtr(CEntityPatch::CGetForce());
 
@@ -136,7 +136,7 @@ void CPatches::Entities(void) {
     size_t *pVFTable = *(size_t **)penWB;
 
     extern CEntityPatch::CGetForce pWorldBase_GetForce;
-    pWorldBase_GetForce = *(CEntityPatch::CGetForce *)(pVFTable + GETFORCE_OFFSET);
+    pWorldBase_GetForce = *(CEntityPatch::CGetForce *)(pVFTable + VFOFFSET_ENTITY_GETFORCE);
 
     // Don't patch engine function by mistake
     if (pWorldBase_GetForce != pEntityGetForce) {
@@ -147,7 +147,7 @@ void CPatches::Entities(void) {
     pVFTable = *(size_t **)penMB;
 
     extern CEntityPatch::CGetForce pMovingBrush_GetForce;
-    pMovingBrush_GetForce = *(CEntityPatch::CGetForce *)(pVFTable + GETFORCE_OFFSET);
+    pMovingBrush_GetForce = *(CEntityPatch::CGetForce *)(pVFTable + VFOFFSET_ENTITY_GETFORCE);
 
     // Don't patch engine function by mistake
     if (pMovingBrush_GetForce != pEntityGetForce) {
@@ -162,6 +162,7 @@ void CPatches::Entities(void) {
   } catch (char *strError) {
     (void)strError;
   }
+#endif // _PATCHCONFIG_ENTITY_FORCE
 
 #endif // _PATCHCONFIG_EXTEND_ENTITIES
 };
