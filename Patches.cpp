@@ -520,10 +520,10 @@ void CPatches::FileSystem(void) {
 #endif
 
   // CTStream
-  #if SE1_GAME != SS_REV
-    void *pGetLine = ClassicsCore_GetEngineSymbol("?GetLine_t@CTStream@@QAEXPADJD@Z");
-  #else
+  #if SE1_GAME == SS_REV || SE1_VER == SE1_110
     void *pGetLine = ClassicsCore_GetEngineSymbol("?GetLine_t@CTStream@@UAEXPADJD@Z");
+  #else
+    void *pGetLine = ClassicsCore_GetEngineSymbol("?GetLine_t@CTStream@@QAEXPADJD@Z");
   #endif
   CreatePatch(pGetLine, &CStreamPatch::P_GetLine, "CTStream::GetLine_t(...)");
 
