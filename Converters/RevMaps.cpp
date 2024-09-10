@@ -145,6 +145,7 @@ void IConvertSSR::ConvertKeyType(INDEX &eKey) {
     return;
   }
 
+#if _PATCHCONFIG_CUSTOM_MOD && _PATCHCONFIG_CUSTOM_MOD_ENTITIES
   // TFE keys
   if (ClassicsCore_IsCustomModActive()) {
     // Shift some keys by 16
@@ -158,6 +159,7 @@ void IConvertSSR::ConvertKeyType(INDEX &eKey) {
 
     return;
   }
+#endif
 
   switch (eKey) {
     // Dummy keys
@@ -462,7 +464,11 @@ BOOL IConvertSSR::ConvertEntity(CEntity *pen) {
     }
 
   // [Cecil] NOTE: Extra conversions for when custom mod is disabled
+#if _PATCHCONFIG_CUSTOM_MOD && _PATCHCONFIG_CUSTOM_MOD_ENTITIES
   } else if (!ClassicsCore_IsCustomModActive()) {
+#else
+  } else {
+#endif
     // Adjust blend modes
     if (IsOfClassID(pen, CBlendController_ClassID)) {
       // Retrieve CBlendController::m_bctType
@@ -575,7 +581,10 @@ BOOL IConvertSSR::ConvertEntity(CEntity *pen) {
 
   // [Cecil] NOTE: This normally isn't required but since some Revolution enemies are being
   // replaced with TSE ones, all placed enemies need to be reinitialized to reset their models
-  if (!ClassicsCore_IsCustomModActive()) {
+#if _PATCHCONFIG_CUSTOM_MOD && _PATCHCONFIG_CUSTOM_MOD_ENTITIES
+  if (!ClassicsCore_IsCustomModActive())
+#endif
+  {
     return !IsDerivedFromID(pen, CEnemyBase_ClassID);
   }
 

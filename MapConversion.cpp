@@ -94,7 +94,11 @@ void IMapConverter::CreateGlobalLight(void) {
 // Load some class from patch's ExtraEntities library instead of vanilla entities, if required
 BOOL LoadClassFromExtras(CTString &strClassName, CTFileName &fnmDLL, ClassReplacementPair *aTable) {
   // ExtraEntities library is part of the custom mod
+#if _PATCHCONFIG_CUSTOM_MOD && _PATCHCONFIG_CUSTOM_MOD_ENTITIES
   if (!ClassicsCore_IsCustomModActive()) return FALSE;
+#else
+  return FALSE;
+#endif
 
   INDEX i = 0;
 

@@ -70,11 +70,13 @@ void IConvertTFE::ConvertWeapon(INDEX &iFlags, INDEX iWeapon) {
 
 // Convert invalid key types
 void IConvertTFE::ConvertKeyType(INDEX &eKey) {
+#if _PATCHCONFIG_CUSTOM_MOD && _PATCHCONFIG_CUSTOM_MOD_ENTITIES
   // Shift TFE keys from 0 to 16
   if (ClassicsCore_IsCustomModActive()) {
     eKey += 16;
     return;
   }
+#endif
 
   switch (eKey) {
     // Dummy keys

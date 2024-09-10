@@ -163,12 +163,15 @@ void CEntityClassPatch::P_Read(CTStream *istr) {
   const CTString strLibName = fnmDLL.FileName();
   const CTString strLibExt = fnmDLL.FileExt();
 
+#if _PATCHCONFIG_CUSTOM_MOD && _PATCHCONFIG_CUSTOM_MOD_ENTITIES
   // Find appropriate default entities library
   if (ClassicsCore_IsCustomModActive() && bVanillaEntities) {
     fnmDLL = IDir::AppPath() + IDir::FullLibPath(strLibName + _strModExt, strLibExt);
 
+  } else
+#endif
   // Use original path to the library
-  } else {
+  {
     // Mod extension for mods or vanilla extension for entity packs
     const CTString &strCurrentExt = (_fnmMod != "" ? _strModExt : ClassicsCore_GetVanillaExt());
 
@@ -429,6 +432,8 @@ void P_InitStreams(void) {
   // Sort files in ZIP archives by content directory
   IUnzip::SortEntries();
 
+#if _PATCHCONFIG_CUSTOM_MOD
+
   // Set custom mod extension to utilize Entities & Game libraries from the patch
   BOOL bChangeExtension = FALSE;
 
@@ -466,6 +471,13 @@ void P_InitStreams(void) {
   } else {
     ClassicsCore_SetCustomMod(false);
   }
+
+#else
+
+  // Custom mod is disabled
+  ClassicsCore_SetCustomMod(false);
+
+#endif // _PATCHCONFIG_CUSTOM_MOD
 };
 
 // Make a list of all files in a directory
