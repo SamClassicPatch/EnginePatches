@@ -40,6 +40,9 @@ CPatches::CPatches() {
 
 // Apply core patches (called after Core initialization!)
 void CPatches::CorePatches(void) {
+  // Hook this interface
+  _pCorePatches = this;
+
   const bool bGame = ClassicsCore_IsGameApp();
   const bool bServer = ClassicsCore_IsServerApp();
   const bool bEditor = ClassicsCore_IsEditorApp();
@@ -58,7 +61,7 @@ void CPatches::CorePatches(void) {
 
     // [Cecil] TODO: Make SKA patches work in Debug
     #if SE1_VER >= SE1_107 && defined(NDEBUG)
-      Ska(FALSE);
+      Ska();
     #endif
 
     if (bGame) {
@@ -314,7 +317,7 @@ void CPatches::Rendering(void) {
 
 #include "Patches/Ska.h"
 
-void CPatches::Ska(BOOL bRawPatches) {
+void CPatches::Ska(void) {
 #if _PATCHCONFIG_FIX_SKA
 
   // SKA models have been patched
@@ -544,6 +547,10 @@ void CPatches::FileSystem(void) {
 #endif
 
 #endif // _PATCHCONFIG_EXTEND_FILESYSTEM
+};
+
+// Clean up on Core shutdown (only for patches set by CorePatches() method)
+void CPatches::Cleanup(void) {
 };
 
 #endif // _PATCHCONFIG_ENGINEPATCHES

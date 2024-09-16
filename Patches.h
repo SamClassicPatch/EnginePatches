@@ -28,7 +28,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 #define TSE_FUSION_MODE (SE1_GAME == SS_TSE)
 
 // Available engine patches
-class PATCHES_API CPatches {
+class PATCHES_API CPatches : public ICorePatches {
   public:
     // Rendering
     INDEX _bAdjustForAspectRatio;
@@ -57,11 +57,14 @@ class PATCHES_API CPatches {
     // Constructor
     CPatches();
 
+    // Clean up on Core shutdown (only for patches set by CorePatches() method)
+    virtual void Cleanup(void);
+
     // Apply core patches (called after Core initialization!)
     void CorePatches(void);
 
   // Patches after Serious Engine and Core initializations
-  public:
+  private:
 
     // Enhance entities usage
     void Entities(void);
@@ -74,12 +77,6 @@ class PATCHES_API CPatches {
 
     // Enhance rendering
     void Rendering(void);
-
-    // [Cecil] TODO: Make SKA patches work in Debug
-    #if SE1_VER >= SE1_107 && defined(NDEBUG)
-      // Fix SKA models
-      void Ska(BOOL bRawPatches);
-    #endif
 
     // Enhance sound library usage
     void SoundLibrary(void);
@@ -98,6 +95,12 @@ class PATCHES_API CPatches {
 
     // Customize core file handling in the engine
     void FileSystem(void);
+
+  // [Cecil] TODO: Make SKA patches work in Debug
+  #if SE1_VER >= SE1_107 && defined(NDEBUG)
+    // Fix SKA models
+    void Ska(void);
+  #endif
 
     // Don't use memory paging in streams
     void UnpageStreams(void);
