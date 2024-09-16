@@ -69,6 +69,9 @@ class PATCHES_API CPatches : public ICorePatches {
     // Enhance entities usage
     void Entities(void);
 
+    // Improve input
+    void Input(void);
+
     // Fix timers for entity logic
     void LogicTimers(void);
 
