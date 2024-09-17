@@ -159,9 +159,6 @@ class PATCHES_API CInputPatch : public CInput {
     inline FLOAT P_GetAxisValue(INDEX iAxisNo) const {
       return inp_aInputActions[CECIL_FIRST_AXIS_ACTION + iAxisNo].ida_fReading;
     };
-
-    // Get given button's current state
-    BOOL P_GetButtonState(INDEX iButtonNo) const;
 };
 
 #endif // _PATCHCONFIG_EXTEND_INPUT

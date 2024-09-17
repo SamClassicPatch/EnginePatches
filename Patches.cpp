@@ -210,9 +210,6 @@ void CPatches::Input(void) {
   FLOAT (CInput::*pGetAxisValue)(INDEX) const = &CInput::GetAxisValue;
   CreatePatch(pGetAxisValue, &CInputPatch::P_GetAxisValue, "CInput::GetAxisValue()");
 
-  BOOL (CInput::*pGetButtonState)(INDEX) const = &CInput::GetButtonState;
-  CreatePatch(pGetButtonState, &CInputPatch::P_GetButtonState, "CInput::GetButtonState()");
-
   // Initialize the new input system after patching the old one
   CInputPatch::Construct();
   _pInput->Initialize();

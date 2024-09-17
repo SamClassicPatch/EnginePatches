@@ -317,32 +317,6 @@ LRESULT CALLBACK SendMsgProc(int nCode, WPARAM wParam, LPARAM lParam) {
   return CallNextHookEx(_hSendMsgHook, nCode, wParam, lParam);
 };
 
-// [Cecil]
-void InputDeviceAction::SetReading(INDEX iActionIndex, DOUBLE fSetReading) {
-  InputDeviceAction &ida = inp_aInputActions[iActionIndex];
-  ida.ida_fReading = fSetReading;
-
-  // Exclude mouse axes from button states (due to being too sensitive)
-  BOOL bSetState = FALSE;
-
-  if (iActionIndex < CECIL_FIRST_AXIS_ACTION || iActionIndex >= CECIL_FIRST_AXIS_ACTION + EIA_MAX_MOUSE) {
-    bSetState = ida.IsActive();
-  }
-
-  // Set button state
-  _pInput->inp_ubButtonsBuffer[iActionIndex] = (bSetState ? 0xFF : 0x00);
-
-  // Set axis reading as well
-  if (iActionIndex >= CECIL_FIRST_AXIS_ACTION) {
-    _pInput->inp_caiAllAxisInfo[iActionIndex - CECIL_FIRST_AXIS_ACTION].cai_fReading = ida.ida_fReading;
-  }
-};
-
-// [Cecil]
-bool InputDeviceAction::IsActive(DOUBLE fThreshold) const {
-  return Abs(ida_fReading) >= ClampUp(fThreshold, 1.0);
-};
-
 // [Cecil] All possible actions that can be used as controls
 InputDeviceAction inp_aInputActions[MAX_OVERALL_BUTTONS];
 
@@ -351,6 +325,40 @@ CStaticArray<GameController_t> inp_aControllers;
 
 // [Cecil] Threshold for moving any axis to consider it as being "held down"
 FLOAT inp_fAxisPressThreshold = 0.2f;
+
+// [Cecil]
+void InputDeviceAction::SetReading(INDEX iActionIndex, DOUBLE fSetReading) {
+  // Set internal reading
+  InputDeviceAction &ida = inp_aInputActions[iActionIndex];
+  ida.ida_fReading = fSetReading;
+
+  // Set vanilla states for compatibility
+  BOOL bSetButtonState = FALSE;
+  const INDEX iAxisOffset = CECIL_FIRST_AXIS_ACTION;
+
+  // Axis actions
+  if (iActionIndex >= iAxisOffset) {
+    // Set axis reading
+    _pInput->inp_caiAllAxisInfo[iActionIndex - iAxisOffset].cai_fReading = ida.ida_fReading;
+
+    // Set button state only for controller axes
+    if (iActionIndex >= iAxisOffset + EIA_CONTROLLER_OFFSET && iActionIndex < iAxisOffset + EIA_MAX_ALL) {
+      bSetButtonState = ida.IsActive(inp_fAxisPressThreshold);
+    }
+
+  // Buttons
+  } else {
+    bSetButtonState = ida.IsActive();
+  }
+
+  // Set button state
+  _pInput->inp_ubButtonsBuffer[iActionIndex] = (bSetButtonState ? 0xFF : 0x00);
+};
+
+// [Cecil]
+bool InputDeviceAction::IsActive(DOUBLE fThreshold) const {
+  return Abs(ida_fReading) >= ClampUp(fThreshold, 1.0);
+};
 
 // deafult constructor
 void CInputPatch::Construct(void)
@@ -732,23 +740,6 @@ void CInputPatch::P_ClearInput(void)
   for (INDEX i = 0; i < MAX_OVERALL_BUTTONS; i++) {
     InputDeviceAction::SetReading(i, 0);
   }
-};
-
-// Get given button's current state
-BOOL CInputPatch::P_GetButtonState(INDEX iButtonNo) const {
-  // [Cecil] Exclude mouse axes
-  if (iButtonNo >= CECIL_FIRST_AXIS_ACTION && iButtonNo < CECIL_FIRST_AXIS_ACTION + EIA_MAX_MOUSE) {
-    return FALSE;
-  }
-
-  // [Cecil] Set custom threshold for axes
-  FLOAT fThreshold = 0.5f;
-
-  if (iButtonNo >= CECIL_FIRST_AXIS_ACTION && iButtonNo < CECIL_FIRST_AXIS_ACTION + EIA_MAX_ALL) {
-    fThreshold = inp_fAxisPressThreshold;
-  }
-
-  return inp_aInputActions[iButtonNo].IsActive(fThreshold);
 };
 
 #endif // _PATCHCONFIG_EXTEND_INPUT
