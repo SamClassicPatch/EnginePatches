@@ -204,9 +204,6 @@ void CPatches::Input(void) {
   CreatePatch(pScanJoystick, &CInputPatch::P_ScanJoystick, "CInput::ScanJoystick()");
 
   // Getters
-  const CTString &(CInput::*pGetAxisName)(INDEX) const = &CInput::GetAxisName;
-  CreatePatch(pGetAxisName, &CInputPatch::P_GetAxisName, "CInput::GetAxisName()");
-
   const CTString &(CInput::*pGetAxisTransName)(INDEX) const = &CInput::GetAxisTransName;
   CreatePatch(pGetAxisTransName, &CInputPatch::P_GetAxisTransName, "CInput::GetAxisTransName()");
 

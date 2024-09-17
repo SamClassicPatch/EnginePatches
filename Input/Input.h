@@ -150,12 +150,6 @@ class PATCHES_API CInputPatch : public CInput {
 
   public:
 
-    // Get name of given axis
-    inline const CTString &P_GetAxisName(INDEX iAxisNo) const {
-      // [Cecil] Start past the button actions for compatibility
-      return inp_strButtonNames[CECIL_FIRST_AXIS_ACTION + iAxisNo];
-    };
-
     // Get translated name of given axis
     inline const CTString &P_GetAxisTransName(INDEX iAxisNo) const {
       return inp_strButtonNamesTra[CECIL_FIRST_AXIS_ACTION + iAxisNo];
