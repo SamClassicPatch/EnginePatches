@@ -68,7 +68,7 @@ struct PATCHES_API GameController_t {
   GameController_t();
   ~GameController_t();
 
-  void Connect(INDEX iSetSlot);
+  void Connect(INDEX iConnectSlot, INDEX iArraySlot);
   void Disconnect(void);
   BOOL IsConnected(void);
 };
@@ -117,7 +117,7 @@ class PATCHES_API CInputPatch : public CInput {
 
     // [Cecil] Open a game controller under some slot
     // Slot index always ranges from 0 to SDL_NumJoysticks()-1
-    static void OpenGameController(INDEX iSlot);
+    static void OpenGameController(INDEX iConnectSlot);
 
     // [Cecil] Close a game controller under some device index
     // This device index is NOT the same as a slot and it's always unique for each added controller
