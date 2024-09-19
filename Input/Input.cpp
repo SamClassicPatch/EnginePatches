@@ -357,7 +357,7 @@ void InputDeviceAction::SetReading(INDEX iActionIndex, DOUBLE fSetReading) {
 
 // [Cecil]
 bool InputDeviceAction::IsActive(DOUBLE fThreshold) const {
-  return Abs(ida_fReading) >= ClampUp(fThreshold, 1.0);
+  return Abs(ida_fReading) >= Clamp(fThreshold, 0.01, 1.0);
 };
 
 // deafult constructor
