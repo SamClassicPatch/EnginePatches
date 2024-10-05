@@ -275,10 +275,10 @@ void CEntityPatch::P_ReadProperties(CTStream &istrm) {
 void CEntityPatch::P_SendEvent(const CEntityEvent &ee)
 {
   // Call event sending function for each plugin
-  FOREACHPLUGINHANDLER(k_EPluginEventType_Listener, IListenerEvents, pEvents) {
-    if (pEvents == NULL) continue;
+  FOREACHPLUGIN(itPlugin) {
+    if (itPlugin->pm_events.m_listener->OnSendEvent == NULL) continue;
 
-    pEvents->OnSendEvent(this, ee);
+    itPlugin->pm_events.m_listener->OnSendEvent(this, ee);
   }
 
   // Proceed to the original function
@@ -292,10 +292,10 @@ BOOL CEntityPatch::P_ReceiveItem(const CEntityEvent &ee)
   BOOL bResult = (this->*pReceiveItem)(ee);
 
   // Call receive item function for each plugin
-  FOREACHPLUGINHANDLER(k_EPluginEventType_Listener, IListenerEvents, pEvents) {
-    if (pEvents == NULL) continue;
+  FOREACHPLUGIN(itPlugin) {
+    if (itPlugin->pm_events.m_listener->OnReceiveItem == NULL) continue;
 
-    pEvents->OnReceiveItem(this, ee, bResult);
+    itPlugin->pm_events.m_listener->OnReceiveItem(this, ee, bResult);
   }
 
   return bResult;
@@ -355,10 +355,10 @@ void CEntityPatch::P_MovingBrush_GetForce(INDEX iForce, const FLOAT3D &vPoint, C
 void CRationalEntityPatch::P_Call(SLONG slThisState, SLONG slTargetState, BOOL bOverride, const CEntityEvent &eeInput)
 {
   // Call event functions for each plugin
-  FOREACHPLUGINHANDLER(k_EPluginEventType_Listener, IListenerEvents, pEvents) {
-    if (pEvents == NULL) continue;
+  FOREACHPLUGIN(itPlugin) {
+    if (itPlugin->pm_events.m_listener->OnCallProcedure == NULL) continue;
 
-    pEvents->OnCallProcedure(this, eeInput);
+    itPlugin->pm_events.m_listener->OnCallProcedure(this, eeInput);
   }
 
   // Original function code
