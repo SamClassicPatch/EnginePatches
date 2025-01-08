@@ -176,6 +176,9 @@ void CPatches::Entities(void) {
 void CPatches::Input(void) {
 #if _PATCHCONFIG_EXTEND_INPUT
 
+  // Don't patch input
+  if (!IConfig::global[k_EConfigProps_ExtendedInput]) return;
+
   // Initialization
   void (CInput::*pInitialize)(void) = &CInput::Initialize;
   CreatePatch(pInitialize, &CInputPatch::P_Initialize, "CInput::Initialize()");

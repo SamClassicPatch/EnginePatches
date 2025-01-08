@@ -360,9 +360,15 @@ bool InputDeviceAction::IsActive(DOUBLE fThreshold) const {
   return Abs(ida_fReading) >= Clamp(fThreshold, 0.01, 1.0);
 };
 
+// [Cecil] State switch
+static BOOL _bPatchedInput = FALSE;
+
 // deafult constructor
 void CInputPatch::Construct(void)
 {
+  if (IsInitialized()) return;
+  _bPatchedInput = TRUE;
+
   // [Cecil] Compatibility checks
   ASSERT(EIA_NONE == AXIS_NONE);
   ASSERT(EIA_MOUSE_X == MOUSE_X_AXIS);
@@ -399,13 +405,22 @@ void CInputPatch::Construct(void)
 };
 
 // Destructor
-void CInputPatch::Destruct() {
+void CInputPatch::Destruct()
+{
+  if (!IsInitialized()) return;
+  _bPatchedInput = FALSE;
+
   // [Cecil] Various cleanups
   ShutdownJoysticks();
   Mouse2_Clear();
 
   // [Cecil] End SDL
   SDL_Quit();
+};
+
+// [Cecil] Check if input patch has been initialized
+BOOL CInputPatch::IsInitialized(void) {
+  return _bPatchedInput;
 };
 
 /*
